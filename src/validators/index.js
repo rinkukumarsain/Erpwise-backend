@@ -1,0 +1,1 @@
+exports.userValidators = require('./userValidators');

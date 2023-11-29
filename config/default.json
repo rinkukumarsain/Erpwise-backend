@@ -25,5 +25,83 @@
         "6": "admin",
         "7": "superAdmin"
     },
-    "roleAccess": {}
+    "roleAccess": {
+        "superAdmin": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": false
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": false
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            },
+            {
+                "label": "Users",
+                "icon": "ICONUSERS",
+                "route": "/base/user",
+                "isactive": false
+            }
+        ],
+        "admin": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": false
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": false
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            },
+            {
+                "label": "Users",
+                "icon": "ICONUSERS",
+                "route": "/base/user",
+                "isactive": false
+            }
+        ],
+        "sales": []
+    }
 }

@@ -102,6 +102,25 @@
                 "isactive": false
             }
         ],
-        "sales": []
+        "sales": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": false
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            }
+        ]
     }
 }

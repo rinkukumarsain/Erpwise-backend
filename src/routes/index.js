@@ -9,4 +9,5 @@ module.exports = (app) => {
     // console.log(app);
     app.use(apiV1Prefix, require('./heartBeat'));
     app.use(`${apiV1Prefix}/user`, require('./user'));
+    app.use(`${apiV1Prefix}/currency`, require('./currency'));
 };

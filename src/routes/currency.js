@@ -7,7 +7,7 @@ const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { currencyService } = require('../services');
 // const { userValidators } = require('../validators');
-// const { jwtVerify } = require('../middleware/auth');
+const { jwtVerify } = require('../middleware/auth');
 const router = express.Router();
 
 const LOG_ID = 'routes/currency';
@@ -15,7 +15,7 @@ const LOG_ID = 'routes/currency';
 /**
  * Route for get all currencies.
  */
-router.get('/getAll', async (req, res) => {
+router.get('/getAll', jwtVerify, async (req, res) => {
     try {
         const result = await currencyService.getAllCurrencies();
         if (result.success) {

@@ -1,0 +1,4 @@
+*-lock.json
+.env
+node_modules/
+server.log

@@ -1,0 +1,73 @@
+{
+    "env": {
+      "commonjs": true,
+      "node": true,
+      "es6": true,
+      "jest": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:jsdoc/recommended",
+      "plugin:node/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2019,
+      "sourceType": "script"
+    },
+    "rules": {
+      "indent": [
+        "error",
+        4,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "quotes": [
+        "error",
+        "single",
+        {
+          "allowTemplateLiterals": true
+        }
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "no-console": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          "args": "after-used",
+          "argsIgnorePattern": "^_"
+        }
+      ],
+      "no-use-before-define": "off",
+      "import/no-commonjs": "off",
+      "import/no-nodejs-modules": "off",
+      "jsdoc/require-jsdoc": [
+        "warn",
+        {
+          "require": {
+            "ArrowFunctionExpression": true,
+            "ClassDeclaration": true,
+            "ClassExpression": true,
+            "FunctionDeclaration": true,
+            "FunctionExpression": true,
+            "MethodDefinition": true
+          }
+        }
+      ],
+      "spaced-comment": [
+        "error",
+        "always"
+      ],
+      "comma-dangle": [
+        "error",
+        "never"
+      ]
+    }
+  }

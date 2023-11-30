@@ -4,11 +4,11 @@ const bcrypt = require('bcryptjs');
 const { userModel } = require('../dbModel');
 const { userDao } = require('../dao');
 const { generateAuthToken } = require('../utils/tokenGenerator');
-const { roleAccess } = require('../../config/default.json');
+const { roleAccess, roles } = require('../../config/default.json');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
-const LOG_ID = 'services/userServices';
+const LOG_ID = 'services/userService';
 
 /**
  * Authenticates a user by verifying their credentials.
@@ -51,7 +51,6 @@ exports.login = async (reqBody) => {
         });
 
         await userModel.updateOne({ _id: findUser._id }, { token });
-        // const resData = await this.uesrProfile({ userId: findUser._id });
         userData.menuList = roleAccess[userData.role];
         return {
             success: true,
@@ -77,7 +76,6 @@ exports.login = async (reqBody) => {
  */
 exports.uesrProfile = async ({ userId }) => {
     try {
-        // const findUser = await userModel.findOne({ _id: userId, status: userStatus.active }, { password: 0 });
         const findUser = await query.aggregation(userModel, userDao.userProfilePipeline(userId));
 
         if (findUser.length == 0) {
@@ -94,6 +92,72 @@ exports.uesrProfile = async ({ userId }) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching user profile (uesrProfile): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Registers a new user with the provided user data.
+ *
+ * @param {object} auth - The authentication details of the current user.
+ * @param {object} body - The user data to be registered, including 'role', 'createdBy', and 'password' ..etc.
+ * @returns {object} - An object with registration results:
+ *   - `success` (boolean): Indicates whether the registration was successful.
+ *   - `message` (string): A message describing the result of the registration.
+ *   - `data` (Object): Registered user data if registration is successful.
+ */
+exports.registerUser = async (auth, body) => {
+    try {
+        if (!roles[body.role]) {
+            return {
+                success: false,
+                message: `Please provide a valid role type.`
+            };
+        }
+
+        const checkUniqueEmail = await query.findOne(userModel, { email: body.email });
+        if (checkUniqueEmail) return {
+            success: false,
+            message: 'This email is already taken. Please choose a different one.'
+        };
+
+        const findCreatedByUser = await query.findOne(userModel, { _id: body.createdBy, isActive: true });
+        if (!findCreatedByUser) {
+            return {
+                success: false,
+                message: `The user who is creating this ${body.role} could not be found.`
+            };
+        }
+
+        if (roles[body.role] >= roles[auth.role]) {
+            return {
+                success: false,
+                message: `This action requires a higher level of authorization.`
+            };
+        }
+
+        const salt = bcrypt.genSaltSync(10);
+        body.password = await bcrypt.hashSync(body.password, salt);
+
+        let insertUser = await query.create(userModel, body);
+        if (insertUser) {
+            delete insertUser._doc.password;
+            return {
+                success: true,
+                message: `${body.name} created successfully.`,
+                data: insertUser
+            };
+        } else {
+            return {
+                success: false,
+                message: 'Error while creating user.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during registerUser: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

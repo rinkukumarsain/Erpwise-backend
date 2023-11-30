@@ -31,13 +31,13 @@
                 "label": "Crm",
                 "icon": "ICONCRM",
                 "route": "/base/crm",
-                "isactive": false
+                "isactive": true
             },
             {
                 "label": "Sales",
                 "icon": "ICONSALES",
                 "route": "/base/sales",
-                "isactive": true
+                "isactive": false
             },
             {
                 "label": "Finance",
@@ -62,6 +62,12 @@
                 "icon": "ICONUSERS",
                 "route": "/base/user",
                 "isactive": false
+            },
+            {
+                "label": "Settings",
+                "icon": "ICONSETTING",
+                "route": "/base/settings",
+                "isactive": false
             }
         ],
         "admin": [
@@ -69,13 +75,13 @@
                 "label": "Crm",
                 "icon": "ICONCRM",
                 "route": "/base/crm",
-                "isactive": false
+                "isactive": true
             },
             {
                 "label": "Sales",
                 "icon": "ICONSALES",
                 "route": "/base/sales",
-                "isactive": true
+                "isactive": false
             },
             {
                 "label": "Finance",
@@ -121,6 +127,53 @@
                 "route": "/base/supplier",
                 "isactive": false
             }
+        ],
+        "warehouseManager": [
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": true
+            }
+        ],
+        "operations": [
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            }
+        ],
+        "finance": [
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": false
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": true
+            }
+        ]
+    },
+    "roleBaseRouteAccess": {
+        "superAdmin": [
+            "/paymentTerms"
         ]
     }
 }

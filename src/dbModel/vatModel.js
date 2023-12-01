@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * @typedef {Object} vatSchema
+ * @typedef {object} Vat
  * @property {string} name - The name of the vat.
  * @property {number} percentage - The percentage associated with the vat.
  * @property {boolean} isActive - Indicates whether the vat is active.
@@ -12,26 +12,27 @@ const { Schema } = mongoose;
 
 /**
  * Mongoose schema for vat.
+ *
  * @type {mongoose.Schema<Vat>}
  */
 const vatSchema = new Schema(
     {
         name: {
             type: String,
-            default: '',
+            default: ''
         },
         percentage: {
             type: Number,
-            default: 0,
+            default: 0
         },
         isActive: {
             type: Boolean,
-            default: true,
-        },
+            default: true
+        }
     },
     {
         timestamps: true,
-        versionKey: false,
+        versionKey: false
     }
 );
 

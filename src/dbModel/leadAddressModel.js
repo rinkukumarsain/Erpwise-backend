@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * @typedef {object} OrganisationAddress
- * @property {mongoose.Types.ObjectId} organisationId - The ID of the organisation (referenced from 'organisation' model).
+ * @typedef {object} leadAddressSchema
+ * @property {mongoose.Types.ObjectId} leadId - The ID of the lead (referenced from 'Lead' model).
  * @property {string} addresstype - The type of address.
  * @property {string} address - The main address information.
  * @property {string} street - The street name.
@@ -19,14 +19,13 @@ const { Schema } = mongoose;
 /**
  * Mongoose schema for organisation address.
  *
- * @type {mongoose.Schema<OrganisationAddress>}
+ * @type {mongoose.Schema<leadAddressSchema>}
  */
-
-const organisationAddressSchema = new Schema(
+const leadAddressSchema = new Schema(
     {
-        organisationId: {
+        leadId: {
             type: mongoose.Types.ObjectId,
-            ref: 'organisation',
+            ref: 'Lead',
             required: true
         },
         addresstype: {
@@ -75,4 +74,4 @@ const organisationAddressSchema = new Schema(
     }
 );
 
-module.exports = mongoose.model('OrganisationAddress', organisationAddressSchema);
+module.exports = mongoose.model('LeadAddress', leadAddressSchema);

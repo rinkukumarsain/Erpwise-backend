@@ -13,7 +13,7 @@ exports.authorizeRoleAccess = async (req, res, next) => {
     try {
         // Extract the route from the baseUrl
         const checkUrl = req.baseUrl.split(apiV1Prefix);
-
+        console.log('checkUrl', checkUrl);
         // Check if the user's role has access to the current route
         if (roleBaseRouteAccess[req.headers.role].includes(checkUrl[1])) {
             next(); // User is authorized, proceed to the next middleware or route

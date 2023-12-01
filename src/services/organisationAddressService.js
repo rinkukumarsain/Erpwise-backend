@@ -5,6 +5,10 @@ const { logger } = require('../utils/logger');
 const LOG_ID = 'services/currencyServices';
 
 // Create operation
+/**
+ *
+ * @param {object} organisationAddressData - check
+ */
 exports.createOrganisationAddress = async (organisationAddressData) => {
     try {
         if (organisationAddressData.addresstype === 'Billing') {
@@ -13,7 +17,7 @@ exports.createOrganisationAddress = async (organisationAddressData) => {
                 organisationAddressData.isDefault = true;
             }
         }
-        const result = await qyuery.create(organisationAddressModel, organisationAddressData);
+        const result = await query.create(organisationAddressModel, organisationAddressData);
         return {
             success: true,
             message: 'Organisation address added successfully!',
@@ -26,9 +30,13 @@ exports.createOrganisationAddress = async (organisationAddressData) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get all organisation addresses
+/**
+ *
+ * @param {object} queryParam - check
+ */
 exports.getAllOrganisationAddresses = async (queryParam) => {
     try {
         const { addresstype, isDefault, isActive } = queryParam;
@@ -42,7 +50,7 @@ exports.getAllOrganisationAddresses = async (queryParam) => {
             return {
                 success: false,
                 message: 'Address not found!'
-            }
+            };
         }
         return {
             success: true,
@@ -56,9 +64,13 @@ exports.getAllOrganisationAddresses = async (queryParam) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get organisation address by ID
+/**
+ *
+ * @param {string} organisationAddressId - check
+ */
 exports.getOrganisationAddressById = async (organisationAddressId) => {
     try {
         const organisationAddress = await query.findOne(organisationAddressModel, { _id: organisationAddressId, isActive: true });
@@ -66,12 +78,12 @@ exports.getOrganisationAddressById = async (organisationAddressId) => {
             return {
                 success: false,
                 message: 'Address not found!'
-            }
+            };
         }
         return {
             success: true,
             message: 'Organisation address fetched successfully!',
-            data: result
+            data: organisationAddress
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching address by id: ${error}`);
@@ -80,13 +92,18 @@ exports.getOrganisationAddressById = async (organisationAddressId) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Update operation
+/**
+ *
+ * @param {string} organisationAddressId - organisation id
+ * @param {object} updateData - data to be updated
+ */
 exports.updateOrganisationAddress = async (organisationAddressId, updateData) => {
     try {
         if (updateData.addresstype === 'Billing' && updateData.isDefault === true) {
-            const organisationBillAddress = await organisationAddressModel.findOneAndUpdate(
+            await organisationAddressModel.findOneAndUpdate(
                 { addresstype: 'Billing', isDefault: true },
                 { isDefault: false },
                 { new: true }
@@ -101,7 +118,7 @@ exports.updateOrganisationAddress = async (organisationAddressId, updateData) =>
             return {
                 success: false,
                 message: 'Address not found!'
-            }
+            };
         }
         return {
             success: true,
@@ -115,9 +132,13 @@ exports.updateOrganisationAddress = async (organisationAddressId, updateData) =>
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Delete operation
+/**
+ *
+ * @param {string} organisationAddressId - organisation id 
+ */
 exports.deleteOrganisationAddress = async (organisationAddressId) => {
     try {
         const result = await organisationAddressModel.findByIdAndUpdate(organisationAddressId, { isActive: false });
@@ -133,4 +154,4 @@ exports.deleteOrganisationAddress = async (organisationAddressId) => {
             message: 'Something went wrong'
         };
     }
-}
+};

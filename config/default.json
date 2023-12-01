@@ -173,7 +173,10 @@
     },
     "roleBaseRouteAccess": {
         "superAdmin": [
-            "/paymentTerms"
+            "/paymentTerms",
+            "/vat",
+            "/organisationAddress",
+            "/organisation"
         ]
     }
 }

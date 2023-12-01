@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * @typedef {Object} Organisation
+ * @typedef {object} Organisation
  * @property {string} [image] - URL or path to the organisation's image.
  * @property {string} companyName - The name of the company (must be unique).
  * @property {string} [website] - The website URL of the organisation.
@@ -19,49 +19,50 @@ const { Schema } = mongoose;
 
 /**
  * Mongoose schema for organisation.
+ *
  * @type {mongoose.Schema<Organisation>}
  */
 const organisationSchema = new Schema(
     {
         image: {
-            type: String,
+            type: String
         },
         companyName: {
             type: String,
             unique: true,
-            required: true,
+            required: true
         },
         website: {
-            type: String,
+            type: String
         },
         email: {
             type: String,
-            required: true,
+            required: true
         },
         phone: {
-            type: String,
+            type: String
         },
         industryType: {
-            type: String,
+            type: String
         },
         currency: {
             type: mongoose.Types.ObjectId,
-            ref: 'currency',
+            ref: 'currency'
         },
         documents: {
-            type: Array,
+            type: Array
         },
         organisationAddress: [
             {
                 type: mongoose.Types.ObjectId,
-                ref: 'organisationAddress',
-            },
+                ref: 'organisationAddress'
+            }
         ],
-        address_count: { type: Number, default: 0 },
+        address_count: { type: Number, default: 0 }
     },
     {
         timestamps: true,
-        versionKey: false,
+        versionKey: false
     }
 );
 

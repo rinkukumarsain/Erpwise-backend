@@ -5,6 +5,10 @@ const { logger } = require('../utils/logger');
 const LOG_ID = 'services/vatService';
 
 // Create operation
+/**
+ *
+ * @param {object} vatData - data yo be created
+ */
 exports.createVat = async (vatData) => {
     try {
         const vat = await query.create(vatModel, vatData);
@@ -20,21 +24,25 @@ exports.createVat = async (vatData) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get all vats
-exports.getAllVat = async () => {
+/**
+ *
+ * @param {object} queryParam - optional parameter
+ */
+exports.getAllVat = async (queryParam) => {
     try {
         const { isActive } = queryParam;
         let obj = {};
-        if (isDefault) obj['isActive'] = isActive === 'true' ? true : false;
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
 
         const vatList = await query.find(vatModel, obj);
         if (!vatList.length) {
             return {
                 success: false,
                 message: 'Vat not found!'
-            }
+            };
         }
         return {
             success: true,
@@ -48,9 +56,13 @@ exports.getAllVat = async () => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get vats by ID
+/**
+ *
+ * @param {string} vatId - vat id
+ */
 exports.getvatById = async (vatId) => {
     try {
         const vat = await query.findOne(vatModel, { _id: vatId, isActive: true });
@@ -58,12 +70,12 @@ exports.getvatById = async (vatId) => {
             return {
                 success: false,
                 message: 'Vat not found!'
-            }
+            };
         }
         return {
             success: true,
             message: 'Vat fetched successfully!',
-            data: vatList
+            data: vat
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting vat by id: ${error}`);
@@ -72,12 +84,17 @@ exports.getvatById = async (vatId) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Update operation
+/**
+ *
+ * @param {string} vatId - vat id
+ * @param {object} updateData - data to be updated
+ */
 exports.updatevat = async (vatId, updateData) => {
     try {
-        const result = await vat.findByIdAndUpdate(
+        const result = await vatModel.findByIdAndUpdate(
             vatId,
             { $set: updateData },
             { new: true }
@@ -94,12 +111,16 @@ exports.updatevat = async (vatId, updateData) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Delete operation
+/**
+ *
+ * @param {string} vatId - vat id
+ */
 exports.deletevat = async (vatId) => {
     try {
-        const result = await vat.findByIdAndUpdate(
+        const result = await vatModel.findByIdAndUpdate(
             vatId,
             { $set: { isActive: false } },
             { new: true }
@@ -116,4 +137,4 @@ exports.deletevat = async (vatId) => {
             message: 'Something went wrong'
         };
     }
-}
+};

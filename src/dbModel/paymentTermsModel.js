@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * @typedef {Object} paymentTermsSchema
+ * @typedef {object} PaymentTerms
  * @property {string} name - The name of the paymentTerms.
  * @property {number} noOfDays - The number of days associated with the paymentTerms.
  * @property {boolean} isActive - Indicates whether the paymentTerms is active.
@@ -12,26 +12,27 @@ const { Schema } = mongoose;
 
 /**
  * Mongoose schema for payment term.
+ *
  * @type {mongoose.Schema<PaymentTerms>}
  */
 const paymentTermsSchema = new Schema(
     {
         name: {
             type: String,
-            default: '',
+            default: ''
         },
         noOfDays: {
             type: Number,
-            default: 0,
+            default: 0
         },
         isActive: {
             type: Boolean,
-            default: true,
-        },
+            default: true
+        }
     },
     {
         timestamps: true,
-        versionKey: false,
+        versionKey: false
     }
 );
 

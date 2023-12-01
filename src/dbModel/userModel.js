@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * @typedef {Object} User
+ * @typedef {object} User
  * @property {string} name - The name of the user.
  * @property {string} [image] - URL or path to the user's image.
  * @property {string} employeeId - The employee ID (must be unique).
@@ -23,71 +23,72 @@ const { Schema } = mongoose;
 
 /**
  * Mongoose schema for user.
+ *
  * @type {mongoose.Schema<User>}
  */
 const userSchema = new Schema(
     {
         name: {
             type: String,
-            required: true,
+            required: true
         },
         image: {
             type: String,
-            default: '',
+            default: ''
         },
         employeeId: {
             type: String,
             required: true,
-            unique: true,
+            unique: true
         },
         email: {
             type: String,
             required: true,
-            unique: true,
+            unique: true
         },
         mobile: {
             type: String,
-            default: '',
+            default: ''
         },
         password: {
             type: String,
-            required: true,
+            required: true
         },
         role: {
             type: String,
             required: true,
-            default: 'user',
+            default: 'user'
         },
         createdBy: {
-            type: mongoose.Types.ObjectId,
+            type: mongoose.Types.ObjectId
         },
         updatedBy: {
-            type: mongoose.Types.ObjectId,
+            type: mongoose.Types.ObjectId
         },
         baseCurrency: {
             type: mongoose.Types.ObjectId,
-            required: true,
+            required: true
         },
         organisationId: {
             type: mongoose.Types.ObjectId,
-            required: true,
+            required: true
         },
         isActive: {
             type: Boolean,
-            default: true,
+            default: true
         },
         token: {
             type: String,
-            default: '',
+            default: ''
         },
         jobTitle: {
             type: String,
-            default: '',
-        },
+            default: ''
+        }
     },
     {
         timestamps: true,
-        versionKey: false,
+        versionKey: false
     }
 );
 

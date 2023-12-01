@@ -5,6 +5,10 @@ const { logger } = require('../utils/logger');
 const LOG_ID = 'services/paymentTermsService';
 
 // Create operation
+/**
+ *
+ * @param {object} paymentTermsData - data object to be created
+ */
 exports.createPaymentTerms = async (paymentTermsData) => {
     try {
         const paymentTerms = await query.create(paymentTermsModel, paymentTermsData);
@@ -20,21 +24,25 @@ exports.createPaymentTerms = async (paymentTermsData) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get all payment terms
-exports.getAllPaymentTerms = async () => {
+/**
+ *
+ * @param {object} queryParam - optional query params
+ */
+exports.getAllPaymentTerms = async (queryParam) => {
     try {
         const { isActive } = queryParam;
         let obj = {};
-        if (isDefault) obj['isActive'] = isActive === 'true' ? true : false;
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
 
         const paymentTermsList = await query.find(paymentTermsModel, obj);
         if (!paymentTermsList.length) {
             return {
                 success: false,
                 message: 'Payment term not found!'
-            }
+            };
         }
         return {
             success: true,
@@ -48,9 +56,13 @@ exports.getAllPaymentTerms = async () => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Read operation - Get payment terms by ID
+/**
+ *
+ * @param {string} paymentTermsId - payment term id
+ */
 exports.getPaymentTermsById = async (paymentTermsId) => {
     try {
         const paymentTerms = await query.findOne(paymentTermsModel, { _id: paymentTermsId, isActive: true });
@@ -58,12 +70,12 @@ exports.getPaymentTermsById = async (paymentTermsId) => {
             return {
                 success: false,
                 message: 'Payment term not found!'
-            }
+            };
         }
         return {
             success: true,
             message: 'Payment term fetched successfully!',
-            data: paymentTermsList
+            data: paymentTerms
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting payment term by id: ${error}`);
@@ -72,12 +84,17 @@ exports.getPaymentTermsById = async (paymentTermsId) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Update operation
+/**
+ *
+ * @param {string} paymentTermsId - payment term id
+ * @param {object} updateData - data to be updated
+ */
 exports.updatePaymentTerms = async (paymentTermsId, updateData) => {
     try {
-        const result = await PaymentTerms.findByIdAndUpdate(
+        const result = await paymentTermsModel.findByIdAndUpdate(
             paymentTermsId,
             { $set: updateData },
             { new: true }
@@ -94,12 +111,16 @@ exports.updatePaymentTerms = async (paymentTermsId, updateData) => {
             message: 'Something went wrong'
         };
     }
-}
+};
 
 // Delete operation
+/**
+ *
+ * @param {string} paymentTermsId - payment id
+ */
 exports.deletePaymentTerms = async (paymentTermsId) => {
     try {
-        const result = await PaymentTerms.findByIdAndUpdate(
+        const result = await paymentTermsModel.findByIdAndUpdate(
             paymentTermsId,
             { $set: { isActive: false } },
             { new: true }
@@ -116,4 +137,4 @@ exports.deletePaymentTerms = async (paymentTermsId) => {
             message: 'Something went wrong'
         };
     }
-}
+};

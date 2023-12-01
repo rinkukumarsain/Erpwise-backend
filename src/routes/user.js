@@ -7,7 +7,7 @@ const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { userService } = require('../services');
 const { userValidators } = require('../validators');
-// const { jwtVerify } = require('../middleware/auth');
+const { jwtVerify } = require('../middleware/auth');
 const router = express.Router();
 
 const LOG_ID = 'routes/user';
@@ -24,6 +24,22 @@ router.post('/login', validate(userValidators.login), async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for user registration.
+ */
+router.post('/register', jwtVerify, validate(userValidators.registerUser), async (req, res) => {
+    try {
+        const result = await userService.registerUser(req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during registration: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

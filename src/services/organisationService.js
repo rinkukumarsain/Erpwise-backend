@@ -1,0 +1,116 @@
+const { organisationModel } = require('../dbModel'); // Assuming your model file is in the same directory
+const { query } = require('../utils/mongodbQuery');
+const { logger } = require('../utils/logger');
+
+const LOG_ID = 'services/organisationService';
+
+// Create operation
+/**
+ *
+ * @param {object} organisationData - data to be created
+ */
+exports.createOrganisation = async (organisationData) => {
+    try {
+        const result = await query.create(organisationModel, organisationData);
+        return {
+            success: true,
+            message: 'Organisation created successfully!',
+            data: result
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while creating organisation: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+// Read operation - Get all organisations
+/**
+ *
+ */
+exports.getAllOrganisations = async () => {
+    try {
+        const organisations = await query.find(organisationModel);
+        if (!organisations.length) {
+            return {
+                success: false,
+                message: 'No organisation found!'
+            };
+        }
+        return {
+            success: true,
+            message: 'Organisation data fetched successfully!',
+            data: organisations
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while getting all organisations: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+// Read operation - Get organisation by ID
+/**
+ *
+ * @param {string} organisationId - organisation id
+ */
+exports.getOrganisationById = async (organisationId) => {
+    try {
+        const organisation = await query.findById(organisationModel, organisationId);
+        if (organisation) {
+            return {
+                success: false,
+                message: 'No organisation found!'
+            };
+        }
+        return {
+            success: true,
+            message: 'Organisation data fetched successfully!',
+            data: organisation
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while getting organisation by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+// Update operation
+/**
+ *
+ * @param {string} organisationId - organisation id
+ * @param {object} updateData - data to be updated
+ */
+exports.updateOrganisation = async (organisationId, updateData) => {
+    try {
+        const result = await organisationModel.findByIdAndUpdate(
+            organisationId,
+            { $set: updateData },
+            { new: true }
+        );
+        if (!result) {
+            return {
+                success: false,
+                message: 'Organisation not found!'
+            };
+        }
+        return {
+            success: true,
+            message: 'Organisation updated successfully!',
+            data: result
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while updating organisation: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+

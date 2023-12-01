@@ -3,7 +3,7 @@ const { currencyModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
-const LOG_ID = 'services/currencyServices';
+const LOG_ID = 'services/currencyService';
 
 /**
  * Creates a new currency.

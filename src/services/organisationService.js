@@ -114,8 +114,8 @@ exports.getOrganisationById = async (organisationId) => {
     }
 };
 
-// Update operation
 /**
+ * Update operation
  *
  * @param {string} organisationId - organisation id
  * @param {object} updateData - data to be updated

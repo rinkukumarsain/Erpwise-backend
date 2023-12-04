@@ -32,7 +32,7 @@ router.post('/login', validate(userValidators.login), async (req, res) => {
 /**
  * Route for user registration.
  */
-router.post('/register', authorizeRoleAccess, jwtVerify, validate(userValidators.registerUser), async (req, res) => {
+router.post('/register', jwtVerify, validate(userValidators.registerUser), authorizeRoleAccess, async (req, res) => {
     try {
         const result = await userService.registerUser(req.auth, req.body);
         if (result.success) {
@@ -41,6 +41,38 @@ router.post('/register', authorizeRoleAccess, jwtVerify, validate(userValidators
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during registration: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Get all users according to organisation.
+ */
+router.get('/getAll', jwtVerify, validate(userValidators.getAllUser), authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await userService.getAllUsers(req.query, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during fetching all user: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Get user by id.
+ */
+router.get('/getById/:id', jwtVerify, validate(userValidators.getAllUser), authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await userService.getUserById(req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during fetching user by id: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

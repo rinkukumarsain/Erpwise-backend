@@ -17,6 +17,13 @@ exports.registerUser = {
         mobile: Joi.string().optional(),
         isActive: Joi.boolean().required(),
         jobTitle: Joi.string().optional(),
-        baseCurrency: Joi.string().required()
+        organisationId: Joi.string().required()
+    })
+};
+
+exports.getAllUser = {
+    query: Joi.object({
+        isActive: Joi.string().optional(),
+        organisationId: Joi.string().optional()
     })
 };

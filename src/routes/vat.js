@@ -47,7 +47,7 @@ router.get('/getById/:id', jwtVerify, async (req, res) => {
 /**
  * Route for creating vat.
  */
-router.post('/create', authorizeRoleAccess, validate(createVat), jwtVerify, async (req, res) => {
+router.post('/create', validate(createVat), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await vatService.createVat(req.body, req.auth);
         if (result.success) {
@@ -63,7 +63,7 @@ router.post('/create', authorizeRoleAccess, validate(createVat), jwtVerify, asyn
 /**
  * Route for updating the vat.
  */
-router.post('/update/:id', authorizeRoleAccess, validate(updatevat), jwtVerify, async (req, res) => {
+router.post('/update/:id', validate(updatevat), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await vatService.updatevat(req.params.id, req.body);
         if (result.success) {
@@ -79,7 +79,7 @@ router.post('/update/:id', authorizeRoleAccess, validate(updatevat), jwtVerify, 
 /**
  * Route for deleting the vat.
  */
-router.post('/delete/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await vatService.deletevat(req.params.id);
         if (result.success) {

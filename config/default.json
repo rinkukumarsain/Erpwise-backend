@@ -177,6 +177,8 @@
             "/paymentTerms/update/:id",
             "/paymentTerms/create",
             "/user/register",
+            "/user/getAll",
+            "/user/getById/:id",
             "/vat/delete/:id",
             "/vat/update/:id",
             "/vat/create",
@@ -187,7 +189,15 @@
             "/organisation/create"
         ],
         "admin": [
-            "/user/register"
+            "/user/register",
+            "/user/getAll",
+            "/user/getById/:id",
+            "/vat/delete/:id",
+            "/vat/update/:id",
+            "/vat/create",
+            "/paymentTerms/delete/:id",
+            "/paymentTerms/update/:id",
+            "/paymentTerms/create"
         ]
     }
 }

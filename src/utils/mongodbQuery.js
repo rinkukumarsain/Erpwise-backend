@@ -27,8 +27,6 @@ const aggregation = async (model, pipeline) => {
  */
 const findOne = async (model, query, filter = {}, options = {}) => {
     try {
-        console.log('model', model);
-        console.log('query', query);
         return await model.findOne(query, filter, options).lean();
     } catch (error) {
         console.error('Error during findOne:', error);

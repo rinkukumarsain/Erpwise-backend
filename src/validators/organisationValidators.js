@@ -12,9 +12,9 @@ exports.createOrganisation = {
     })
 };
 
-exports.getAllVat = {
+exports.getAllOrganisation = {
     query: Joi.object({
-        isActive: Joi.string().enum(['true', 'false']).optional()
+        isActive: Joi.string().optional()
     })
 };
 

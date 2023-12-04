@@ -1,4 +1,5 @@
 const express = require('express');
+const { validate } = require('express-validation');
 
 const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
@@ -7,13 +8,15 @@ const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 const { organisationAddressService } = require('../services');
+const { organisationAddressValidators: { createOrganisationAddress, getAllOrganisationAddresses, updateOrganisationAddress } } = require('../validators');
 
-const LOG_ID = 'routes/prganisationAddress';
+
+const LOG_ID = 'routes/organisationAddress';
 
 /**
  * Route for get all organisation address.
  */
-router.get('/getAll', jwtVerify, async (req, res) => {
+router.get('/getAll', validate(getAllOrganisationAddresses), jwtVerify, async (req, res) => {
     try {
         const result = await organisationAddressService.getAllOrganisationAddresses(req.query);
         if (result.success) {
@@ -45,7 +48,7 @@ router.get('/getById/:id', jwtVerify, async (req, res) => {
 /**
  * Route for creating organisation address.
  */
-router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/create', authorizeRoleAccess, validate(createOrganisationAddress), jwtVerify, async (req, res) => {
     try {
         const result = await organisationAddressService.createOrganisationAddress(req.body, req.auth);
         if (result.success) {
@@ -61,7 +64,7 @@ router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
 /**
  * Route for updating the organisation address.
  */
-router.post('/update/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/update/:id', authorizeRoleAccess, validate(updateOrganisationAddress), jwtVerify, async (req, res) => {
     try {
         const result = await organisationAddressService.updateOrganisationAddress(req.params.id, req.body);
         if (result.success) {

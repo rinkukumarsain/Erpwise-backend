@@ -42,7 +42,7 @@ const findOne = async (model, query, filter = {}, options = {}) => {
  * @returns {Promise<object|null>} - A promise that resolves to the found document or null if not found.
  * @throws {Error} If an error occurs during the query.
  */
-const findById = async (model, id) =>{
+const findById = async (model, id) => {
     try {
         return await model.findById(id);
     } catch (error) {
@@ -65,7 +65,7 @@ const create = async (model, data) => {
     } catch (error) {
         console.error('Error during create:', error);
         throw error; // Re-throw the error for handling at a higher level if necessary.
-    } 
+    }
 };
 
 /**

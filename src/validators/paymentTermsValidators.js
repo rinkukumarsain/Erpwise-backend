@@ -9,7 +9,7 @@ exports.createPaymentTerms = {
 
 exports.getAllPaymentTerms = {
     query: Joi.object({
-        isActive: Joi.string().enum(['true', 'false']).optional()
+        isActive: Joi.string().optional()
     })
 };
 

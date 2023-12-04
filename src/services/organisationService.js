@@ -11,6 +11,39 @@ const LOG_ID = 'services/organisationService';
  */
 exports.createOrganisation = async (organisationData) => {
     try {
+        const checkcompanyName = await query.findOne(organisationModel, { companyName: organisationData.companyName });
+        if (checkcompanyName) {
+            return {
+                success: false,
+                message: 'Organisation company name already exist.',
+                data: {
+                    companyName: organisationData.companyName
+                }
+            };
+        }
+
+        const checkEmail = await query.findOne(organisationModel, { email: organisationData.email });
+        if (checkEmail) {
+            return {
+                success: false,
+                message: 'Organisation email already exist.',
+                data: {
+                    email: organisationData.email
+                }
+            };
+        }
+
+        const checkPhone = await query.findOne(organisationModel, { phone: organisationData.phone });
+        if (checkPhone) {
+            return {
+                success: false,
+                message: 'Organisation phone number already exist.',
+                data: {
+                    phone: organisationData.phone
+                }
+            };
+        }
+
         const result = await query.create(organisationModel, organisationData);
         return {
             success: true,
@@ -61,7 +94,7 @@ exports.getAllOrganisations = async () => {
 exports.getOrganisationById = async (organisationId) => {
     try {
         const organisation = await query.findById(organisationModel, organisationId);
-        if (organisation) {
+        if (!organisation) {
             return {
                 success: false,
                 message: 'No organisation found!'
@@ -81,14 +114,54 @@ exports.getOrganisationById = async (organisationId) => {
     }
 };
 
-// Update operation
 /**
+ * Update operation
  *
  * @param {string} organisationId - organisation id
  * @param {object} updateData - data to be updated
  */
 exports.updateOrganisation = async (organisationId, updateData) => {
     try {
+
+        if (updateData.companyName) {
+            const checkcompanyName = await query.findOne(organisationModel, { _id: { $ne: organisationId }, companyName: updateData.companyName });
+            if (checkcompanyName) {
+                return {
+                    success: false,
+                    message: 'Organisation company name already exist.',
+                    data: {
+                        companyName: updateData.companyName
+                    }
+                };
+            }
+        }
+
+        if (updateData.email) {
+            const checkEmail = await query.findOne(organisationModel, { _id: { $ne: organisationId }, email: updateData.email });
+            if (checkEmail) {
+                return {
+                    success: false,
+                    message: 'Organisation email already exist.',
+                    data: {
+                        email: updateData.email
+                    }
+                };
+            }
+        }
+
+        if (updateData.phone) {
+            const checkPhone = await query.findOne(organisationModel, { _id: { $ne: organisationId }, phone: updateData.phone });
+            if (checkPhone) {
+                return {
+                    success: false,
+                    message: 'Organisation phone number already exist.',
+                    data: {
+                        phone: updateData.phone
+                    }
+                };
+            }
+        }
+
         const result = await organisationModel.findByIdAndUpdate(
             organisationId,
             { $set: updateData },

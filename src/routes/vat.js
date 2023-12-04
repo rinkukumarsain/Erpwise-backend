@@ -1,4 +1,5 @@
 const express = require('express');
+const { validate } = require('express-validation');
 
 const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
@@ -7,13 +8,14 @@ const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 const { vatService } = require('../services');
+const { vatValidators: { createVat, getAllVat, updatevat } } = require('../validators');
 
 const LOG_ID = 'routes/vat';
 
 /**
  * Route for get all vat.
  */
-router.get('/getAll', jwtVerify, async (req, res) => {
+router.get('/getAll', validate(getAllVat), jwtVerify, async (req, res) => {
     try {
         const result = await vatService.getAllVat(req.query);
         if (result.success) {
@@ -45,7 +47,7 @@ router.get('/getById/:id', jwtVerify, async (req, res) => {
 /**
  * Route for creating vat.
  */
-router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/create', authorizeRoleAccess, validate(createVat), jwtVerify, async (req, res) => {
     try {
         const result = await vatService.createVat(req.body, req.auth);
         if (result.success) {
@@ -61,7 +63,7 @@ router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
 /**
  * Route for updating the vat.
  */
-router.post('/update/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/update/:id', authorizeRoleAccess, validate(updatevat), jwtVerify, async (req, res) => {
     try {
         const result = await vatService.updatevat(req.params.id, req.body);
         if (result.success) {

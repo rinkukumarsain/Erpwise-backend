@@ -1,5 +1,5 @@
 const { handleErrorResponse } = require('../helpers/response');
-const { roleBaseRouteAccess, apiV1Prefix } = require('../../config/default.json');
+const { roleBaseRouteAccess } = require('../../config/default.json');
 
 /**
  * Middleware to authorize access based on user role and route.
@@ -11,11 +11,9 @@ const { roleBaseRouteAccess, apiV1Prefix } = require('../../config/default.json'
  */
 exports.authorizeRoleAccess = async (req, res, next) => {
     try {
-        // Extract the route from the baseUrl
-        const checkUrl = req.baseUrl.split(apiV1Prefix);
-        console.log('checkUrl', checkUrl);
+        const val = req.baseUrl.split('/');
         // Check if the user's role has access to the current route
-        if (roleBaseRouteAccess[req.headers.role].includes(checkUrl[1])) {
+        if (roleBaseRouteAccess[req.auth.role].includes(`/${val[val.length - 1]}${req.route.path}`)) {
             next(); // User is authorized, proceed to the next middleware or route
         } else {
             return handleErrorResponse(res, 401, 'You are not authorized', {});
@@ -23,6 +21,6 @@ exports.authorizeRoleAccess = async (req, res, next) => {
     } catch (error) {
         // Handle missing or invalid token
         const err = new Error(error);
-        return handleErrorResponse(res, err.status || 401, 'Token Required', err);
+        return handleErrorResponse(res, err.status || 401, 'Token Required !!', err);
     }
 };

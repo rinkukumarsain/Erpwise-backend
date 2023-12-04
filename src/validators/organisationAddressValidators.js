@@ -17,8 +17,8 @@ exports.createOrganisationAddress = {
 
 exports.getAllOrganisationAddresses = {
     query: Joi.object({
-        isActive: Joi.string().enum(['true', 'false']).optional(),
-        isDefault: Joi.string().enum(['true', 'false']).optional(),
+        isActive: Joi.string().optional(),
+        isDefault: Joi.string().optional(),
         addresstype: Joi.string().optional()
     })
 };

@@ -8,6 +8,7 @@ const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { userService } = require('../services');
 const { userValidators } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
+const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 
 const LOG_ID = 'routes/user';
@@ -31,7 +32,7 @@ router.post('/login', validate(userValidators.login), async (req, res) => {
 /**
  * Route for user registration.
  */
-router.post('/register', jwtVerify, validate(userValidators.registerUser), async (req, res) => {
+router.post('/register', authorizeRoleAccess, jwtVerify, validate(userValidators.registerUser), async (req, res) => {
     try {
         const result = await userService.registerUser(req.auth, req.body);
         if (result.success) {

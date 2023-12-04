@@ -33,21 +33,25 @@ const organisationSchema = new Schema(
             required: true
         },
         website: {
-            type: String
+            type: String,
+            required: true
         },
         email: {
             type: String,
             required: true
         },
         phone: {
-            type: String
+            type: String,
+            required: true
         },
         industryType: {
-            type: String
+            type: String,
+            required: true
         },
         currency: {
             type: mongoose.Types.ObjectId,
-            ref: 'currency'
+            ref: 'currency',
+            required: true
         },
         documents: {
             type: Array

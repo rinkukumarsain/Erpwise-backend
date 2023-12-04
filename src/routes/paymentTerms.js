@@ -1,4 +1,5 @@
 const express = require('express');
+const { validate } = require('express-validation');
 
 const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
@@ -7,13 +8,14 @@ const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 const { paymentTermsService } = require('../services');
+const { paymentTermsValidators: { createPaymentTerms, getAllPaymentTerms, updatePaymentTerms } } = require('../validators');
 
 const LOG_ID = 'routes/paymentTerms';
 
 /**
  * Route for get all payment term.
  */
-router.get('/getAll', jwtVerify, async (req, res) => {
+router.get('/getAll', validate(getAllPaymentTerms), jwtVerify, async (req, res) => {
     try {
         const result = await paymentTermsService.getAllPaymentTerms(req.query);
         if (result.success) {
@@ -45,7 +47,7 @@ router.get('/getById/:id', jwtVerify, async (req, res) => {
 /**
  * Route for creating payment term.
  */
-router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/create', validate(createPaymentTerms), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await paymentTermsService.createPaymentTerms(req.body, req.auth);
         if (result.success) {
@@ -61,7 +63,7 @@ router.post('/create', authorizeRoleAccess, jwtVerify, async (req, res) => {
 /**
  * Route for updating the payment terms.
  */
-router.post('/update/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/update/:id', validate(updatePaymentTerms), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await paymentTermsService.updatePaymentTerms(req.params.id, req.body);
         if (result.success) {
@@ -77,7 +79,7 @@ router.post('/update/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
 /**
  * Route for deleting the payment terms.
  */
-router.post('/delete/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await paymentTermsService.deletePaymentTerms(req.params.id);
         if (result.success) {

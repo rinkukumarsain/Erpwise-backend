@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 
 // Local Import
-const { userModel } = require('../dbModel');
+const { userModel, organisationModel } = require('../dbModel');
 const { userDao } = require('../dao');
 const { generateAuthToken } = require('../utils/tokenGenerator');
 const { roleAccess, roles } = require('../../config/default.json');
@@ -118,6 +118,13 @@ exports.registerUser = async (auth, body) => {
             };
         }
 
+        if (roles[body.role] >= roles[auth.role]) {
+            return {
+                success: false,
+                message: `This action requires a higher level of authorization.`
+            };
+        }
+
         const checkUniqueEmail = await query.findOne(userModel, { email: body.email });
         if (checkUniqueEmail) return {
             success: false,
@@ -132,16 +139,18 @@ exports.registerUser = async (auth, body) => {
             };
         }
 
-        if (roles[body.role] >= roles[auth.role]) {
+        const findOrg = await query.findOne(organisationModel, { _id: body.organisationId });
+        if (!findOrg) {
             return {
                 success: false,
-                message: `This action requires a higher level of authorization.`
+                message: `Organisation not found.`
             };
         }
 
         const salt = bcrypt.genSaltSync(10);
         body.password = await bcrypt.hashSync(body.password, salt);
-
+        body.employeeId = `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.baseCurrency = findOrg.currency;
         let insertUser = await query.create(userModel, body);
         if (insertUser) {
             delete insertUser._doc.password;
@@ -161,6 +170,77 @@ exports.registerUser = async (auth, body) => {
         return {
             success: false,
             message: 'Something went wrong'
+        };
+    }
+};
+
+
+/**
+ *  Read operation - Get all users
+ * 
+ * @param {object} queryParam - optional query params
+ * @param {string} orgId - organisational id from headers
+ * @returns {object} - An object
+ */
+exports.getAllUsers = async (queryParam, orgId) => {
+    try {
+        const { isActive } = queryParam;
+        let obj = {};
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        obj['organisationId'] = orgId;
+
+        const userList = await query.find(userModel, obj, { password: 0, token: 0 });
+        if (!userList.length) {
+            return {
+                success: false,
+                message: 'User not found!'
+            };
+        }
+        return {
+            success: true,
+            message: 'User fetched successfully!',
+            data: userList
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while getting all users: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Read operation - Get user by id
+ * 
+ * @param {object} userId - optional query params
+ * @returns {object} - An object
+ */
+exports.getUserById = async (userId) => {
+    try {
+        const userDetails = await query.findOne(userModel, { _id: userId, isActive: true }, { password: 0, token: 0 });
+        if (!userDetails) {
+            return {
+                success: false,
+                message: 'User not found!'
+            };
+        }
+        return {
+            success: true,
+            message: 'User detail fetched successfully.',
+            data: userDetails
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while getting user by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
         };
     }
 };

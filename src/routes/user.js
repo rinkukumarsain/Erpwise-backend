@@ -83,7 +83,7 @@ router.get('/getById/:id', jwtVerify, authorizeRoleAccess, validate(userValidato
  */
 router.post('/edit/:id', jwtVerify, authorizeRoleAccess, validate(userValidators.editUser), async (req, res) => {
     try {
-        const result = await userService.editUser(req.params.id, req.body, req.file);
+        const result = await userService.editUser(req.params.id, req.body, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -99,7 +99,7 @@ router.post('/edit/:id', jwtVerify, authorizeRoleAccess, validate(userValidators
  */
 router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(userValidators.enableOrDisableUser), async (req, res) => {
     try {
-        const result = await userService.enableOrDisableUser(req.body);
+        const result = await userService.enableOrDisableUser(req.body, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -115,7 +115,7 @@ router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(userValida
  */
 router.post('/uploadimage/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
     try {
-        const result = await userService.uploadUserimage(req.params.id, req.file);
+        const result = await userService.uploadUserimage(req.params.id, req.file, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

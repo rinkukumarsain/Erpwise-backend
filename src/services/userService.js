@@ -264,9 +264,10 @@ exports.getUserById = async (userId) => {
  * 
  * @param {string} userId - req params
  * @param {object} updatedData - req body
+ * @param {object} auth - req auth
  * @returns {object} - An object
  */
-exports.editUser = async (userId, updatedData) => {
+exports.editUser = async (userId, updatedData, auth) => {
     try {
         if (updatedData.email) {
             const checkUniqueEmail = await query.findOne(userModel, { _id: { $ne: userId }, email: updatedData.email });
@@ -276,6 +277,7 @@ exports.editUser = async (userId, updatedData) => {
             };
         }
 
+        updatedData.updatedBy = auth._id;
         // Update the user's information
         const updateUser = await userModel.findOneAndUpdate({ _id: userId }, updatedData, { new: true });
         if (updateUser) {
@@ -302,13 +304,14 @@ exports.editUser = async (userId, updatedData) => {
  * 
  * @param {object} body - req body
  * @param {string} body.userId - user id
- * @param {boolean} body.isActive - req body (isActvie)(type bool) 
+ * @param {boolean} body.isActive - req body (isActvie)(type bool)
+ * @param {object} auth - req auth
  * @returns {object} - An object
  */
-exports.enableOrDisableUser = async ({ userId, isActive }) => {
+exports.enableOrDisableUser = async ({ userId, isActive }, auth) => {
     try {
         // Update the user's information
-        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, { isActive }, { new: true });
+        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, { isActive, updatedBy: auth._id }, { new: true });
         if (updateUser) {
             return {
                 success: true,
@@ -332,11 +335,12 @@ exports.enableOrDisableUser = async ({ userId, isActive }) => {
  * @param {string} userId - The ID of the user to fetched his/her profile.
  * @param {object} file - Parameters containing 'file details'.
  * @param {string} file.location - Parameters containing 'file location'.
+ * @param {object} auth - req auth.
  * @returns {object} - An object with the results, including user details.
  */
-exports.uploadUserimage = async (userId, { location }) => {
+exports.uploadUserimage = async (userId, { location }, auth) => {
     try {
-        const findUser = await userModel.findOneAndUpdate({ _id: userId }, { image: location }, { new: true });
+        const findUser = await userModel.findOneAndUpdate({ _id: userId }, { image: location, updatedBy: auth._id }, { new: true });
 
         if (!findUser) {
             return {

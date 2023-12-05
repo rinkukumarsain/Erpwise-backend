@@ -193,6 +193,16 @@ exports.registerUser = async (auth, body) => {
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
         const { isActive, isRole, page = 1, perPage = 10 } = queryParam;
+        let obj = {};
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (isRole == 'true') {
+            obj['$or'] = [
+                { role: 'admin' },
+                { role: 'sales' }
+            ];
+        }
+        obj['organisationId'] = orgId;
+
         if (!orgId) {
             return {
                 success: false,
@@ -200,8 +210,9 @@ exports.getAllUsers = async (queryParam, orgId) => {
             };
         }
 
+        const userListCount = await query.find(userModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(userListCount.length / perPage);
         const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole }));
-        // const userList = await query.find(userModel, obj, { password: 0, token: 0 });
         if (!userList.length) {
             return {
                 success: false,
@@ -211,7 +222,15 @@ exports.getAllUsers = async (queryParam, orgId) => {
         return {
             success: true,
             message: 'User fetched successfully!',
-            data: userList
+            data: {
+                userList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: userListCount.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all users: ${error}`);

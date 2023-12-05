@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const { userModel, organisationModel } = require('../dbModel');
 const { userDao } = require('../dao');
 const { generateAuthToken } = require('../utils/tokenGenerator');
-const { roleAccess, roles } = require('../../config/default.json');
+const { roles } = require('../../config/default.json');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -51,7 +51,7 @@ exports.login = async (reqBody) => {
         });
 
         await userModel.updateOne({ _id: findUser._id }, { token });
-        userData.menuList = roleAccess[userData.role];
+        // userData.menuList = roleAccess[userData.role];
         return {
             success: true,
             message: 'You have successfully logged in to your account',
@@ -128,7 +128,15 @@ exports.registerUser = async (auth, body) => {
         const checkUniqueEmail = await query.findOne(userModel, { email: body.email });
         if (checkUniqueEmail) return {
             success: false,
-            message: 'This email is already taken. Please choose a different one.'
+            message: 'This email is already taken. Please choose a different one.',
+            data: { email: body.email }
+        };
+
+        const checkUniqueEmployeeId = await query.findOne(userModel, { employeeId: body.employeeId });
+        if (checkUniqueEmployeeId) return {
+            success: false,
+            message: 'This employee id is already taken. Please choose a different one.',
+            data: { employeeId: body.employeeId }
         };
 
         const findCreatedByUser = await query.findOne(userModel, { _id: body.createdBy, isActive: true });
@@ -149,7 +157,7 @@ exports.registerUser = async (auth, body) => {
 
         const salt = bcrypt.genSaltSync(10);
         body.password = await bcrypt.hashSync(body.password, salt);
-        body.employeeId = `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        // body.employeeId = `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         body.baseCurrency = findOrg.currency;
         let insertUser = await query.create(userModel, body);
         if (insertUser) {
@@ -238,6 +246,76 @@ exports.getUserById = async (userId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting user by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Edit user profile
+ * 
+ * @param {string} userId - req params
+ * @param {object} updatedData - req body
+ * @param {object} file - req file
+ * @returns {object} - An object
+ */
+exports.editUser = async (userId, updatedData, file) => {
+    try {
+        if (updatedData.email) {
+            const checkUniqueEmail = await query.findOne(userModel, { _id: { $ne: userId }, email: updatedData.email });
+            if (checkUniqueEmail) return {
+                success: false,
+                message: 'This email is already taken. Please choose a different one.'
+            };
+        }
+
+        if (file?.location) updatedData.image = file.location;
+
+        // Update the user's information
+        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, updatedData, { new: true });
+        if (updateUser) {
+            delete updateUser._doc.password;
+            delete updateUser._doc.token;
+            return {
+                success: true,
+                message: 'user profile updated successfully.',
+                data: updateUser
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while editing user profile: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Enable/Disable user profile
+ * 
+ * @param {object} body - req body
+ * @param {string} body.userId - user id
+ * @param {boolean} body.isActive - req body (isActvie)(type bool) 
+ * @returns {object} - An object
+ */
+exports.enableOrDisableUser = async ({ userId, isActive }) => {
+    try {
+        // Update the user's information
+        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, { isActive }, { new: true });
+        if (updateUser) {
+            return {
+                success: true,
+                message: `user ${isActive ? 'enabled' : 'diabled'} successfully.`,
+                data: { _id: userId }
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while editing user profile: ${error}`);
         return {
             success: false,
             message: 'Something went wrong.'

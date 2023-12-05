@@ -20,3 +20,37 @@ exports.userProfilePipeline = (userId) => [
         }
     }
 ];
+
+
+exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage }) => {
+    let arr = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $sort: {
+                'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        }
+    ];
+
+    if (isActive) {
+        arr[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+    if (isRole && isRole == 'true') {
+        arr[0]['$match']['$or'] = [
+            { role: 'admin' },
+            { role: 'sales' }
+        ];
+    }
+    console.log('>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(arr));
+    return arr;
+};

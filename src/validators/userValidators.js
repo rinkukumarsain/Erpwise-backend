@@ -17,7 +17,6 @@ exports.registerUser = {
         password: Joi.string().required(),
         createdBy: Joi.string().required(),
         mobile: Joi.string().optional(),
-        isActive: Joi.boolean().required(),
         jobTitle: Joi.string().optional(),
         organisationId: Joi.string().required()
     })
@@ -27,7 +26,10 @@ exports.getAllUser = {
     query: Joi.object({
         isActive: Joi.string().optional(),
         organisationId: Joi.string().optional(),
-        isRole: Joi.string().optional()
+        isRole: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional()
+
     })
 };
 

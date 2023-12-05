@@ -26,7 +26,8 @@ exports.registerUser = {
 exports.getAllUser = {
     query: Joi.object({
         isActive: Joi.string().optional(),
-        organisationId: Joi.string().optional()
+        organisationId: Joi.string().optional(),
+        isRole: Joi.string().optional()
     })
 };
 

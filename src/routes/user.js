@@ -81,7 +81,7 @@ router.get('/getById/:id', jwtVerify, authorizeRoleAccess, validate(userValidato
 /**
  * Route for edit user profile.
  */
-router.post('/edit/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), validate(userValidators.editUser), async (req, res) => {
+router.post('/edit/:id', jwtVerify, authorizeRoleAccess, validate(userValidators.editUser), async (req, res) => {
     try {
         const result = await userService.editUser(req.params.id, req.body, req.file);
         if (result.success) {
@@ -106,6 +106,22 @@ router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(userValida
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during registration: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for upload user image.
+ */
+router.post('/uploadimage/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
+    try {
+        const result = await userService.uploadUserimage(req.params.id, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during uploadUserimage: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

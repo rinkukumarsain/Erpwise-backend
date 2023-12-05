@@ -26,7 +26,25 @@ exports.registerUser = {
 exports.getAllUser = {
     query: Joi.object({
         isActive: Joi.string().optional(),
-        organisationId: Joi.string().optional()
+        organisationId: Joi.string().optional(),
+        isRole: Joi.string().optional()
+    })
+};
+
+exports.editUser = {
+    body: Joi.object({
+        fname: Joi.string().optional(),
+        lname: Joi.string().optional(),
+        email: Joi.string().optional(),
+        mobile: Joi.string().optional(),
+        jobTitle: Joi.string().optional()
+    })
+};
+
+exports.enableOrDisableUser = {
+    body: Joi.object({
+        userId: Joi.string().required(),
+        isActive: Joi.boolean().required()
     })
 };
 

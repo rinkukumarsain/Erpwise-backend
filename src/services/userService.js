@@ -192,9 +192,15 @@ exports.registerUser = async (auth, body) => {
  */
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
-        const { isActive } = queryParam;
+        const { isActive, isRole } = queryParam;
         let obj = {};
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (isRole == 'true') {
+            obj['$or'] = [
+                { role: 'admin' },
+                { role: 'sales' }
+            ];
+        }
         if (!orgId) {
             return {
                 success: false,
@@ -258,10 +264,9 @@ exports.getUserById = async (userId) => {
  * 
  * @param {string} userId - req params
  * @param {object} updatedData - req body
- * @param {object} file - req file
  * @returns {object} - An object
  */
-exports.editUser = async (userId, updatedData, file) => {
+exports.editUser = async (userId, updatedData) => {
     try {
         if (updatedData.email) {
             const checkUniqueEmail = await query.findOne(userModel, { _id: { $ne: userId }, email: updatedData.email });
@@ -270,8 +275,6 @@ exports.editUser = async (userId, updatedData, file) => {
                 message: 'This email is already taken. Please choose a different one.'
             };
         }
-
-        if (file?.location) updatedData.image = file.location;
 
         // Update the user's information
         const updateUser = await userModel.findOneAndUpdate({ _id: userId }, updatedData, { new: true });
@@ -319,6 +322,39 @@ exports.enableOrDisableUser = async ({ userId, isActive }) => {
         return {
             success: false,
             message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Upload user image.
+ *
+ * @param {string} userId - The ID of the user to fetched his/her profile.
+ * @param {object} file - Parameters containing 'file details'.
+ * @param {string} file.location - Parameters containing 'file location'.
+ * @returns {object} - An object with the results, including user details.
+ */
+exports.uploadUserimage = async (userId, { location }) => {
+    try {
+        const findUser = await userModel.findOneAndUpdate({ _id: userId }, { image: location }, { new: true });
+
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Error while uploading image.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Image uploaded successfully.`,
+            data: findUser
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching user profile (uesrProfile): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
         };
     }
 };

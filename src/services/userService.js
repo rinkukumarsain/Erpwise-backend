@@ -192,24 +192,16 @@ exports.registerUser = async (auth, body) => {
  */
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
-        const { isActive, isRole } = queryParam;
-        let obj = {};
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (isRole == 'true') {
-            obj['$or'] = [
-                { role: 'admin' },
-                { role: 'sales' }
-            ];
-        }
+        const { isActive, isRole, page = 1, perPage = 10 } = queryParam;
         if (!orgId) {
             return {
                 success: false,
                 message: 'Organisation not found.'
             };
         }
-        obj['organisationId'] = orgId;
 
-        const userList = await query.find(userModel, obj, { password: 0, token: 0 });
+        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole }));
+        // const userList = await query.find(userModel, obj, { password: 0, token: 0 });
         if (!userList.length) {
             return {
                 success: false,
@@ -315,7 +307,7 @@ exports.enableOrDisableUser = async ({ userId, isActive }, auth) => {
         if (updateUser) {
             return {
                 success: true,
-                message: `user ${isActive ? 'enabled' : 'diabled'} successfully.`,
+                message: `User ${isActive ? 'enabled' : 'disabled'} successfully.`,
                 data: { _id: userId }
             };
         }

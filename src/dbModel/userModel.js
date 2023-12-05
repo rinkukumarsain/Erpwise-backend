@@ -28,7 +28,11 @@ const { Schema } = mongoose;
  */
 const userSchema = new Schema(
     {
-        name: {
+        fname: {
+            type: String,
+            required: true
+        },
+        lname: {
             type: String,
             required: true
         },
@@ -63,7 +67,8 @@ const userSchema = new Schema(
             type: mongoose.Types.ObjectId
         },
         updatedBy: {
-            type: mongoose.Types.ObjectId
+            type: mongoose.Types.ObjectId,
+            default: null
         },
         baseCurrency: {
             type: mongoose.Types.ObjectId,

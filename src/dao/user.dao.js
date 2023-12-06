@@ -21,8 +21,24 @@ exports.userProfilePipeline = (userId) => [
     }
 ];
 
+/**
+ * Generates an aggregation pipeline to retrieve a paginated list of users.
+ *
+ * @typedef {object} GetAllUsersOptions
+ * @property {string} orgId - The organization's unique identifier.
+ * @property {string} isActive - Filter users based on their activation status. Pass 'true' or 'false'.
+ * @property {string} isRole - Filter users based on their role. Pass 'true' to filter by role.
+ * @property {number} page - The current page for pagination.
+ * @property {number} perPage - The number of users to display per page.
+ */
 
-exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage }) => {
+/**
+ * Generates an aggregation pipeline to retrieve a paginated list of users.
+ *
+ * @param {GetAllUsersOptions} options - Options to customize the user retrieval.
+ * @returns {Array} - An aggregation pipeline to retrieve a paginated list of users.
+ */
+exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy, sortOrder }) => {
     let arr = [
         {
             $match: {
@@ -50,6 +66,9 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage }) => {
             { role: 'admin' },
             { role: 'sales' }
         ];
+    }
+    if (sortBy && sortOrder) {
+        arr[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
     }
     console.log('>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(arr));
     return arr;

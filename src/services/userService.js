@@ -164,7 +164,7 @@ exports.registerUser = async (auth, body) => {
             delete insertUser._doc.password;
             return {
                 success: true,
-                message: `${body.name} created successfully.`,
+                message: `${body.fname} created successfully.`,
                 data: insertUser
             };
         } else {
@@ -192,7 +192,7 @@ exports.registerUser = async (auth, body) => {
  */
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
-        const { isActive, isRole, page = 1, perPage = 10 } = queryParam;
+        const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder } = queryParam;
         let obj = {};
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         if (isRole == 'true') {
@@ -212,7 +212,7 @@ exports.getAllUsers = async (queryParam, orgId) => {
 
         const userListCount = await query.find(userModel, obj, { _id: 1 });
         const totalPages = Math.ceil(userListCount.length / perPage);
-        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole }));
+        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole, sortBy, sortOrder }));
         if (!userList.length) {
             return {
                 success: false,

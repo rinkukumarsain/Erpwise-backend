@@ -41,11 +41,10 @@ exports.login = async (reqBody) => {
         }
 
         const { data: userData } = await this.uesrProfile({ userId: findUser._id });
-
         // Generate a JWT token for the user.
         const token = generateAuthToken({
             userId: findUser._id,
-            name: userData.name,
+            name: userData.fname,
             email: userData.email,
             role: userData.role
         });
@@ -59,6 +58,7 @@ exports.login = async (reqBody) => {
             token
         };
     } catch (error) {
+        console.log(error);
         logger.error(LOG_ID, `Error occurred during login: ${error}`);
         return {
             success: false,

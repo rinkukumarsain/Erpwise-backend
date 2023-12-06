@@ -1,6 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel } = require('../dbModel');
+const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -61,7 +62,7 @@ exports.getAllLead = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const leadData = await query.find(leadModel, { organisationId: orgId });
+        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId));
         return {
             success: true,
             message: 'Lead fetched successfully.',
@@ -69,35 +70,6 @@ exports.getAllLead = async (orgId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error fetching lead: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
-
-/**
- * Gets a Lead by ID.
- *
- * @param {string} leadId - The ID of the Lead to be fetched.
- * @returns {object} - An object with the results, including the requested Lead.
- */
-exports.getLeadById = async (leadId) => {
-    try {
-        const leadData = await query.findById(leadModel, leadId);
-        if (!leadData) {
-            return {
-                success: false,
-                message: 'Lead not found.'
-            };
-        }
-        return {
-            success: true,
-            message: 'Lead fetched successfully.',
-            data: leadData
-        };
-    } catch (error) {
-        logger.error(LOG_ID, `Error fetching Lead: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

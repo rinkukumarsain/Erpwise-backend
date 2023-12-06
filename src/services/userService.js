@@ -45,7 +45,7 @@ exports.login = async (reqBody) => {
         // Generate a JWT token for the user.
         const token = generateAuthToken({
             userId: findUser._id,
-            name: userData.name,
+            name: userData.fname,
             email: userData.email,
             role: userData.role
         });

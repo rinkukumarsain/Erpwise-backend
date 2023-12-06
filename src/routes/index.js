@@ -14,4 +14,5 @@ module.exports = (app) => {
     app.use(`${apiV1Prefix}/paymentTerms`, require('./paymentTerms'));
     app.use(`${apiV1Prefix}/organisation`, require('./organisation'));
     app.use(`${apiV1Prefix}/organisationAddress`, require('./organisationAddress'));
+    app.use(`${apiV1Prefix}/lead`, require('./lead'));
 };

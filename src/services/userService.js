@@ -44,7 +44,7 @@ exports.login = async (reqBody) => {
         // Generate a JWT token for the user.
         const token = generateAuthToken({
             userId: findUser._id,
-            name: userData.fname,
+            fname: userData.fname,
             email: userData.email,
             role: userData.role
         });
@@ -192,6 +192,12 @@ exports.registerUser = async (auth, body) => {
  */
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
         const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder } = queryParam;
         let obj = {};
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
@@ -201,14 +207,10 @@ exports.getAllUsers = async (queryParam, orgId) => {
                 { role: 'sales' }
             ];
         }
+
         obj['organisationId'] = orgId;
 
-        if (!orgId) {
-            return {
-                success: false,
-                message: 'Organisation not found.'
-            };
-        }
+
 
         const userListCount = await query.find(userModel, obj, { _id: 1 });
         const totalPages = Math.ceil(userListCount.length / perPage);

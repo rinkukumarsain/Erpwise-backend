@@ -10,7 +10,7 @@ exports.createLead = {
         note: Joi.string().required(),
         currency: Joi.string().required(),
         dueDate: Joi.string().required(),
-        isActive: Joi.string().required()
+        isActive: Joi.boolean().required()
     })
 };
 

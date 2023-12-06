@@ -8,6 +8,7 @@ const { Schema } = mongoose;
  * @property {string} employeeId - The employee ID (must be unique).
  * @property {string} email - The email address of the user (must be unique).
  * @property {string} [mobile] - The mobile number of the user.
+ * @property {string} [mobileCode] - The mobileCode of the user,
  * @property {string} password - The password of the user.
  * @property {string} [role=user] - The role of the user (default is 'user').
  * @property {mongoose.Types.ObjectId} [createdBy] - The ID of the user who created this user.
@@ -53,6 +54,10 @@ const userSchema = new Schema(
         mobile: {
             type: String,
             default: ''
+        },
+        mobileCode: {
+            type: String,
+            default: '+91'
         },
         password: {
             type: String,

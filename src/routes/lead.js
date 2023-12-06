@@ -6,7 +6,7 @@ const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { leadServices } = require('../services');
-const { leadValidators: { createLead } } = require('../validators');
+const { leadValidators: { createLead, getAllLead } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
@@ -32,7 +32,7 @@ router.post('/create', jwtVerify, validate(createLead), async (req, res) => {
 /**
  * Route for getting all leads.
  */
-router.get('/getAll', jwtVerify, validate(createLead), async (req, res) => {
+router.get('/getAll', jwtVerify, validate(getAllLead), async (req, res) => {
     try {
         const result = await leadServices.getAllLead(req.headers['x-org-type']);
         if (result.success) {

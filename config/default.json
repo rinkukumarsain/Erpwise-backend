@@ -189,7 +189,8 @@
             "/organisationAddress/update/:id",
             "/organisationAddress/create",
             "/organisation/update/:id",
-            "/organisation/create"
+            "/organisation/create",
+            "/exchangeRate/create"
         ],
         "admin": [
             "/user/register",
@@ -203,7 +204,8 @@
             "/vat/create",
             "/paymentTerms/delete/:id",
             "/paymentTerms/update/:id",
-            "/paymentTerms/create"
+            "/paymentTerms/create",
+            "/exchangeRate/create"
         ]
     }
 }

@@ -18,7 +18,13 @@ exports.getAllLead = {
     query: Joi.object({
         isActive: Joi.string().optional(),
         isQualified: Joi.string().optional(),
-        dueDate: Joi.string().optional()
+        dueDate: Joi.string().optional(),
+        organisationId: Joi.string().optional(),
+        isRole: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional()
     })
 };
 

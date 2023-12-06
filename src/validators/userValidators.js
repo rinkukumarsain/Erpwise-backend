@@ -17,6 +17,7 @@ exports.registerUser = {
         password: Joi.string().required(),
         createdBy: Joi.string().required(),
         mobile: Joi.string().optional(),
+        mobileCode: Joi.string().optional(),
         jobTitle: Joi.string().optional(),
         organisationId: Joi.string().required()
     })
@@ -41,23 +42,7 @@ exports.editUser = {
         lname: Joi.string().optional(),
         email: Joi.string().optional(),
         mobile: Joi.string().optional(),
-        jobTitle: Joi.string().optional()
-    })
-};
-
-exports.enableOrDisableUser = {
-    body: Joi.object({
-        userId: Joi.string().required(),
-        isActive: Joi.boolean().required()
-    })
-};
-
-exports.editUser = {
-    body: Joi.object({
-        fname: Joi.string().optional(),
-        lname: Joi.string().optional(),
-        email: Joi.string().optional(),
-        mobile: Joi.string().optional(),
+        mobileCode: Joi.string().optional(),
         jobTitle: Joi.string().optional()
     })
 };

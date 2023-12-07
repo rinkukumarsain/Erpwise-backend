@@ -5,3 +5,4 @@ exports.organisationAddressModel = require('./organisationAddressModel');
 exports.paymentTermsModel = require('./paymentTermsModel');
 exports.vatModel = require('./vatModel');
 exports.leadModel = require('./leadModel');
+exports.exchangeRateModel = require('./exchangeRateModel');

@@ -1,12 +1,7 @@
 const AWS = require('aws-sdk');
 require('aws-sdk/lib/maintenance_mode_message').suppress = true;
 
-console.log({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_S3_BUCKET_REGION,
-    bucket: process.env.AWS_S3_BUCKET_NAME
-});
+
 
 /**
  * Configuration object for AWS SDK.

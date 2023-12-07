@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
  * @param {string} userId - The ID of the user.
  * @returns {Array} - An array representing the aggregation pipeline.
  */
-exports.userProfilePipeline = (userId) => [
+exports.userProfsuilePipeline = (userId) => [
     {
         $match: {
             _id: new mongoose.Types.ObjectId(userId)
@@ -47,7 +47,7 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
         },
         {
             $sort: {
-                'updatedAt': -1
+                // 'updatedAt': -1
             }
         },
         {

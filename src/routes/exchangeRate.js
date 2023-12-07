@@ -29,6 +29,9 @@ router.post('/create', validate(exchangeRateValidators.create), jwtVerify, autho
     }
 });
 
+/**
+ * Route for exchangeRate update.
+ */
 router.post('/update/:id', validate(exchangeRateValidators.updated), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await exchangeRateService.updated(req.auth, req.body, req.params.id);
@@ -42,9 +45,28 @@ router.post('/update/:id', validate(exchangeRateValidators.updated), jwtVerify, 
     }
 });
 
+/**
+ * Route for exchangeRate get.
+ */
 router.get('/get', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await exchangeRateService.getExchangeRate(req.query, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during create: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for exchangeRate delete.
+ */
+router.delete('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await exchangeRateService.delete(req.params.id);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

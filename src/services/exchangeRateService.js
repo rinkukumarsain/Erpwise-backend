@@ -157,7 +157,7 @@ exports.updated = async (auth, reqBody, _id) => {
         };
     } catch (error) {
         console.error(error);
-        logger.error(LOG_ID, `Error occurred during create: ${error}`);
+        logger.error(LOG_ID, `Error occurred during updated: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -186,7 +186,33 @@ exports.getExchangeRate = async (reqQuery, orgId) => {
         };
     } catch (error) {
         console.error(error);
-        logger.error(LOG_ID, `Error occurred during create: ${error}`);
+        logger.error(LOG_ID, `Error occurred during getExchangeRate: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+/**
+ * Authenticates a user by verifying their credentials.
+ *
+ * @param {object} id - it containing  'exchangeRate_id' .
+ * @returns {Object} - An object with authentication results:
+ *   - `success` (boolean): Indicates whether the authentication was successful.
+ *   - `message` (string): A message describing the result of the authentication.
+ *   - `data` (Array): exchangeRate data if authentication is successful.
+ */
+exports.delete = async (id) => {
+    try {
+        const data = await exchangeRateModel.findByIdAndDelete(id);
+        return {
+            success: true,
+            message: 'You have successfully deleted exchange rate',
+            data: data
+        };
+    } catch (error) {
+        console.error(error);
+        logger.error(LOG_ID, `Error occurred during getExchangeRate: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

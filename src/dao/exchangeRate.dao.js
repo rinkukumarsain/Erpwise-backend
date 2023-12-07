@@ -70,7 +70,8 @@ exports.getExchangeRatePipeline = ({ orgId, isActive }) => {
             'startDate': { '$first': '$startDate' },
             'endDate': { '$first': '$endDate' },
             'days': { '$first': '$days' },
-            'isActive': { '$first': '$isActive' }
+            'isActive': { '$first': '$isActive' },
+            'Activity': { '$first': '$Activity' }
         }
     });
     return condition;

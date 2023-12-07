@@ -18,8 +18,7 @@ const LOG_ID = 'routes/exchangeRate';
  */
 router.post('/create', validate(exchangeRateValidators.create), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
-        req.body.orgId = req.headers['x-org-type'];
-        const result = await exchangeRateService.create(req.body);
+        const result = await exchangeRateService.create(req.auth, req.body, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -32,8 +31,7 @@ router.post('/create', validate(exchangeRateValidators.create), jwtVerify, autho
 
 router.post('/update/:id', validate(exchangeRateValidators.updated), jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
-        req.body._id = req.params.id;
-        const result = await exchangeRateService.updated(req.body);
+        const result = await exchangeRateService.updated(req.auth, req.body, req.params.id);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -44,10 +42,9 @@ router.post('/update/:id', validate(exchangeRateValidators.updated), jwtVerify, 
     }
 });
 
-router.get('/get',  jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/get', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
-        req.query.orgId = req.headers['x-org-type'];
-        const result = await exchangeRateService.getExchangeRate(req.query);
+        const result = await exchangeRateService.getExchangeRate(req.query, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

@@ -157,7 +157,7 @@ exports.updated = async (auth, reqBody, _id) => {
         };
     } catch (error) {
         console.error(error);
-        logger.error(LOG_ID, `Error occurred during create: ${error}`);
+        logger.error(LOG_ID, `Error occurred during updated: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -186,7 +186,7 @@ exports.getExchangeRate = async (reqQuery, orgId) => {
         };
     } catch (error) {
         console.error(error);
-        logger.error(LOG_ID, `Error occurred during create: ${error}`);
+        logger.error(LOG_ID, `Error occurred during getExchangeRate: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

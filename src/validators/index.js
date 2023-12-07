@@ -4,3 +4,4 @@ exports.organisationValidators = require('./organisationValidators');
 exports.paymentTermsValidators = require('./paymentTermsValidators');
 exports.vatValidators = require('./vatValidators');
 exports.exchangeRateValidators = require('./exchangeRateValidators');
+exports.leadValidators = require('./leadValidators');

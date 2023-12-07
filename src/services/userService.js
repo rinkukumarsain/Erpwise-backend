@@ -39,7 +39,7 @@ exports.login = async (reqBody) => {
                 message: 'Invalid credentials'
             };
         }
-
+        // console.log('findUser', findUser);
         const { data: userData } = await this.uesrProfile({ userId: findUser._id });
         // Generate a JWT token for the user.
         const token = generateAuthToken({
@@ -77,7 +77,7 @@ exports.login = async (reqBody) => {
 exports.uesrProfile = async ({ userId }) => {
     try {
         const findUser = await query.aggregation(userModel, userDao.userProfilePipeline(userId));
-
+        // console.log('findUser', findUser);
         if (findUser.length == 0) {
             return {
                 success: false,

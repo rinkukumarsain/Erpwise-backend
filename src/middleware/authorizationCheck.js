@@ -12,6 +12,8 @@ const { roleBaseRouteAccess } = require('../../config/default.json');
 exports.authorizeRoleAccess = async (req, res, next) => {
     try {
         const val = req.baseUrl.split('/');
+        // console.log('>>>>>>>>>>>>>>>',`/${val[val.length - 1]}${req.route.path}`);
+        // console.log(roleBaseRouteAccess[req.auth.role]);
         // Check if the user's role has access to the current route
         if (roleBaseRouteAccess[req.auth.role].includes(`/${val[val.length - 1]}${req.route.path}`)) {
             next(); // User is authorized, proceed to the next middleware or route

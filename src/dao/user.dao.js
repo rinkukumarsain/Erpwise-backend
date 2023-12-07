@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
  * @param {string} userId - The ID of the user.
  * @returns {Array} - An array representing the aggregation pipeline.
  */
-exports.userProfsuilePipeline = (userId) => [
+exports.userProfilePipeline = (userId) => [
     {
         $match: {
             _id: new mongoose.Types.ObjectId(userId)

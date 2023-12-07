@@ -26,7 +26,8 @@ exports.jwtVerify = async (req, res, next) => {
                 req.auth = {
                     _id: decoded.userId,
                     email: decoded.email,
-                    role: decoded.role
+                    role: decoded.role,
+                    fname: decoded.fname
                 };
                 next();
             }

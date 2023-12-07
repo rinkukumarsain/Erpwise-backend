@@ -19,7 +19,7 @@ const Schema = mongoose.Schema;
 const userActionSchema = new Schema(
     {
         performedBy: {
-            type: String,
+            type: mongoose.Types.ObjectId,
             required: true
         },
         performedByEmail: {
@@ -66,8 +66,7 @@ const leadSchema = new Schema(
     {
         companyName: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         Id: {
             type: String,
@@ -75,13 +74,11 @@ const leadSchema = new Schema(
         },
         email: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         phone: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         salesPerson: {
             type: mongoose.Types.ObjectId,
@@ -94,6 +91,11 @@ const leadSchema = new Schema(
         },
         note: {
             type: String,
+            required: true
+        },
+        organisationId: {
+            type: mongoose.Types.ObjectId,
+            ref : 'User',
             required: true
         },
         currency: {
@@ -116,7 +118,28 @@ const leadSchema = new Schema(
             type: Boolean,
             default: true
         },
-        Activity: [userActionSchema]
+        Activity: [userActionSchema],
+        isContactAdded: {
+            type: Boolean,
+            default: false
+        },
+        isAddressAdded: {
+            type: Boolean,
+            default: false
+        },
+        isFinanceAdded: {
+            type: Boolean,
+            default: false
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        updatedBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User',
+            default: null
+        }
     },
     {
         timestamps: true,

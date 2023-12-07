@@ -1,5 +1,7 @@
+const moment = require('moment');
 // Local Import
 const { leadModel } = require('../dbModel');
+const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -8,13 +10,29 @@ const LOG_ID = 'services/currencyService';
 /**
  * Creates a new lead.
  *
- * @param {object} leadData - Data for creating a new lead.
  * @param {object} auth - Data of logedin user.
+ * @param {object} leadData - Data for creating a new lead.
+ * @param {string} orgId - Id of logedin user organisation.
  * @returns {object} - An object with the results, including the new lead.
  */
-exports.createLead = async (auth, leadData) => {
+exports.createLead = async (auth, leadData, orgId) => {
     try {
-        // const { email, _id } = auth;
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { email, _id } = auth;
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Lead creation by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        leadData.Activity = [obj];
+        leadData.createdBy = _id;
+        leadData.organisationId = orgId;
+        leadData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newLead = await query.create(leadModel, leadData);
         return {
             success: true,
@@ -33,11 +51,18 @@ exports.createLead = async (auth, leadData) => {
 /**
  * Gets all Lead.
  *
+ * @param {string} orgId - Id of logedin user organisation.
  * @returns {object} - An object with the results, including all Lead.
  */
-exports.getAllLead = async () => {
+exports.getAllLead = async (orgId) => {
     try {
-        const leadData = await query.find(leadModel);
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId));
         return {
             success: true,
             message: 'Lead fetched successfully.',
@@ -45,35 +70,6 @@ exports.getAllLead = async () => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error fetching lead: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
-
-/**
- * Gets a Lead by ID.
- *
- * @param {string} leadId - The ID of the Lead to be fetched.
- * @returns {object} - An object with the results, including the requested Lead.
- */
-exports.getLeadById = async (leadId) => {
-    try {
-        const leadData = await query.findById(leadModel, leadId);
-        if (!leadData) {
-            return {
-                success: false,
-                message: 'Lead not found.'
-            };
-        }
-        return {
-            success: true,
-            message: 'Lead fetched successfully.',
-            data: leadData
-        };
-    } catch (error) {
-        logger.error(LOG_ID, `Error fetching Lead: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

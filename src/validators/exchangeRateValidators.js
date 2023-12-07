@@ -13,3 +13,17 @@ exports.create = {
         ).unique((a, b) => a.currencyId === b.currencyId).required()
     })
 };
+exports.updated = {
+    body: Joi.object({
+        orgCurrency: Joi.string().optional(),
+        startDate: Joi.date().iso().optional(),
+        endDate: Joi.date().iso().optional(),
+        isActive: Joi.boolean().optional(),
+        currencyRate: Joi.array().items(
+            Joi.object({
+                currencyRate: Joi.number().optional(),
+                currencyId: Joi.string().optional()
+            })
+        ).unique((a, b) => a.currencyId === b.currencyId).optional()
+    })
+};

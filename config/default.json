@@ -190,7 +190,8 @@
             "/organisationAddress/create",
             "/organisation/update/:id",
             "/organisation/create",
-            "/exchangeRate/create"
+            "/exchangeRate/update/:id",
+            "/exchangeRate/get"
         ],
         "admin": [
             "/user/register",
@@ -205,7 +206,8 @@
             "/paymentTerms/delete/:id",
             "/paymentTerms/update/:id",
             "/paymentTerms/create",
-            "/exchangeRate/create"
+            "/exchangeRate/update/:id",
+            "/exchangeRate/get"
         ]
     }
 }

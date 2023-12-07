@@ -2,6 +2,42 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
+ * Schema definition for user actions.
+ *
+ * @typedef {object} UserAction
+ * @property {string} performedBy - The user ID who performed the action.
+ * @property {string} performedByEmail - The email of the user who performed the action.
+ * @property {string} actionName - The name or description of the action performed.
+ * @property {Date} dateTime - The timestamp when the action was performed. Defaults to the current date and time.
+ */
+
+/**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const userActionSchema = new Schema(
+    {
+        performedBy: {
+            type: String,
+            required: true
+        },
+        performedByEmail: {
+            type: String,
+            required: true
+        },
+        actionName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
+/**
  * @typedef {object} exchangeRate
  * @property {mongoose.Types.ObjectId} [orgId] - The orgId of organisations.
  * @property {mongoose.Types.ObjectId} [orgCurrency] - The ID of organisations currency id.
@@ -45,7 +81,8 @@ const exchangeRateSchema = new Schema({
             currencyRate: { type: Number },
             currencyId: { type: mongoose.Types.ObjectId }
         }]
-    }
+    },
+    Activity: [userActionSchema]
 }, { timestamps: true, versionKey: false });
 
 module.exports = mongoose.model('exchangeRate', exchangeRateSchema);

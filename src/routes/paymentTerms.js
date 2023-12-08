@@ -8,7 +8,7 @@ const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 const { paymentTermsService } = require('../services');
-const { paymentTermsValidators: { createPaymentTerms, getAllPaymentTerms, updatePaymentTerms } } = require('../validators');
+const { paymentTermsValidators: { createPaymentTerms, getAllPaymentTerms, updatePaymentTerms,enableOrDisablePaymentTerms } } = require('../validators');
 
 const LOG_ID = 'routes/paymentTerms';
 
@@ -88,6 +88,22 @@ router.post('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during payment term/delete: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for updating payment term status.
+ */
+router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(enableOrDisablePaymentTerms), async (req, res) => {
+    try {
+        const result = await paymentTermsService.enableOrDisablePaymentTerms(req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during paymentTerms/updateStatus: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

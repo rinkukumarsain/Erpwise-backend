@@ -138,3 +138,32 @@ exports.deletevat = async (vatId) => {
         };
     }
 };
+
+/**
+ * Enable/Disable Vat status
+ * 
+ * @param {object} body - req body
+ * @param {string} body.vatId - Vat id
+ * @param {boolean} body.isActive - req body (isActvie)(type bool)
+ * @returns {object} - An object
+ */
+exports.enableOrDisableVat = async ({ vatId, isActive }) => {
+    try {
+        // Update the Vat's information
+        const updateUser = await vatModel.findOneAndUpdate({ _id: vatId }, { isActive });
+        if (updateUser) {
+            return {
+                success: true,
+                message: `Vat ${isActive ? 'enabled' : 'disabled'} successfully.`,
+                data: { _id: vatId }
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while enable Or Disable Vat: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};

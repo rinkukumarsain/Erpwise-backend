@@ -3,6 +3,7 @@ const { validate } = require('express-validation');
 
 const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
+const { uploadS3 } = require('../utils/multer');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -72,6 +73,22 @@ router.post('/update/:id', validate(updateOrganisation), jwtVerify, authorizeRol
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during organisation address/update: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for upload user image.
+ */
+router.post('/uploadimage/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
+    try {
+        const result = await organisationService.uploadOrgimage(req.params.id, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during uploadOrgimage: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

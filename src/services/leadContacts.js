@@ -19,7 +19,7 @@ exports.createLeadContact = async (auth, leadContactData) => {
         const { email, _id } = auth;
 
         const findLead = await query.findOne(leadModel, { _id: leadContactData.leadId, isActive: true });
-        console.log('findLead>>>>>>>>>>>>>', findLead);
+        // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
                 success: false,
@@ -34,7 +34,7 @@ exports.createLeadContact = async (auth, leadContactData) => {
         findLead.Activity.push(obj);
         const newLeadContact = await query.create(leadContactModel, leadContactData);
         if (newLeadContact) {
-            await leadModel.updateOne({ _id: leadContactData.leadId }, { Activity: findLead.Activity });
+            await leadModel.updateOne({ _id: leadContactData.leadId }, { Activity: findLead.Activity, isContactAdded: true });
             return {
                 success: true,
                 message: 'Lead contact created successfully.',

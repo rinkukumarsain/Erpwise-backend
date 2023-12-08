@@ -6,3 +6,4 @@ exports.organisationAddressService = require('./organisationAddressService');
 exports.paymentTermsService = require('./paymentTermsService');
 exports.exchangeRateService = require('./exchangeRateService');
 exports.leadServices = require('./leadServices');
+exports.leadContacts = require('./leadContacts');

@@ -19,7 +19,11 @@ exports.getAllOrganisationAddresses = {
     query: Joi.object({
         isActive: Joi.string().optional(),
         isDefault: Joi.string().optional(),
-        addresstype: Joi.string().optional()
+        addresstype: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional()
     })
 };
 

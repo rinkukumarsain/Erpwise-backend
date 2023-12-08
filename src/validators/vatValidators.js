@@ -9,7 +9,11 @@ exports.createVat = {
 
 exports.getAllVat = {
     query: Joi.object({
-        isActive: Joi.string().optional()
+        isActive: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional()
     })
 };
 

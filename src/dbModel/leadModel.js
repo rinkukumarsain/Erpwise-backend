@@ -46,6 +46,7 @@ const userActionSchema = new Schema(
  * @property {string} email - The email address of the lead (must be unique).
  * @property {string} phone - The phone number of the lead (must be unique).
  * @property {mongoose.Types.ObjectId} salesPerson - The ID of the salesperson (referenced from 'User' model).
+ * @property {string} website - The website URL of the lead.
  * @property {string} address - The main address information for the lead.
  * @property {string} note - Additional notes or comments about the lead.
  * @property {mongoose.Types.ObjectId} currency - The ID of the currency (referenced from 'Currency' model).
@@ -84,6 +85,10 @@ const leadSchema = new Schema(
             type: mongoose.Types.ObjectId,
             required: true,
             ref: 'User'
+        },
+        website: {
+            type: String,
+            required: true
         },
         address: {
             type: String,

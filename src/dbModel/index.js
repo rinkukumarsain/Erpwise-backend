@@ -6,3 +6,4 @@ exports.paymentTermsModel = require('./paymentTermsModel');
 exports.vatModel = require('./vatModel');
 exports.leadModel = require('./leadModel');
 exports.exchangeRateModel = require('./exchangeRateModel');
+exports.leadContactModel = require('./leadContactModel');

@@ -1,14 +1,16 @@
 const { Joi } = require('express-validation');
 
-exports.createLeadContact = {
+exports.create = {
     body: Joi.object({
-        name: Joi.string().required(),
         leadId: Joi.string().required(),
-        email: Joi.string().required(),
-        phone: Joi.string().required(),
+        addresstype: Joi.string().required(),
+        address: Joi.string().required(),
+        street: Joi.string().required(),
+        area: Joi.string().required(),
         country: Joi.string().required(),
-        designation: Joi.string().required(),
-        location: Joi.string().required()
+        state: Joi.string().required(),
+        city: Joi.string().required(),
+        pincode: Joi.string().required()
     })
 };
 
@@ -26,13 +28,15 @@ exports.createLeadContact = {
 //     })
 // };
 
-exports.updateLeadById = {
+exports.update = {
     body: Joi.object({
-        name: Joi.string().optional(),
-        email: Joi.string().optional(),
-        location: Joi.string().optional(),
-        designation: Joi.string().optional(),
-        phone: Joi.string().optional(),
+        addresstype: Joi.string().optional(),
+        address: Joi.string().optional(),
+        street: Joi.string().optional(),
+        area: Joi.string().optional(),
         country: Joi.string().optional(),
+        state: Joi.string().optional(),
+        city: Joi.string().optional(),
+        pincode: Joi.string().optional()
     })
 };

@@ -23,3 +23,10 @@ exports.updatevat = {
         percentage: Joi.number().optional()
     })
 };
+
+exports.enableOrDisableVat = {
+    body: Joi.object({
+        vatId: Joi.string().required(),
+        isActive: Joi.boolean().required()
+    })
+};

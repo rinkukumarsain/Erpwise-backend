@@ -187,3 +187,37 @@ exports.updateOrganisation = async (organisationId, updateData) => {
     }
 };
 
+
+/**
+ * Upload org image.
+ *
+ * @param {string} orgId - The ID of the org.
+ * @param {object} file - Parameters containing 'file details'.
+ * @param {string} file.location - Parameters containing 'file location'.
+ * @returns {object} - An object with the results, including user details.
+ */
+exports.uploadOrgimage = async (orgId, { location }) => {
+    try {
+        const findNdUpdateOrg = await organisationModel.findOneAndUpdate({ _id: orgId }, { image: location }, { new: true });
+
+        if (!findNdUpdateOrg) {
+            return {
+                success: false,
+                message: 'Error while uploading image.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Image uploaded successfully.`,
+            data: findNdUpdateOrg
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during uploading image of an organisation: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+

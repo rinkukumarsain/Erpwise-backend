@@ -23,3 +23,10 @@ exports.updatePaymentTerms = {
         noOfDays: Joi.number().optional()
     })
 };
+
+exports.enableOrDisablePaymentTerms = {
+    body: Joi.object({
+        paymentTermsId: Joi.string().required(),
+        isActive: Joi.boolean().required()
+    })
+};

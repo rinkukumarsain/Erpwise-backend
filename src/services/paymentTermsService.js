@@ -138,3 +138,32 @@ exports.deletePaymentTerms = async (paymentTermsId) => {
         };
     }
 };
+
+/**
+ * Enable/Disable payment terms
+ * 
+ * @param {object} body - req body
+ * @param {string} body.paymentTermsId - payment terms id
+ * @param {boolean} body.isActive - req body (isActvie)(type bool)
+ * @returns {object} - An object
+ */
+exports.enableOrDisablePaymentTerms = async ({ paymentTermsId, isActive }) => {
+    try {
+        // Update the payment terms's information
+        const updatePaymentTerms = await paymentTermsModel.findOneAndUpdate({ _id: paymentTermsId }, { isActive });
+        if (updatePaymentTerms) {
+            return {
+                success: true,
+                message: `Payment terms ${isActive ? 'enabled' : 'disabled'} successfully.`,
+                data: { _id: paymentTermsId }
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while enable Or Disable PaymentTerms: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};

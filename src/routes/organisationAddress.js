@@ -48,7 +48,7 @@ router.get('/getById/:id', jwtVerify, async (req, res) => {
 /**
  * Route for creating organisation address.
  */
-router.post('/create', authorizeRoleAccess, validate(createOrganisationAddress), jwtVerify, async (req, res) => {
+router.post('/create', jwtVerify, authorizeRoleAccess, validate(createOrganisationAddress), jwtVerify, async (req, res) => {
     try {
         const result = await organisationAddressService.createOrganisationAddress(req.body, req.auth);
         if (result.success) {

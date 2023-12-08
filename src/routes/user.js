@@ -3,6 +3,7 @@ const { validate } = require('express-validation');
 
 // Local imports
 const { logger } = require('../utils/logger');
+const { uploadS3 } = require('../utils/multer');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { userService } = require('../services');
@@ -32,7 +33,7 @@ router.post('/login', validate(userValidators.login), async (req, res) => {
 /**
  * Route for user registration.
  */
-router.post('/register', jwtVerify, validate(userValidators.registerUser), authorizeRoleAccess, async (req, res) => {
+router.post('/register', jwtVerify, authorizeRoleAccess, validate(userValidators.registerUser), async (req, res) => {
     try {
         const result = await userService.registerUser(req.auth, req.body);
         if (result.success) {
@@ -48,7 +49,7 @@ router.post('/register', jwtVerify, validate(userValidators.registerUser), autho
 /**
  * Get all users according to organisation.
  */
-router.get('/getAll', jwtVerify, validate(userValidators.getAllUser), authorizeRoleAccess, async (req, res) => {
+router.get('/getAll', jwtVerify, authorizeRoleAccess, validate(userValidators.getAllUser), async (req, res) => {
     try {
         const result = await userService.getAllUsers(req.query, req.headers['x-org-type']);
         if (result.success) {
@@ -64,7 +65,7 @@ router.get('/getAll', jwtVerify, validate(userValidators.getAllUser), authorizeR
 /**
  * Get user by id.
  */
-router.get('/getById/:id', jwtVerify, validate(userValidators.getAllUser), authorizeRoleAccess, async (req, res) => {
+router.get('/getById/:id', jwtVerify, authorizeRoleAccess, validate(userValidators.getAllUser), async (req, res) => {
     try {
         const result = await userService.getUserById(req.params.id);
         if (result.success) {
@@ -73,6 +74,54 @@ router.get('/getById/:id', jwtVerify, validate(userValidators.getAllUser), autho
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during fetching user by id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for edit user profile.
+ */
+router.post('/edit/:id', jwtVerify, authorizeRoleAccess, validate(userValidators.editUser), async (req, res) => {
+    try {
+        const result = await userService.editUser(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during registration: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for updating user status.
+ */
+router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(userValidators.enableOrDisableUser), async (req, res) => {
+    try {
+        const result = await userService.enableOrDisableUser(req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during registration: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for upload user image.
+ */
+router.post('/uploadimage/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
+    try {
+        const result = await userService.uploadUserimage(req.params.id, req.file, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during uploadUserimage: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

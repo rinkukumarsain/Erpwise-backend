@@ -42,7 +42,8 @@ const globalErrors = (err, req, res, next) => {
         }
 
     }
-    logger.error(`ISSUE | Status Code:- ${err.statusCode} | API :- ${req.originalUrl}`, JSON.stringify(err.message));
+    logger.error(`ISSUE | Status Code:- ${err.statusCode || 500} | API :- ${req.originalUrl}`, JSON.stringify(err.message));
+    console.log(err);
     return handleErrorResponse(res, err.statusCode, err.message, {});
 };
 

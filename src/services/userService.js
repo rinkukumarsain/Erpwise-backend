@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const { userModel, organisationModel } = require('../dbModel');
 const { userDao } = require('../dao');
 const { generateAuthToken } = require('../utils/tokenGenerator');
-const { roleAccess, roles } = require('../../config/default.json');
+const { roles } = require('../../config/default.json');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -39,19 +39,18 @@ exports.login = async (reqBody) => {
                 message: 'Invalid credentials'
             };
         }
-
+        // console.log('findUser', findUser);
         const { data: userData } = await this.uesrProfile({ userId: findUser._id });
-
         // Generate a JWT token for the user.
         const token = generateAuthToken({
             userId: findUser._id,
-            name: userData.name,
+            fname: userData.fname,
             email: userData.email,
             role: userData.role
         });
 
         await userModel.updateOne({ _id: findUser._id }, { token });
-        userData.menuList = roleAccess[userData.role];
+        // userData.menuList = roleAccess[userData.role];
         return {
             success: true,
             message: 'You have successfully logged in to your account',
@@ -59,6 +58,7 @@ exports.login = async (reqBody) => {
             token
         };
     } catch (error) {
+        console.log(error);
         logger.error(LOG_ID, `Error occurred during login: ${error}`);
         return {
             success: false,
@@ -77,7 +77,7 @@ exports.login = async (reqBody) => {
 exports.uesrProfile = async ({ userId }) => {
     try {
         const findUser = await query.aggregation(userModel, userDao.userProfilePipeline(userId));
-
+        // console.log('findUser', findUser);
         if (findUser.length == 0) {
             return {
                 success: false,
@@ -128,7 +128,15 @@ exports.registerUser = async (auth, body) => {
         const checkUniqueEmail = await query.findOne(userModel, { email: body.email });
         if (checkUniqueEmail) return {
             success: false,
-            message: 'This email is already taken. Please choose a different one.'
+            message: 'This email is already taken. Please choose a different one.',
+            data: { email: body.email }
+        };
+
+        const checkUniqueEmployeeId = await query.findOne(userModel, { employeeId: body.employeeId });
+        if (checkUniqueEmployeeId) return {
+            success: false,
+            message: 'This employee id is already taken. Please choose a different one.',
+            data: { employeeId: body.employeeId }
         };
 
         const findCreatedByUser = await query.findOne(userModel, { _id: body.createdBy, isActive: true });
@@ -149,14 +157,14 @@ exports.registerUser = async (auth, body) => {
 
         const salt = bcrypt.genSaltSync(10);
         body.password = await bcrypt.hashSync(body.password, salt);
-        body.employeeId = `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        // body.employeeId = `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         body.baseCurrency = findOrg.currency;
         let insertUser = await query.create(userModel, body);
         if (insertUser) {
             delete insertUser._doc.password;
             return {
                 success: true,
-                message: `${body.name} created successfully.`,
+                message: `${body.fname} created successfully.`,
                 data: insertUser
             };
         } else {
@@ -184,18 +192,29 @@ exports.registerUser = async (auth, body) => {
  */
 exports.getAllUsers = async (queryParam, orgId) => {
     try {
-        const { isActive } = queryParam;
-        let obj = {};
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         if (!orgId) {
             return {
                 success: false,
                 message: 'Organisation not found.'
             };
         }
+        const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder } = queryParam;
+        let obj = {};
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (isRole == 'true') {
+            obj['$or'] = [
+                { role: 'admin' },
+                { role: 'sales' }
+            ];
+        }
+
         obj['organisationId'] = orgId;
 
-        const userList = await query.find(userModel, obj, { password: 0, token: 0 });
+
+
+        const userListCount = await query.find(userModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(userListCount.length / perPage);
+        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole, sortBy, sortOrder }));
         if (!userList.length) {
             return {
                 success: false,
@@ -205,7 +224,15 @@ exports.getAllUsers = async (queryParam, orgId) => {
         return {
             success: true,
             message: 'User fetched successfully!',
-            data: userList
+            data: {
+                userList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: userListCount.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all users: ${error}`);
@@ -241,6 +268,110 @@ exports.getUserById = async (userId) => {
         return {
             success: false,
             message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Edit user profile
+ * 
+ * @param {string} userId - req params
+ * @param {object} updatedData - req body
+ * @param {object} auth - req auth
+ * @returns {object} - An object
+ */
+exports.editUser = async (userId, updatedData, auth) => {
+    try {
+        if (updatedData.email) {
+            const checkUniqueEmail = await query.findOne(userModel, { _id: { $ne: userId }, email: updatedData.email });
+            if (checkUniqueEmail) return {
+                success: false,
+                message: 'This email is already taken. Please choose a different one.'
+            };
+        }
+
+        updatedData.updatedBy = auth._id;
+        // Update the user's information
+        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, updatedData, { new: true });
+        if (updateUser) {
+            delete updateUser._doc.password;
+            delete updateUser._doc.token;
+            return {
+                success: true,
+                message: 'user profile updated successfully.',
+                data: updateUser
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while editing user profile: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Enable/Disable user profile
+ * 
+ * @param {object} body - req body
+ * @param {string} body.userId - user id
+ * @param {boolean} body.isActive - req body (isActvie)(type bool)
+ * @param {object} auth - req auth
+ * @returns {object} - An object
+ */
+exports.enableOrDisableUser = async ({ userId, isActive }, auth) => {
+    try {
+        // Update the user's information
+        const updateUser = await userModel.findOneAndUpdate({ _id: userId }, { isActive, updatedBy: auth._id }, { new: true });
+        if (updateUser) {
+            return {
+                success: true,
+                message: `User ${isActive ? 'enabled' : 'disabled'} successfully.`,
+                data: { _id: userId }
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while editing user profile: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong.'
+        };
+    }
+};
+
+/**
+ * Upload user image.
+ *
+ * @param {string} userId - The ID of the user to fetched his/her profile.
+ * @param {object} file - Parameters containing 'file details'.
+ * @param {string} file.location - Parameters containing 'file location'.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including user details.
+ */
+exports.uploadUserimage = async (userId, { location }, auth) => {
+    try {
+        const findUser = await userModel.findOneAndUpdate({ _id: userId }, { image: location, updatedBy: auth._id }, { new: true });
+
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Error while uploading image.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Image uploaded successfully.`,
+            data: findUser
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching user profile (uesrProfile): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
         };
     }
 };

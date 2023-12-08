@@ -5,8 +5,8 @@ const Schema = mongoose.Schema;
  * @typedef {object} LeadContact
  * @property {string} name - The name of the lead contact.
  * @property {mongoose.Types.ObjectId} leadId - The ID of the associated lead (referenced from 'Lead' model).
- * @property {string} email - The email address of the lead contact (must be unique).
- * @property {string} phone - The phone number of the lead contact (must be unique).
+ * @property {string} email - The email address of the lead contact.
+ * @property {string} phone - The phone number of the lead contact.
  * @property {string} designation - The designation or role of the lead contact.
  * @property {string} country - The country of the lead contact.
  * @property {string} location - The location or address of the lead contact.
@@ -26,8 +26,7 @@ const leadContactSchema = new Schema(
     {
         name: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         leadId: {
             type: mongoose.Types.ObjectId,
@@ -36,13 +35,11 @@ const leadContactSchema = new Schema(
         },
         email: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         phone: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         designation: {
             type: String,

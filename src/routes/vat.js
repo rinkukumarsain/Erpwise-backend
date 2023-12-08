@@ -8,7 +8,7 @@ const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 const { vatService } = require('../services');
-const { vatValidators: { createVat, getAllVat, updatevat } } = require('../validators');
+const { vatValidators: { createVat, getAllVat, updatevat,enableOrDisableVat } } = require('../validators');
 
 const LOG_ID = 'routes/vat';
 
@@ -88,6 +88,22 @@ router.post('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during vat/delete: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for updating vat status.
+ */
+router.post('/updateStatus', jwtVerify, authorizeRoleAccess, validate(enableOrDisableVat), async (req, res) => {
+    try {
+        const result = await vatService.enableOrDisableVat(req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during paymentTerms/updateStatus: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

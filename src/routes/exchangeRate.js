@@ -64,7 +64,7 @@ router.get('/get', jwtVerify, authorizeRoleAccess, async (req, res) => {
 /**
  * Route for exchangeRate delete.
  */
-router.delete('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await exchangeRateService.delete(req.params.id);
         if (result.success) {

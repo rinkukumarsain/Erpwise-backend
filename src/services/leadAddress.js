@@ -1,24 +1,24 @@
 const moment = require('moment');
 // Local Import
-const { leadModel, leadContactModel } = require('../dbModel');
+const { leadModel, leadAddressModel } = require('../dbModel');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
-const LOG_ID = 'services/leadContactService';
+const LOG_ID = 'services/leadAddressService';
 
 /**
  * Creates a new lead contact.
  *
  * @param {object} auth - Data of logedin user.
- * @param {object} leadContactData - Data for creating a new lead contact.
+ * @param {object} body - Data for creating a new lead contact.
  * @returns {object} - An object with the results, including the new lead contact.
  */
-exports.createLeadContact = async (auth, leadContactData) => {
+exports.create = async (auth, body) => {
     try {
         const { email, _id } = auth;
 
-        const findLead = await query.findOne(leadModel, { _id: leadContactData.leadId, isActive: true });
+        const findLead = await query.findOne(leadModel, { _id: body.leadId, isActive: true });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -27,18 +27,18 @@ exports.createLeadContact = async (auth, leadContactData) => {
             };
         }
         let obj = {
-            performedBy: _id,
-            performedByEmail: email,
-            actionName: `Lead contact creation by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead Address creation by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
-        const newLeadContact = await query.create(leadContactModel, leadContactData);
-        if (newLeadContact) {
-            await leadModel.updateOne({ _id: leadContactData.leadId }, { Activity: findLead.Activity, isContactAdded: true });
+        const newLeadAddress = await query.create(leadAddressModel, body);
+        if (newLeadAddress) {
+            await leadModel.updateOne({ _id: body.leadId }, { Activity: findLead.Activity, isAddressAdded: true });
             return {
                 success: true,
-                message: 'Lead contact created successfully.',
-                data: newLeadContact
+                message: 'lead Address created successfully.',
+                data: newLeadAddress
             };
         }
     } catch (error) {
@@ -56,7 +56,7 @@ exports.createLeadContact = async (auth, leadContactData) => {
  * @param {string} leadId - Id of logedin user organisation.
  * @returns {object} - An object with the results, including all Lead.
  */
-exports.getAllLeadContact = async (leadId) => {
+exports.getAllLeadAddress = async (leadId) => {
     try {
         if (!leadId) {
             return {
@@ -64,7 +64,7 @@ exports.getAllLeadContact = async (leadId) => {
                 message: 'lead not found.'
             };
         }
-        const data = await query.aggregation(leadContactModel, leadDao.getAllLeadContectPipeline(leadId));
+        const data = await query.aggregation(leadAddressModel, leadDao.getAllLeadContectPipeline(leadId));
         return {
             success: true,
             message: 'Lead fetched successfully.',
@@ -87,14 +87,19 @@ exports.getAllLeadContact = async (leadId) => {
  * @param {object} updatedData - Updated data for the Lead.
  * @returns {object} - An object with the results, including the updated Lead.
  */
-exports.updateLeadById = async (auth, _id, body) => {
+exports.update = async (auth, _id, leadId, body) => {
     try {
-
-        const findData = await query.findOne(leadContactModel, { _id, isActive: true });
+        if (!leadId) {
+            return {
+                success: false,
+                message: 'lead not found.'
+            };
+        }
+        const findData = await query.findOne(leadAddressModel, { _id, isActive: true });
         if (!findData) {
             return {
                 success: false,
-                message: 'lead Contact not found.'
+                message: 'Lead not found.'
             };
         };
         const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true });
@@ -108,16 +113,17 @@ exports.updateLeadById = async (auth, _id, body) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead contact update  by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `lead Address update  by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
-        const data = await leadContactModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
+
+        const data = await leadAddressModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
         if (data) {
-            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity, isContactAdded: true });
+            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity, isAddressAdded: true });
         }
         return {
             success: true,
-            message: 'Lead contact updated successfully.',
+            message: 'lead Address updated successfully.',
             data
         };
     } catch (error) {
@@ -137,7 +143,7 @@ exports.updateLeadById = async (auth, _id, body) => {
  */
 exports.delete = async (_id) => {
     try {
-        const data = await leadContactModel.findByIdAndDelete(_id);
+        const data = await leadAddressModel.findByIdAndDelete(_id);
         if (!data) {
             return {
                 success: false,

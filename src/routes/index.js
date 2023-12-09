@@ -17,4 +17,5 @@ module.exports = (app) => {
     app.use(`${apiV1Prefix}/exchangeRate`, require('./exchangeRate'));
     app.use(`${apiV1Prefix}/lead`, require('./lead'));
     app.use(`${apiV1Prefix}/leadContact`, require('./leadContact'));
+    app.use(`${apiV1Prefix}/leadAddress`, require('./leadAddress'));
 };

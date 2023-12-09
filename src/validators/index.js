@@ -6,3 +6,4 @@ exports.vatValidators = require('./vatValidators');
 exports.exchangeRateValidators = require('./exchangeRateValidators');
 exports.leadValidators = require('./leadValidators');
 exports.leadContactValidators = require('./leadContactValidators');
+exports.leadAddressValidators = require('./leadAddressValidators.js');

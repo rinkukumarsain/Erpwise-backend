@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { leadModel } = require('../dbModel');
+const { leadModel, leadContactModel, leadAddressModel } = require('../dbModel');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -80,23 +80,39 @@ exports.getAllLead = async (orgId) => {
 /**
  * Updates a Lead by ID.
  *
+ * @param {string} auth -The is contain is auth user .
  * @param {string} leadId - The ID of the Lead to be updated.
  * @param {object} updatedData - Updated data for the Lead.
+ * @param {object} orgId - the is contain organisation id .
  * @returns {object} - An object with the results, including the updated Lead.
  */
-exports.updateLeadById = async (leadId, updatedData) => {
+exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
     try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const data = await query.findOne(leadModel, { _id: leadId, isActive: true });
+        if (!data) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        };
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead updated by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        updatedData['$push'] = { Activity: obj };
         const updatedLead = await leadModel.findByIdAndUpdate(
             leadId,
             updatedData,
             { new: true, runValidators: true }
         );
-        if (!updatedLead) {
-            return {
-                success: false,
-                message: 'Lead not found.'
-            };
-        }
+
         return {
             success: true,
             message: 'Lead updated successfully.',
@@ -117,23 +133,35 @@ exports.updateLeadById = async (leadId, updatedData) => {
  * @param {string} leadId - The ID of the Lead to be deleted.
  * @returns {object} - An object with the results, including the deleted Lead.
  */
-exports.deleteLeadById = async (leadId) => {
+exports.delete = async (leadId) => {
     try {
-        const deletedLead = await leadModel.findByIdAndUpdate(
-            leadId,
-            { isActive: false },
-            { new: true, runValidators: true }
-        );
-        if (!deletedLead) {
+        const data = await query.findOne(leadModel, { _id: leadId });
+        if (!data) {
             return {
                 success: false,
                 message: 'Lead not found.'
             };
         }
+        let arr = [];
+
+        if (data.isContactAdded) {
+            arr.push(leadContactModel.deleteMany({ leadId }));
+        }
+        if (data.isQualified) {
+            // arr.push(leadQualifiedModel.deleteMany({ leadId }));
+        }
+        if (data.isAddressAdded) {
+            arr.push(leadAddressModel.deleteMany({ leadId }));
+        }
+        if (data.isFinanceAdded) {
+            // arr.push(leadFinanceModel.deleteMany({ leadId }));
+        }
+        arr.push(leadModel.findByIdAndDelete(leadId));
+        await Promise.all(arr);
         return {
             success: true,
             message: 'Lead deleted successfully.',
-            data: deletedLead
+            data
         };
     } catch (error) {
         logger.error(LOG_ID, `Error deleting lead: ${error}`);

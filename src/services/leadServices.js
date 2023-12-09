@@ -1,6 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel, leadContactModel, leadAddressModel } = require('../dbModel');
+const { CRMlevelEnum } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -32,6 +33,7 @@ exports.createLead = async (auth, leadData, orgId) => {
         leadData.Activity = [obj];
         leadData.createdBy = _id;
         leadData.organisationId = orgId;
+        leadData.level = CRMlevelEnum.LEAD;
         leadData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newLead = await query.create(leadModel, leadData);
         return {
@@ -83,7 +85,7 @@ exports.getAllLead = async (orgId) => {
  * @param {string} auth -The is contain is auth user .
  * @param {string} leadId - The ID of the Lead to be updated.
  * @param {object} updatedData - Updated data for the Lead.
- * @param {object} orgId - the is contain organisation id .
+ * @param {object} orgId - contain organisation id .
  * @returns {object} - An object with the results, including the updated Lead.
  */
 exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
@@ -165,6 +167,64 @@ exports.delete = async (leadId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error deleting lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Qualify a Lead by ID.
+ *
+ * @param {string} auth -The is contain is auth user .
+ * @param {string} leadId - The ID of the Lead to be updated.
+ * @param {object} updateData - Updated data for the Lead (qualifymeta).
+ * @param {object} orgId - contain organisation id .
+ * @returns {object} - An object with the results, including the updated Lead (qualified).
+ */
+exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const data = await query.findOne(leadModel, { _id: leadId, isActive: true });
+        if (!data) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+
+        if (!data.isContactAdded) {
+            return {
+                success: false,
+                message: 'Lead contact not added.'
+            };
+        }
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead qualified (moved to prospect) by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        let updatedData = { qualifymeta: updateData, level: CRMlevelEnum.PROSPECT, isQualified: true };
+        updatedData['$push'] = { Activity: obj };
+        const updatedLead = await leadModel.findByIdAndUpdate(
+            leadId,
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        return {
+            success: true,
+            message: 'Lead qualified successfully.',
+            data: updatedLead
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while qualifying Lead: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

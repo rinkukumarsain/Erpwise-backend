@@ -41,3 +41,20 @@ exports.updateLeadById = {
         isActive: Joi.boolean().optional()
     })
 };
+
+exports.qualifyLeadById = {
+    body: Joi.object({
+        orderValue: Joi.number().required(),
+        actualOrderValue: Joi.number().required(),
+        interest: Joi.number().required(),
+        margin: Joi.number().required(),
+        close: Joi.number().required(),
+        startdate: Joi.string().required(),
+        expectedclosingdate: Joi.string().required(),
+        duedate: Joi.string().required(),
+        nextaction: Joi.number().required(),
+        productdescription: Joi.string().required(),
+        pipelineName: Joi.string().required(),
+        pipelinestagenumber: Joi.number().required()
+    })
+};

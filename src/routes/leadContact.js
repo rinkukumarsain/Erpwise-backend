@@ -6,7 +6,7 @@ const { logger } = require('../utils/logger');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { leadContacts } = require('../services');
-const { leadContactValidators: { createLeadContact } } = require('../validators');
+const { leadContactValidators: { createLeadContact, updateLeadById } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
@@ -30,20 +30,52 @@ router.post('/create', jwtVerify, validate(createLeadContact), async (req, res) 
     }
 });
 
-// /**
-//  * Route for getting all leads.
-//  */
-// router.get('/getAll', jwtVerify, validate(getAllLead), async (req, res) => {
-//     try {
-//         const result = await leadContacts.getAllLead(req.headers['x-org-type']);
-//         if (result.success) {
-//             return handleResponse(res, statusCode.OK, result);
-//         }
-//         return handleResponse(res, statusCode.BAD_REQUEST, result);
-//     } catch (err) {
-//         logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
-//         handleErrorResponse(res, err.status, err.message, err);
-//     }
-// });
+/**
+* Route for getting all leads.
+*/
+router.get('/getAll/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await leadContacts.getAllLeadContact(req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+* Route for getting all leads.
+*/
+router.post('/updateLeadById/:id', jwtVerify, validate(updateLeadById), async (req, res) => {
+    try {
+        const result = await leadContacts.updateLeadById(req.auth, req.params.id, req.headers['x-lead-type'], req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+* Route for getting all leads.
+*/
+router.get('/delete/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await leadContacts.delete(req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 module.exports = router;

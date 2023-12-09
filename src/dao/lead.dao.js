@@ -58,3 +58,19 @@ exports.getAllLeadPipeline = (orgId) => [
         }
     }
 ];
+exports.getAllLeadContectPipeline = (leadId) => [
+    { '$match': { 'leadId': new mongoose.Types.ObjectId(leadId) } }, {
+        '$lookup': {
+            'from': 'leads',
+            'localField': 'leadId',
+            'foreignField': '_id',
+            'pipeline': [{
+                '$project': {
+                    'isContactAdded': 0, 'isQualified': 0, 'isAddressAdded': 0,
+                    'createdAt': 0, 'updatedAt': 0, 'isFinanceAdded': 0
+                }
+            }],
+            'as': 'leadId'
+        }
+    }, { '$unwind': { 'path': '$leadId' } }
+];

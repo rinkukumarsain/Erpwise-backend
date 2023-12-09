@@ -100,7 +100,7 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
                 success: false,
                 message: 'Lead not found.'
             };
-        };
+        }
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,

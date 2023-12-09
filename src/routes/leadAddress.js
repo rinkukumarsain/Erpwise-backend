@@ -14,7 +14,7 @@ const router = express.Router();
 const LOG_ID = 'routes/leadAddress';
 
 /**
- * Route for creating lead contact.
+ * Route for creating a new lead address.
  */
 router.post('/create', jwtVerify, validate(create), async (req, res) => {
     try {
@@ -31,8 +31,8 @@ router.post('/create', jwtVerify, validate(create), async (req, res) => {
 });
 
 /**
-* Route for getting all leads.
-*/
+ * Route for getting all lead address.
+ */
 router.get('/getAll', jwtVerify, async (req, res) => {
     try {
         const result = await leadAddress.getAllLeadAddress(req.headers['x-lead-type']);
@@ -47,11 +47,11 @@ router.get('/getAll', jwtVerify, async (req, res) => {
 });
 
 /**
-* Route for getting all leads.
-*/
+ * Route for upadting lead address.
+ */
 router.post('/update/:id', jwtVerify, validate(update), async (req, res) => {
     try {
-        const result = await leadAddress.update(req.auth, req.params.id, req.headers['x-lead-type'], req.body);
+        const result = await leadAddress.update(req.auth, req.params.id, req.body);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -63,8 +63,8 @@ router.post('/update/:id', jwtVerify, validate(update), async (req, res) => {
 });
 
 /**
-* Route for getting all leads.
-*/
+ * Route for deleting lead address.
+ */
 router.get('/delete/:id', jwtVerify, async (req, res) => {
     try {
         const result = await leadAddress.delete(req.params.id);

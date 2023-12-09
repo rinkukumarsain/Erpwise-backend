@@ -100,7 +100,7 @@ const leadSchema = new Schema(
         },
         organisationId: {
             type: mongoose.Types.ObjectId,
-            ref : 'User',
+            ref : 'Organisation',
             required: true
         },
         currency: {

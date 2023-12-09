@@ -67,7 +67,7 @@ exports.getAllLeadContact = async (leadId) => {
         const data = await query.aggregation(leadContactModel, leadDao.getAllLeadContectPipeline(leadId));
         return {
             success: true,
-            message: 'Lead fetched successfully.',
+            message: 'Lead contact fetched successfully.',
             data
         };
     } catch (error) {
@@ -80,23 +80,22 @@ exports.getAllLeadContact = async (leadId) => {
 };
 
 /**
- * Updates a Lead by ID.
+ * Updates a Lead contact by ID.
  *
- * @param {string} _id - The ID of the Lead contect id  be updated.
- * @param {string} leadId - The ID of the Lead to be updated.
- * @param {object} updatedData - Updated data for the Lead.
- * @returns {object} - An object with the results, including the updated Lead.
+ * @param {string} auth - The ID of the Lead to be updated.
+ * @param {string} _id - The ID of the Lead  be updated.
+ * @param {string} body - Updated data for the Lead contact.
+ * @returns {object} - An object with the results, including updated Lead contact.
  */
-exports.updateLeadById = async (auth, _id, body) => {
+exports.updateLeadContactById = async (auth, _id, body) => {
     try {
-
         const findData = await query.findOne(leadContactModel, { _id, isActive: true });
         if (!findData) {
             return {
                 success: false,
-                message: 'lead Contact not found.'
+                message: 'Lead Contact not found.'
             };
-        };
+        }
         const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
@@ -105,6 +104,7 @@ exports.updateLeadById = async (auth, _id, body) => {
                 message: 'Lead not found.'
             };
         }
+
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
@@ -113,13 +113,13 @@ exports.updateLeadById = async (auth, _id, body) => {
         findLead.Activity.push(obj);
         const data = await leadContactModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
         if (data) {
-            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity, isContactAdded: true });
+            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity });
+            return {
+                success: true,
+                message: 'Lead contact updated successfully.',
+                data
+            };
         }
-        return {
-            success: true,
-            message: 'Lead contact updated successfully.',
-            data
-        };
     } catch (error) {
         logger.error(LOG_ID, `Error updating Lead: ${error}`);
         return {
@@ -141,7 +141,7 @@ exports.delete = async (_id) => {
         if (!data) {
             return {
                 success: false,
-                message: 'Lead not found.'
+                message: 'Lead Contact not found.'
             };
         }
         return {

@@ -54,6 +54,7 @@ const userActionSchema = new Schema(
  * @property {Array} documents - An array of documents associated with the lead.
  * @property {boolean} isQualified - Indicates whether the lead is qualifiyed or not.
  * @property {boolean} isActive - Indicates whether the lead is active.
+ * @property {object} qualifymeta - qulifiyed lead meta data
  * @property {Date} createdAt - The timestamp when the document was created.
  * @property {Date} updatedAt - The timestamp when the document was last updated.
  */
@@ -100,7 +101,7 @@ const leadSchema = new Schema(
         },
         organisationId: {
             type: mongoose.Types.ObjectId,
-            ref : 'Organisation',
+            ref: 'Organisation',
             required: true
         },
         currency: {
@@ -123,6 +124,10 @@ const leadSchema = new Schema(
             type: Boolean,
             default: true
         },
+        level: {
+            type: Number,
+            default: 1
+        },
         Activity: [userActionSchema],
         isContactAdded: {
             type: Boolean,
@@ -135,6 +140,52 @@ const leadSchema = new Schema(
         isFinanceAdded: {
             type: Boolean,
             default: false
+        },
+        qualifymeta: {
+            type: new Schema(
+                {
+                    orderValue: {
+                        type: Number
+                    },
+                    actualOrderValue: {
+                        type: Number
+                    },
+                    interest: {
+                        type: Number
+                    },
+                    margin: {
+                        type: Number
+                    },
+                    close: {
+                        type: Number
+                    },
+                    startdate: {
+                        type: Date
+                    },
+                    expectedclosingdate: {
+                        type: Date
+                    },
+                    duedate: {
+                        type: Date
+                    },
+                    nextaction: {
+                        type: Number
+                    },
+                    productdescription: {
+                        type: String
+                    },
+                    pipelineName: {
+                        type: String,
+                        required: true
+                    },
+                    pipelinestagenumber: {
+                        type: Number,
+                        required: true
+                    }
+
+                },
+                { _id: false }
+            )
         },
         createdBy: {
             type: mongoose.Types.ObjectId,

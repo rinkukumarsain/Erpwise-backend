@@ -218,5 +218,18 @@
             "/exchangeRate/get",
             "/exchangeRate/delete/:id"
         ]
+    },
+    "CRMlevelEnum": {
+        "LEAD": 1,
+        "PROSPECT": 2,
+        "PIPELINE": 3,
+        "ENQUIRY": 4
+    },
+    "crmPipelineLevel": {
+        "ContactMade": 1,
+        "MeetingArranged": 2,
+        "NeedsDefined": 3,
+        "EnquiryReceived": 4,
+        "LeadWon": 5
     }
 }

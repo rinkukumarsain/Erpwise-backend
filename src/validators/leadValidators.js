@@ -58,3 +58,22 @@ exports.qualifyLeadById = {
         pipelinestagenumber: Joi.number().required()
     })
 };
+
+exports.createProspect = {
+    body: Joi.object({
+        companyName: Joi.string().required(),
+        salesPerson: Joi.string().required(),
+        website: Joi.string().required(),
+        email: Joi.string().required(),
+        phone: Joi.string().required(),
+        address: Joi.string().required(),
+        note: Joi.string().required(),
+        currency: Joi.string().required(),
+        dueDate: Joi.string().optional(),
+        qualifymeta: Joi.object({
+            pipelineName: Joi.string().required(),
+            pipelinestagenumber: Joi.number().required()
+        }),
+        isActive: Joi.boolean().required()
+    })
+};

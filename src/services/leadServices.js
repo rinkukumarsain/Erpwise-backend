@@ -199,7 +199,7 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
             };
         }
 
-        if (!data.isContactAdded) {
+        if (!data.isContactAdded && !data.isQualified) {
             return {
                 success: false,
                 message: 'Lead contact not added.'
@@ -208,7 +208,7 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead qualified (moved to prospect) by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: !data.isQualified ? `Lead qualified (moved to prospect) by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}` : `Lead prospect qualifymeta added by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         let updatedData = { qualifymeta: updateData, level: CRMlevelEnum.PROSPECT, isQualified: true };
         updatedData['$push'] = { Activity: obj };
@@ -220,11 +220,55 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
 
         return {
             success: true,
-            message: 'Lead qualified successfully.',
+            message: !data.isQualified ? 'Lead qualified successfully.' : 'Lead prospect qualifymeta added successfully.',
             data: updatedLead
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while qualifying Lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+
+/**
+ * Creates a new lead Prospect.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {object} prospectData - Data for creating a new lead.
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the new lead Prospect.
+ */
+exports.createProspect = async (auth, prospectData, orgId) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { email, _id, fname } = auth;
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Lead prospect creation by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        prospectData.Activity = [obj];
+        prospectData.createdBy = _id;
+        prospectData.organisationId = orgId;
+        prospectData.level = CRMlevelEnum.PROSPECT;
+        prospectData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        prospectData.isQualified = true;
+        const newLead = await query.create(leadModel, prospectData);
+        return {
+            success: true,
+            message: 'Lead prospect created successfully.',
+            data: newLead
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error creating lead: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

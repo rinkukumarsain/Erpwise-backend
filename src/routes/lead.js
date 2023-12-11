@@ -34,7 +34,7 @@ router.post('/create', jwtVerify, validate(createLead), async (req, res) => {
  */
 router.get('/getAll', jwtVerify, validate(getAllLead), async (req, res) => {
     try {
-        const result = await leadServices.getAllLead(req.headers['x-org-type']);
+        const result = await leadServices.getAllLead(req.headers['x-org-type'], req.query);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

@@ -5,59 +5,108 @@ const mongoose = require('mongoose');
  * Generate an aggregation pipeline to fetch a user's profile.
  *
  * @param {string} orgId - The ID of the organisation.
+ * @param {object} query - filters for getting all leads.
  * @returns {Array} - An array representing the aggregation pipeline.
  */
-exports.getAllLeadPipeline = (orgId) => [
-    {
-        $match: {
-            organisationId: new mongoose.Types.ObjectId(orgId)
-        }
-    },
-    {
-        $lookup:
+exports.getAllLeadPipeline = (orgId, query) => {
+    let arr = [
         {
-            from: 'currencies',
-            let: {
-                currencyId: '$currency'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $eq: ['$_id', '$$currencyId']
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                level: 1
+            }
+        },
+        {
+            $lookup: {
+                from: 'currencies',
+                let: {
+                    currencyId: '$currency'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $eq: ['$_id', '$$currencyId']
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            createdAt: 0,
+                            updatedAt: 0
                         }
                     }
+                ],
+                as: 'result'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'salesPerson',
+                foreignField: '_id',
+                as: 'userDetails'
+            }
+        },
+        {
+            $addFields: {
+                result: {
+                    $arrayElemAt: ['$result', 0]
                 },
-                {
-                    $project: {
-                        createdAt: 0,
-                        updatedAt: 0
-                    }
+                userDetails: {
+                    $arrayElemAt: ['$userDetails', 0]
                 }
-            ],
-            as: 'result'
-        }
-    },
-    {
-        $addFields: {
-            result: {
-                $arrayElemAt: ['$result', 0]
+            }
+        },
+        {
+            $addFields: {
+                currencyText: {
+                    $concat: [
+                        '$result.currencyShortForm',
+                        ' (',
+                        '$result.currencySymbol',
+                        ')'
+                    ]
+                },
+                salesPersonName: {
+                    $concat: [
+                        '$userDetails.fname',
+                        ' ',
+                        '$userDetails.lname'
+                    ]
+                }
+            }
+        },
+        {
+            $project: {
+                result: 0,
+                userDetails: 0
+            }
+        },
+        {
+            $lookup: {
+                from: 'leadcontacts',
+                localField: '_id',
+                foreignField: 'leadId',
+                as: 'leadContacts'
+            }
+        },
+        {
+            $lookup: {
+                from: 'leadaddresses',
+                localField: '_id',
+                foreignField: 'leadId',
+                as: 'leadAddresses'
             }
         }
-    },
-    {
-        $addFields: {
-            currencyText: {
-                $concat: [
-                    '$result.currencyShortForm',
-                    ' (',
-                    '$result.currencySymbol',
-                    ')'
-                ]
-            }
-        }
+    ];
+
+    if (query.level) {
+        arr[0]['$match']['level'] = +query.level;
     }
-];
+
+    return arr;
+};
 
 /**
  * Generate an aggregation pipeline to fetch a all address's of a lead.

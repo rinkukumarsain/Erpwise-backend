@@ -26,13 +26,13 @@ exports.createLeadContact = {
 //     })
 // };
 
-exports.updateLeadById = {
+exports.updateLeadContactById = {
     body: Joi.object({
         name: Joi.string().optional(),
         email: Joi.string().optional(),
         location: Joi.string().optional(),
         designation: Joi.string().optional(),
         phone: Joi.string().optional(),
-        country: Joi.string().optional(),
+        country: Joi.string().optional()
     })
 };

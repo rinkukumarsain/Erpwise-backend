@@ -41,3 +41,39 @@ exports.updateLeadById = {
         isActive: Joi.boolean().optional()
     })
 };
+
+exports.qualifyLeadById = {
+    body: Joi.object({
+        orderValue: Joi.number().required(),
+        actualOrderValue: Joi.number().required(),
+        interest: Joi.number().required(),
+        margin: Joi.number().required(),
+        close: Joi.number().required(),
+        startdate: Joi.string().required(),
+        expectedclosingdate: Joi.string().required(),
+        duedate: Joi.string().required(),
+        nextaction: Joi.number().required(),
+        productdescription: Joi.string().required(),
+        pipelineName: Joi.string().required(),
+        pipelinestagenumber: Joi.number().required()
+    })
+};
+
+exports.createProspect = {
+    body: Joi.object({
+        companyName: Joi.string().required(),
+        salesPerson: Joi.string().required(),
+        website: Joi.string().required(),
+        email: Joi.string().required(),
+        phone: Joi.string().required(),
+        address: Joi.string().required(),
+        note: Joi.string().required(),
+        currency: Joi.string().required(),
+        dueDate: Joi.string().optional(),
+        qualifymeta: Joi.object({
+            pipelineName: Joi.string().required(),
+            pipelinestagenumber: Joi.number().required()
+        }),
+        isActive: Joi.boolean().required()
+    })
+};

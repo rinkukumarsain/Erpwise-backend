@@ -17,6 +17,7 @@ exports.createLead = {
 
 exports.getAllLead = {
     query: Joi.object({
+        id: Joi.string().optional(),
         isActive: Joi.string().optional(),
         isQualified: Joi.string().optional(),
         dueDate: Joi.string().optional(),

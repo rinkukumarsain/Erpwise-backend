@@ -151,7 +151,8 @@ const leadSchema = new Schema(
                         type: Number
                     },
                     interest: {
-                        type: Number
+                        type: String,
+                        default: 'LOW'
                     },
                     margin: {
                         type: Number

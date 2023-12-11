@@ -54,9 +54,10 @@ exports.createLead = async (auth, leadData, orgId) => {
  * Gets all Lead.
  *
  * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all leads.
  * @returns {object} - An object with the results, including all Lead.
  */
-exports.getAllLead = async (orgId) => {
+exports.getAllLead = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {
@@ -64,7 +65,7 @@ exports.getAllLead = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId));
+        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, queryObj));
         return {
             success: true,
             message: 'Lead fetched successfully.',
@@ -261,6 +262,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         prospectData.level = CRMlevelEnum.PROSPECT;
         prospectData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         prospectData.isQualified = true;
+        prospectData.qualifymeta.interest = 'LOW';
         const newLead = await query.create(leadModel, prospectData);
         return {
             success: true,

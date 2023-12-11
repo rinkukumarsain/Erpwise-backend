@@ -25,7 +25,8 @@ exports.getAllLead = {
         page: Joi.string().optional(),
         perPage: Joi.string().optional(),
         sortBy: Joi.string().optional(),
-        sortOrder: Joi.string().optional()
+        sortOrder: Joi.string().optional(),
+        level: Joi.string().optional()
     })
 };
 
@@ -46,7 +47,7 @@ exports.qualifyLeadById = {
     body: Joi.object({
         orderValue: Joi.number().required(),
         actualOrderValue: Joi.number().required(),
-        interest: Joi.number().required(),
+        interest: Joi.string().required(),
         margin: Joi.number().required(),
         close: Joi.number().required(),
         startdate: Joi.string().required(),

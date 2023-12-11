@@ -79,6 +79,7 @@ exports.getAllLead = async (orgId, queryObj) => {
             level: level ? +level : 1
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (id) obj['_id'] = id;
         const leadListCount = await query.find(leadModel, obj, { _id: 1 });
         const totalPages = Math.ceil(leadListCount.length / perPage);
         const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId: id }));

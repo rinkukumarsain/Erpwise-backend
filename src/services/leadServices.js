@@ -304,3 +304,56 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         };
     }
 };
+
+/**
+ * Create/Updating lead finance.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {object} financeData - Data for adding a lead finance.
+ * @param {string} leadId - Id of lead.
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the new lead data.
+ */
+exports.addLeadFinance = async (auth, financeData, leadId, orgId) => {
+    try {
+        const findLead = await query.findOne(leadModel, { _id: leadId, organisationId: orgId });
+        if (!findLead) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+        const { fname, email, _id } = auth;
+        if (findLead.isFinanceAdded) {
+            financeData.createdBy = findLead.financeMeta.createdBy || _id;
+            financeData.updatedBy = _id;
+
+        } else financeData.createdBy = _id;
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: findLead.isFinanceAdded ? `Lead finance updated by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.` : `Lead finance added by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+        let updatedData = { isFinanceAdded: true, financeMeta: financeData, updatedBy: _id };
+        updatedData['$push'] = { Activity: obj };
+        const updatedLeadFinance = await leadModel.findByIdAndUpdate(
+            leadId,
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        if (updatedLeadFinance) {
+            return {
+                success: true,
+                message: findLead.isFinanceAdded ? 'Lead finance updated successfully.' : 'Lead finance added successfully.',
+                data: updatedLeadFinance
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error adding lead finance: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

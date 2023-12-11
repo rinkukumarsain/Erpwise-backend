@@ -188,6 +188,49 @@ const leadSchema = new Schema(
                 { _id: false }
             )
         },
+        financeMeta: {
+            type: new Schema(
+                {
+                    paymentTermsId: {
+                        type: Schema.Types.ObjectId,
+                        required: true,
+                        ref: 'PaymentTerms'
+                    },
+                    vatGroupId: {
+                        type: Schema.Types.ObjectId,
+                        // required: true,
+                        ref: 'vat'
+                    },
+                    vatStatus: {
+                        type: Number,
+                        required: true
+                    },
+                    vatNumber: {
+                        type: Number,
+                        required: true
+                    },
+                    discount: {
+                        type: Number,
+                        required: true
+                    },
+                    comment: {
+                        type: String
+                        // required: true,
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+
+                },
+                { _id: false }
+            )
+        },
         createdBy: {
             type: mongoose.Types.ObjectId,
             ref: 'User'

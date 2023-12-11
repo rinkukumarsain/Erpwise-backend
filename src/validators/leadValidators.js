@@ -21,7 +21,6 @@ exports.getAllLead = {
         isQualified: Joi.string().optional(),
         dueDate: Joi.string().optional(),
         organisationId: Joi.string().optional(),
-        isRole: Joi.string().optional(),
         page: Joi.string().optional(),
         perPage: Joi.string().optional(),
         sortBy: Joi.string().optional(),

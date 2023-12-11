@@ -225,6 +225,12 @@
         "PIPELINE": 3,
         "ENQUIRY": 4
     },
+    "CRMlevelValueByKey": {
+        "1": "LEAD",
+        "2": "PROSPECT",
+        "3": "PIPELINE",
+        "4": "ENQUIRY"
+    },
     "crmPipelineLevel": {
         "ContactMade": 1,
         "MeetingArranged": 2,

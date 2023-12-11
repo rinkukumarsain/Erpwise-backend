@@ -65,7 +65,7 @@ exports.getAllLead = async (orgId, queryObj) => {
                 message: 'Organisation not found.'
             };
         }
-        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level } = queryObj;
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id } = queryObj;
         if (level) {
             if (!CRMlevelValueByKey[level]) {
                 return {
@@ -81,7 +81,7 @@ exports.getAllLead = async (orgId, queryObj) => {
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         const leadListCount = await query.find(leadModel, obj, { _id: 1 });
         const totalPages = Math.ceil(leadListCount.length / perPage);
-        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level }));
+        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId: id }));
         const messageName = CRMlevelValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {

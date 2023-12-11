@@ -20,7 +20,7 @@ const mongoose = require('mongoose');
  * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of leads.
  */
-exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level }) => {
+exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, leadId }) => {
     let pipeline = [
         {
             $match: {
@@ -126,6 +126,10 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
 
     if (isActive) {
         pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if(leadId){
+        pipeline[0]['$match']['_id'] = new mongoose.Types.ObjectId(leadId);
     }
 
     if (level) {

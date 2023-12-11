@@ -1,7 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel, leadContactModel, leadAddressModel } = require('../dbModel');
-const { CRMlevelEnum } = require('../../config/default.json');
+const { CRMlevelEnum, CRMlevelValueByKey } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -65,11 +65,37 @@ exports.getAllLead = async (orgId, queryObj) => {
                 message: 'Organisation not found.'
             };
         }
-        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, queryObj));
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level } = queryObj;
+        if (level) {
+            if (!CRMlevelValueByKey[level]) {
+                return {
+                    success: false,
+                    message: 'Please provied a vaild crm level.'
+                };
+            }
+        }
+        let obj = {
+            organisationId: orgId,
+            level: level ? +level : 1
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        const leadListCount = await query.find(leadModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(leadListCount.length / perPage);
+        const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level }));
+        const messageName = CRMlevelValueByKey[level ? level : '1'];
+        const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
             success: true,
-            message: 'Lead fetched successfully.',
-            data: leadData
+            message: `${formattedString} fetched successfully.`,
+            data: {
+                leadData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: leadListCount.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error fetching lead: ${error}`);

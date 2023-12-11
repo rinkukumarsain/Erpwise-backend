@@ -2,19 +2,42 @@ const mongoose = require('mongoose');
 // const moment = require('moment');
 
 /**
- * Generate an aggregation pipeline to fetch a user's profile.
+ * Options for customizing the lead retrieval.
  *
- * @param {string} orgId - The ID of the organisation.
- * @param {object} query - filters for getting all leads.
- * @returns {Array} - An array representing the aggregation pipeline.
+ * @typedef {object} GetAllLeadOptions
+ * @property {boolean} isActive - Filter leads based on their activation status.
+ * @property {number} page - The current page for pagination.
+ * @property {number} perPage - The number of leads to display per page.
+ * @property {string} sortBy - Field to sort by.
+ * @property {string} sortOrder - Sort order.
+ * @property {number} level - The level of the lead.
  */
-exports.getAllLeadPipeline = (orgId, query) => {
-    let arr = [
+
+/**
+ * Generates an aggregation pipeline to retrieve a paginated and sorted list of leads.
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of leads.
+ */
+exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level }) => {
+    let pipeline = [
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
                 level: 1
             }
+        },
+        {
+            $sort: {
+                // 'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
         },
         {
             $lookup: {
@@ -101,11 +124,21 @@ exports.getAllLeadPipeline = (orgId, query) => {
         }
     ];
 
-    if (query.level) {
-        arr[0]['$match']['level'] = +query.level;
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
     }
 
-    return arr;
+    if (level) {
+        pipeline[0]['$match']['level'] = +level;
+    }
+
+    if (sortBy && sortOrder) {
+        pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
+    } else {
+        pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+
+    return pipeline;
 };
 
 /**

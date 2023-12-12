@@ -168,11 +168,12 @@ exports.makeAddressPrimary = async (addressId) => {
     try {
         await leadAddressModel.updateMany({ _id: { $ne: addressId } }, { isDefault: false });
         const makePrimary = await leadAddressModel.findOneAndUpdate({ _id: addressId }, { isDefault: true });
+        const findAllAddress = await query.find(leadAddressModel, { leadId: makePrimary.leadId });
         if (makePrimary) {
             return {
                 success: true,
                 message: 'The address has been designated as the primary address.',
-                data: { addressId }
+                data: findAllAddress
             };
         }
     } catch (error) {

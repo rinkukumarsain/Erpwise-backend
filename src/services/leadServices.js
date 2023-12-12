@@ -398,6 +398,44 @@ exports.uploadLeadDocument = async (leadId, { location }, auth) => {
 };
 
 /**
+ * delete Lead Document.
+ *
+ * @param {string} leadId - The ID of the lead.
+ * @param {string} imageUrl - Parameters containing 'file details'.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including lead details.
+ */
+exports.deleteLeadDocument = async (leadId, imageUrl, auth) => {
+    try {
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead document deleted by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
+
+        if (!findAndUpdateLeadDocument) {
+            return {
+                success: false,
+                message: 'Error while deleting lead document.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Document deleted successfully.`,
+            data: findAndUpdateLeadDocument
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching deleting lead document (uploadLeadDocument): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Get lead dashboard count.
  *
  * @param {string} orgId - Id of logedin user organisation.

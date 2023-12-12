@@ -177,14 +177,8 @@ exports.delete = async (leadId) => {
         if (data.isContactAdded) {
             arr.push(leadContactModel.deleteMany({ leadId }));
         }
-        if (data.isQualified) {
-            // arr.push(leadQualifiedModel.deleteMany({ leadId }));
-        }
         if (data.isAddressAdded) {
             arr.push(leadAddressModel.deleteMany({ leadId }));
-        }
-        if (data.isFinanceAdded) {
-            // arr.push(leadFinanceModel.deleteMany({ leadId }));
         }
         arr.push(leadModel.findByIdAndDelete(leadId));
         await Promise.all(arr);

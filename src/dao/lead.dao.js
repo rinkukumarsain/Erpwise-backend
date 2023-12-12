@@ -128,7 +128,7 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
         pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
     }
 
-    if(leadId){
+    if (leadId) {
         pipeline[0]['$match']['_id'] = new mongoose.Types.ObjectId(leadId);
     }
 
@@ -144,6 +144,28 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
 
     return pipeline;
 };
+
+/**
+ * Generate an aggregation pipeline to fetch lead dashboard count.
+ *
+ * @param {string} orgId - The ID of the organisation.
+ * @returns {Array} - An array representing the aggregation pipeline.
+ */
+exports.getLeadDashBoardCount = (orgId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId)
+        }
+    },
+    {
+        $group: {
+            _id: '$level',
+            count: {
+                $sum: 1
+            }
+        }
+    }
+];
 
 // /**
 //  * Generate an aggregation pipeline to fetch a all address's of a lead.

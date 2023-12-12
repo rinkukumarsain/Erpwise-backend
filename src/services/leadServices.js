@@ -6,7 +6,7 @@ const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
-const LOG_ID = 'services/currencyService';
+const LOG_ID = 'services/leadService';
 
 /**
  * Creates a new lead.
@@ -351,6 +351,45 @@ exports.addLeadFinance = async (auth, financeData, leadId, orgId) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error adding lead finance: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Upload Lead Document.
+ *
+ * @param {string} leadId - The ID of the lead.
+ * @param {object} file - Parameters containing 'file details'.
+ * @param {string} file.location - Parameters containing 'file location'.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including lead details.
+ */
+exports.uploadLeadDocument = async (leadId, { location }, auth) => {
+    try {
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead document uploaded by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
+
+        if (!findAndUpdateLeadDocument) {
+            return {
+                success: false,
+                message: 'Error while uploading lead document.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Document uploaded successfully.`,
+            data: findAndUpdateLeadDocument
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching uploading lead document (uploadLeadDocument): ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

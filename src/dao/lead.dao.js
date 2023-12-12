@@ -244,25 +244,36 @@ exports.getPipelineData = (orgId) => [
     {
         $project: {
             result: 0,
-            userDetails: 0
+            userDetails: 0,
+            email: 0,
+            phone: 0,
+            salesPerson: 0,
+            address: 0,
+            isQualified: 0,
+            isActive: 0,
+            documents: 0,
+            isContactAdded: 0,
+            isAddressAdded: 0,
+            isFinanceAdded: 0,
+            createdBy: 0
         }
     },
-    {
-        $lookup: {
-            from: 'leadcontacts',
-            localField: '_id',
-            foreignField: 'leadId',
-            as: 'leadContacts'
-        }
-    },
-    {
-        $lookup: {
-            from: 'leadaddresses',
-            localField: '_id',
-            foreignField: 'leadId',
-            as: 'leadAddresses'
-        }
-    },
+    // {
+    //   $lookup: {
+    //     from: "leadcontacts",
+    //     localField: "_id",
+    //     foreignField: "leadId",
+    //     as: "leadContacts",
+    //   },
+    // }
+    // {
+    //   $lookup: {
+    //     from: "leadaddresses",
+    //     localField: "_id",
+    //     foreignField: "leadId",
+    //     as: "leadAddresses",
+    //   },
+    // }
     {
         $group: {
             _id: '$qualifymeta.pipelineName',

@@ -29,7 +29,7 @@ exports.create = async (auth, body) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead Address creation by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead Address created by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const newLeadAddress = await query.create(leadAddressModel, body);
@@ -107,10 +107,9 @@ exports.update = async (auth, _id, body) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `lead Address update by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead Address updated by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
-
         const data = await leadAddressModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
         if (data) {
             await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity, isAddressAdded: true });
@@ -151,6 +150,33 @@ exports.delete = async (_id) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error deleting lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+
+/**
+ * make a address as a primary address.
+ *
+ * @param {string} addressId - The ID of the Lead address to be primary.
+ * @returns {object} - An object with the results, including  Lead address Id.
+ */
+exports.makeAddressPrimary = async (addressId) => {
+    try {
+        await leadAddressModel.updateMany({ _id: { $ne: addressId } }, { isDefault: false });
+        const makePrimary = await leadAddressModel.findOneAndUpdate({ _id: addressId }, { isDefault: true });
+        if (makePrimary) {
+            return {
+                success: true,
+                message: 'The address has been designated as the primary address.',
+                data: { addressId }
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while makeing a address - Primary: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

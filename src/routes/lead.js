@@ -144,6 +144,22 @@ router.post('/upload/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('imag
 });
 
 /**
+ * Route for deleting lead document.
+ */
+router.post('/deleteDocument/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadServices.deleteLeadDocument(req.params.id, req.body.imageUrl, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during deleteLeadDocument: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
  * Route for getting all lead dashboard count.
  */
 router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res) => {

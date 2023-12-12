@@ -167,6 +167,118 @@ exports.getLeadDashBoardCount = (orgId) => [
     }
 ];
 
+/**
+ * Generate an aggregation pipeline to fetch lead pipeline section data.
+ *
+ * @param {string} orgId - The ID of the organisation.
+ * @returns {Array} - An array representing the aggregation pipeline.
+ */
+exports.getPipelineData = (orgId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            level: 2
+        }
+    },
+    {
+        $lookup: {
+            from: 'currencies',
+            let: {
+                currencyId: '$currency'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$_id', '$$currencyId']
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        createdAt: 0,
+                        updatedAt: 0
+                    }
+                }
+            ],
+            as: 'result'
+        }
+    },
+    {
+        $lookup: {
+            from: 'users',
+            localField: 'salesPerson',
+            foreignField: '_id',
+            as: 'userDetails'
+        }
+    },
+    {
+        $addFields: {
+            result: {
+                $arrayElemAt: ['$result', 0]
+            },
+            userDetails: {
+                $arrayElemAt: ['$userDetails', 0]
+            }
+        }
+    },
+    {
+        $addFields: {
+            currencyText: {
+                $concat: [
+                    '$result.currencyShortForm',
+                    ' (',
+                    '$result.currencySymbol',
+                    ')'
+                ]
+            },
+            salesPersonName: {
+                $concat: [
+                    '$userDetails.fname',
+                    ' ',
+                    '$userDetails.lname'
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            result: 0,
+            userDetails: 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadcontacts',
+            localField: '_id',
+            foreignField: 'leadId',
+            as: 'leadContacts'
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadaddresses',
+            localField: '_id',
+            foreignField: 'leadId',
+            as: 'leadAddresses'
+        }
+    },
+    {
+        $group: {
+            _id: '$qualifymeta.pipelineName',
+            data: {
+                $push: '$$ROOT'
+            },
+            count: {
+                $sum: 1
+            },
+            total: {
+                $sum: '$qualifymeta.orderValue'
+            }
+        }
+    }
+];
+
 // /**
 //  * Generate an aggregation pipeline to fetch a all address's of a lead.
 //  *

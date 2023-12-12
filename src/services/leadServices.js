@@ -177,14 +177,8 @@ exports.delete = async (leadId) => {
         if (data.isContactAdded) {
             arr.push(leadContactModel.deleteMany({ leadId }));
         }
-        if (data.isQualified) {
-            // arr.push(leadQualifiedModel.deleteMany({ leadId }));
-        }
         if (data.isAddressAdded) {
             arr.push(leadAddressModel.deleteMany({ leadId }));
-        }
-        if (data.isFinanceAdded) {
-            // arr.push(leadFinanceModel.deleteMany({ leadId }));
         }
         arr.push(leadModel.findByIdAndDelete(leadId));
         await Promise.all(arr);
@@ -456,6 +450,31 @@ exports.getLeadDashBoardCount = async (orgId) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching lead dashbord count: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Get lead pipeline data.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the lead pipeline data.
+ */
+exports.getPipelineData = async (orgId) => {
+    try {
+        const find = await query.aggregation(leadModel, leadDao.getPipelineData(orgId));
+        if (find.length) {
+            return {
+                success: true,
+                message: 'Lead pipeline data.',
+                data: find
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching lead pipeline data: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

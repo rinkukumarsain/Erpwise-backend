@@ -198,6 +198,7 @@
             "/exchangeRate/get",
             "/exchangeRate/delete/:id",
             "/lead/getDashboardCount",
+            "/lead/getPipelineData",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",
@@ -235,6 +236,7 @@
             "/exchangeRate/get",
             "/exchangeRate/delete/:id",
             "/lead/getDashboardCount",
+            "/lead/getPipelineData",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",
@@ -254,6 +256,7 @@
         ],
         "sales": [
             "/lead/getDashboardCount",
+            "/lead/getPipelineData",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",

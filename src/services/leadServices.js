@@ -456,3 +456,28 @@ exports.getLeadDashBoardCount = async (orgId) => {
         };
     }
 };
+
+/**
+ * Get lead pipeline data.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the lead pipeline data.
+ */
+exports.getPipelineData = async (orgId) => {
+    try {
+        const find = await query.aggregation(leadModel, leadDao.getPipelineData(orgId));
+        if (find.length) {
+            return {
+                success: true,
+                message: 'Lead pipeline data.',
+                data: find
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching lead pipeline data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

@@ -170,7 +170,23 @@ router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during getting all lead dashboard count: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all lead pipeline data.
+ */
+router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadServices.getPipelineData(req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during getting all lead pipeline data: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

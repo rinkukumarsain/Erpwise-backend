@@ -396,3 +396,31 @@ exports.uploadLeadDocument = async (leadId, { location }, auth) => {
         };
     }
 };
+
+/**
+ * Get lead dashboard count.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the lead dashboard count.
+ */
+exports.getLeadDashBoardCount = async (orgId) => {
+    try {
+        let obj = {};
+        const find = await query.aggregation(leadModel, leadDao.getLeadDashBoardCount(orgId));
+        for (let ele of find) obj[CRMlevelValueByKey[ele._id]] = ele.count;
+
+        if (find.length) {
+            return {
+                success: true,
+                message: 'Lead dashboard count.',
+                data: obj
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching lead dashbord count: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

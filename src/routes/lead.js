@@ -143,5 +143,21 @@ router.post('/upload/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('imag
     }
 });
 
+/**
+ * Route for getting all lead dashboard count.
+ */
+router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadServices.getLeadDashBoardCount(req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

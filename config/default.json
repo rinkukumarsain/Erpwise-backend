@@ -197,6 +197,7 @@
             "/exchangeRate/update/:id",
             "/exchangeRate/get",
             "/exchangeRate/delete/:id",
+            "/lead/getDashboardCount",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",
@@ -231,6 +232,7 @@
             "/exchangeRate/update/:id",
             "/exchangeRate/get",
             "/exchangeRate/delete/:id",
+            "/lead/getDashboardCount",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",
@@ -247,6 +249,7 @@
             "/leadAddress/delete/:id"
         ],
         "sales": [
+            "/lead/getDashboardCount",
             "/lead/create",
             "/lead/getAll",
             "/lead/updateLeadById/:id",
@@ -266,14 +269,14 @@
     "CRMlevelEnum": {
         "LEAD": 1,
         "PROSPECT": 2,
-        "PIPELINE": 3,
-        "ENQUIRY": 4
+        "ENQUIRY": 3,
+        "SALESORDER": 4
     },
     "CRMlevelValueByKey": {
         "1": "LEAD",
         "2": "PROSPECT",
-        "3": "PIPELINE",
-        "4": "ENQUIRY"
+        "3": "ENQUIRY",
+        "4": "SALESORDER"
     },
     "crmPipelineLevel": {
         "ContactMade": 1,

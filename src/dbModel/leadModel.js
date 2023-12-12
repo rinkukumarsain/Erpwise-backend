@@ -141,6 +141,14 @@ const leadSchema = new Schema(
             type: Boolean,
             default: false
         },
+        isMovedToEnquiry: {
+            type: Boolean,
+            default: false
+        },
+        isMovedToSalesOrder: {
+            type: Boolean,
+            default: false
+        },
         qualifymeta: {
             type: new Schema(
                 {

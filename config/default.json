@@ -212,7 +212,8 @@
             "/leadContact/delete/:id",
             "/leadAddress/create",
             "/leadAddress/update/:id",
-            "/leadAddress/delete/:id"
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
         ],
         "admin": [
             "/user/register",
@@ -248,7 +249,8 @@
             "/leadContact/delete/:id",
             "/leadAddress/create",
             "/leadAddress/update/:id",
-            "/leadAddress/delete/:id"
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
         ],
         "sales": [
             "/lead/getDashboardCount",
@@ -266,7 +268,8 @@
             "/leadContact/delete/:id",
             "/leadAddress/create",
             "/leadAddress/update/:id",
-            "/leadAddress/delete/:id"
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
         ]
     },
     "CRMlevelEnum": {

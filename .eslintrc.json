@@ -22,10 +22,11 @@
         "SwitchCase": 1
       }
     ],
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
+    // "linebreak-style": [
+    //   "error",
+    //   "unix"
+    // ],
+    "linebreak-style": "off", // Disable linebreak-style rule
     "quotes": [
       "error",
       "single",

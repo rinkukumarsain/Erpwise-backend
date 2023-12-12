@@ -1,7 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel, leadContactModel } = require('../dbModel');
-const { leadDao } = require('../dao');
+// const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -24,6 +24,28 @@ exports.createLeadContact = async (auth, leadContactData) => {
             return {
                 success: false,
                 message: 'Lead not found.'
+            };
+        }
+
+        const findUniqueName = await query.findOne(leadContactModel, { name: leadContactData.name });
+        if (findUniqueName) {
+            return {
+                success: false,
+                message: 'Lead contact name already exist.'
+            };
+        }
+        const findUniqueEmail = await query.findOne(leadContactModel, { email: leadContactData.email });
+        if (findUniqueEmail) {
+            return {
+                success: false,
+                message: 'Lead contact email already exist.'
+            };
+        }
+        const findUniquePhone = await query.findOne(leadContactModel, { phone: leadContactData.phone });
+        if (findUniquePhone) {
+            return {
+                success: false,
+                message: 'Lead contact phone already exist.'
             };
         }
         let obj = {
@@ -50,34 +72,34 @@ exports.createLeadContact = async (auth, leadContactData) => {
     }
 };
 
-/**
- * Gets all Lead.
- *
- * @param {string} leadId - Id of logedin user organisation.
- * @returns {object} - An object with the results, including all Lead.
- */
-exports.getAllLeadContact = async (leadId) => {
-    try {
-        if (!leadId) {
-            return {
-                success: false,
-                message: 'lead not found.'
-            };
-        }
-        const data = await query.aggregation(leadContactModel, leadDao.getAllLeadContectPipeline(leadId));
-        return {
-            success: true,
-            message: 'Lead contact fetched successfully.',
-            data
-        };
-    } catch (error) {
-        logger.error(LOG_ID, `Error fetching lead: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
+// /**
+//  * Gets all Lead.
+//  *
+//  * @param {string} leadId - Id of logedin user organisation.
+//  * @returns {object} - An object with the results, including all Lead.
+//  */
+// exports.getAllLeadContact = async (leadId) => {
+//     try {
+//         if (!leadId) {
+//             return {
+//                 success: false,
+//                 message: 'lead not found.'
+//             };
+//         }
+//         const data = await query.aggregation(leadContactModel, leadDao.getAllLeadContectPipeline(leadId));
+//         return {
+//             success: true,
+//             message: 'Lead contact fetched successfully.',
+//             data
+//         };
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error fetching lead: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
 
 /**
  * Updates a Lead contact by ID.

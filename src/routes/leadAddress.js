@@ -8,7 +8,7 @@ const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { leadAddress } = require('../services');
 const { leadAddressValidators: { create, update } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
-// const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
+const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 
 const LOG_ID = 'routes/leadAddress';
@@ -16,7 +16,7 @@ const LOG_ID = 'routes/leadAddress';
 /**
  * Route for creating a new lead address.
  */
-router.post('/create', jwtVerify, validate(create), async (req, res) => {
+router.post('/create', jwtVerify, authorizeRoleAccess, validate(create), async (req, res) => {
     try {
         const result = await leadAddress.create(req.auth, req.body);
         if (result.success) {
@@ -30,26 +30,26 @@ router.post('/create', jwtVerify, validate(create), async (req, res) => {
     }
 });
 
-/**
- * Route for getting all lead address.
- */
-router.get('/getAll', jwtVerify, async (req, res) => {
-    try {
-        const result = await leadAddress.getAllLeadAddress(req.headers['x-lead-type']);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
+// /**
+//  * Route for getting all lead address.
+//  */
+// router.get('/getAll', jwtVerify, authorizeRoleAccess, async (req, res) => {
+//     try {
+//         const result = await leadAddress.getAllLeadAddress(req.headers['x-lead-type']);
+//         if (result.success) {
+//             return handleResponse(res, statusCode.OK, result);
+//         }
+//         return handleResponse(res, statusCode.BAD_REQUEST, result);
+//     } catch (err) {
+//         logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+//         handleErrorResponse(res, err.status, err.message, err);
+//     }
+// });
 
 /**
  * Route for upadting lead address.
  */
-router.post('/update/:id', jwtVerify, validate(update), async (req, res) => {
+router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(update), async (req, res) => {
     try {
         const result = await leadAddress.update(req.auth, req.params.id, req.body);
         if (result.success) {
@@ -65,7 +65,7 @@ router.post('/update/:id', jwtVerify, validate(update), async (req, res) => {
 /**
  * Route for deleting lead address.
  */
-router.get('/delete/:id', jwtVerify, async (req, res) => {
+router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await leadAddress.delete(req.params.id);
         if (result.success) {

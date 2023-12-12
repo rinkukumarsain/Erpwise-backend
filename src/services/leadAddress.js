@@ -1,7 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel, leadAddressModel } = require('../dbModel');
-const { leadDao } = require('../dao');
+// const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -50,34 +50,34 @@ exports.create = async (auth, body) => {
     }
 };
 
-/**
- * Gets all Lead address.
- *
- * @param {string} leadId - Id of lead.
- * @returns {object} - An object with the results, including all Lead address.
- */
-exports.getAllLeadAddress = async (leadId) => {
-    try {
-        if (!leadId) {
-            return {
-                success: false,
-                message: 'lead not found.'
-            };
-        }
-        const data = await query.aggregation(leadAddressModel, leadDao.getAllLeadAddressPipeline(leadId));
-        return {
-            success: true,
-            message: 'Lead fetched successfully.',
-            data
-        };
-    } catch (error) {
-        logger.error(LOG_ID, `Error fetching lead: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
+// /**
+//  * Gets all Lead address.
+//  *
+//  * @param {string} leadId - Id of lead.
+//  * @returns {object} - An object with the results, including all Lead address.
+//  */
+// exports.getAllLeadAddress = async (leadId) => {
+//     try {
+//         if (!leadId) {
+//             return {
+//                 success: false,
+//                 message: 'lead not found.'
+//             };
+//         }
+//         const data = await query.aggregation(leadAddressModel, leadDao.getAllLeadAddressPipeline(leadId));
+//         return {
+//             success: true,
+//             message: 'Lead fetched successfully.',
+//             data
+//         };
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error fetching lead: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
 
 /**
  * Updates a Lead address by ID.

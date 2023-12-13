@@ -210,7 +210,7 @@ const leadSchema = new Schema(
                         ref: 'vat'
                     },
                     vatStatus: {
-                        type: Number,
+                        type: String,
                         required: true
                     },
                     vatNumber: {
@@ -218,8 +218,8 @@ const leadSchema = new Schema(
                         required: true
                     },
                     discount: {
-                        type: Number,
-                        required: true
+                        type: Number
+                        // required: true
                     },
                     comment: {
                         type: String

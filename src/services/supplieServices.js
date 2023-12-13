@@ -440,13 +440,18 @@ exports.getSupplierDashBoardCount = async (orgId) => {
 exports.getPipelineData = async (orgId) => {
     try {
         const find = await query.aggregation(supplierModel, supplierDao.getPipelineData(orgId));
-        if (find.length) {
+        if (!find.length) {
             return {
-                success: true,
-                message: 'Supplier pipeline data.',
-                data: find
+                success: false,
+                message: 'Supplier pipeline not found.',
+                data: []
             };
         }
+        return {
+            success: true,
+            message: 'Supplier pipeline data.',
+            data: find
+        };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching supplier pipeline data: ${error}`);
         return {

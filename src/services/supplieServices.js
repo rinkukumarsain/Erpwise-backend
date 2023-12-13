@@ -256,7 +256,7 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
         body.createdBy = _id;
         body.organisationId = orgId;
         body.level = supplierLevelEnum.APPROVEDSUPPLIERS;
-        body.pipelineStage = supplierValueByKey[supplierLevelEnum.APPROVEDSUPPLIERS];
+        // body.pipelineStage = supplierValueByKey[supplierLevelEnum.APPROVEDSUPPLIERS];
         body.Id = `Supplier-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newLead = await query.create(supplierModel, body);
         return {

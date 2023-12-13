@@ -24,6 +24,13 @@ exports.createSupplier = async (auth, supplierData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        const findUniqueCompanyName = await query.findOne(supplierModel, { organisationId: orgId, companyName: supplierData.companyName });
+        if (findUniqueCompanyName) {
+            return {
+                success: false,
+                message: 'Company name already exist.'
+            };
+        }
         const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
@@ -76,7 +83,8 @@ exports.getAllSupplier = async (orgId, queryObj) => {
         }
         let obj = {
             organisationId: orgId,
-            level: level ? +level : 1
+            level: level ? +level : 1,
+            isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         if (id) obj['_id'] = id;
@@ -154,12 +162,21 @@ exports.updateSupplierById = async (auth, supplierId, updatedData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const data = await query.findOne(supplierModel, { _id: supplierId });
+        const data = await query.findOne(supplierModel, { _id: supplierId, isDeleted: false });
         if (!data) {
             return {
                 success: false,
                 message: 'Supplier not found.'
             };
+        }
+        if (updatedData.companyName) {
+            const findUniqueCompanyName = await query.findOne(supplierModel, { organisationId: orgId, companyName: updatedData.companyName, _id: { $ne: supplierId } });
+            if (findUniqueCompanyName) {
+                return {
+                    success: false,
+                    message: 'Company name already exist.'
+                };
+            }
         }
         let obj = {
             performedBy: auth._id,
@@ -191,35 +208,48 @@ exports.updateSupplierById = async (auth, supplierId, updatedData, orgId) => {
  * Deletes a Supplier by ID.
  *
  * @param {string} supplierId - The ID of the Supplier to be deleted.
+ * @param {object} auth -The is contain is auth user .
  * @returns {object} - An object with the results, including the deleted Lead.
  */
-exports.delete = async (supplierId) => {
+exports.delete = async (supplierId, auth) => {
     try {
-        const data = await query.findOne(supplierModel, { _id: supplierId });
+        const data = await query.findOne(supplierModel, { _id: supplierId, isDeleted: false });
         if (!data) {
             return {
                 success: false,
                 message: 'Supplier not found.'
             };
         }
-        let arr = [];
+        // let arr = [];
 
-        if (data.isContactAdded) {
-            // arr.push(supplierContactModel.deleteMany({ supplierId }));
-        }
-        if (data.isBillingAddressAdded || data.isShippingAddressAdded) {
-            // arr.push(supplierAddressModel.deleteMany({ supplierId }));
-        }
-        if (data.isItemAdded) {
-            // arr.push(supplierItemssModel.deleteMany({ supplierId }));
-        }
-        arr.push(supplierModel.findByIdAndDelete(supplierId));
-        await Promise.all(arr);
-        return {
-            success: true,
-            message: 'Supplier deleted successfully.',
-            data
+        // if (data.isContactAdded) {
+        //     // arr.push(supplierContactModel.deleteMany({ supplierId }));
+        // }
+        // if (data.isBillingAddressAdded || data.isShippingAddressAdded) {
+        //     // arr.push(supplierAddressModel.deleteMany({ supplierId }));
+        // }
+        // if (data.isItemAdded) {
+        //     // arr.push(supplierItemssModel.deleteMany({ supplierId }));
+        // }
+        // arr.push(supplierModel.findByIdAndDelete(supplierId));
+        // await Promise.all(arr);
+        let updatedData = { isDeleted: true };
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Supplier deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        updatedData['$push'] = { Activity: obj };
+        const deleteSupplier = await supplierModel.findByIdAndUpdate(
+            supplierId,
+            updatedData
+        );
+        if (deleteSupplier) {
+            return {
+                success: true,
+                message: 'Supplier deleted successfully.'
+            };
+        }
     } catch (error) {
         logger.error(LOG_ID, `Error deleting supplier: ${error}`);
         return {
@@ -244,6 +274,13 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
             return {
                 success: false,
                 message: 'Organisation not found.'
+            };
+        }
+        const findUniqueCompanyName = await query.findOne(supplierModel, { organisationId: orgId, companyName: body.companyName });
+        if (findUniqueCompanyName) {
+            return {
+                success: false,
+                message: 'Company name already exist.'
             };
         }
         const { email, _id, fname, lname } = auth;
@@ -284,7 +321,7 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
  */
 exports.addSupplierFinance = async (auth, financeData, supplierId, orgId) => {
     try {
-        const findSupplier = await query.findOne(supplierModel, { _id: supplierId, organisationId: orgId });
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierId, organisationId: orgId, isDeleted: false });
         if (!findSupplier) {
             return {
                 success: false,
@@ -342,7 +379,7 @@ exports.uploadSupplierDocument = async (supplierId, { location }, auth) => {
             performedByEmail: auth.email,
             actionName: `Supplier document uploaded by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
-        const findAndUpdateLeadDocument = await supplierModel.findOneAndUpdate({ _id: supplierId }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
+        const findAndUpdateLeadDocument = await supplierModel.findOneAndUpdate({ _id: supplierId, isDeleted: false }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
 
         if (!findAndUpdateLeadDocument) {
             return {
@@ -380,7 +417,7 @@ exports.deleteSupplierDocument = async (supplierId, imageUrl, auth) => {
             performedByEmail: auth.email,
             actionName: `Supplier document deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
-        const findAndUpdateLeadDocument = await supplierModel.findOneAndUpdate({ _id: supplierId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
+        const findAndUpdateLeadDocument = await supplierModel.findOneAndUpdate({ _id: supplierId, isDeleted: false }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
 
         if (!findAndUpdateLeadDocument) {
             return {
@@ -477,7 +514,7 @@ exports.moveToPipeLine = async (auth, supplierId, updateData) => {
                 message: 'Supplier pipeline stage not found.'
             };
         }
-        const findSupplier = await query.findOne(supplierModel, { _id: supplierId });
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierId, isDeleted: false });
         if (!findSupplier) {
             return {
                 success: false,
@@ -492,7 +529,7 @@ exports.moveToPipeLine = async (auth, supplierId, updateData) => {
         };
         if (findSupplier.level == 1) updateData.level = 2;
         updateData['$push'] = { Activity: obj };
-        const updateSupplier = await supplierModel.findOneAndUpdate({ _id: supplierId }, updateData, { new: true, runValidators: true });
+        const updateSupplier = await supplierModel.findOneAndUpdate({ _id: supplierId, isDeleted: false }, updateData, { new: true, runValidators: true });
         if (updateSupplier) {
             return {
                 success: true,
@@ -518,7 +555,7 @@ exports.moveToPipeLine = async (auth, supplierId, updateData) => {
  */
 exports.moveToApprovedSupplier = async (auth, supplierId) => {
     try {
-        const findSupplier = await query.findOne(supplierModel, { _id: supplierId });
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierId, isDeleted: false });
         if (!findSupplier) {
             return {
                 success: false,
@@ -539,7 +576,7 @@ exports.moveToApprovedSupplier = async (auth, supplierId) => {
         };
         let updateData = { level: 3 };
         updateData['$push'] = { Activity: obj };
-        const updateSupplier = await supplierModel.findOneAndUpdate({ _id: supplierId }, updateData, { new: true, runValidators: true });
+        const updateSupplier = await supplierModel.findOneAndUpdate({ _id: supplierId, isDeleted: false }, updateData, { new: true, runValidators: true });
         if (updateSupplier) {
             return {
                 success: true,

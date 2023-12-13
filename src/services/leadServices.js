@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { leadModel, leadContactModel, leadAddressModel } = require('../dbModel');
+const { leadModel } = require('../dbModel');
 const { CRMlevelEnum, CRMlevelValueByKey } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -24,11 +24,18 @@ exports.createLead = async (auth, leadData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        const findUniqueCompanyName = await query.findOne(leadModel, { organisationId: orgId, companyName: leadData.companyName });
+        if (findUniqueCompanyName) {
+            return {
+                success: false,
+                message: 'Company name already exist.'
+            };
+        }
         const { email, _id } = auth;
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead creation by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead creation by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         leadData.Activity = [obj];
         leadData.createdBy = _id;
@@ -76,7 +83,8 @@ exports.getAllLead = async (orgId, queryObj) => {
         }
         let obj = {
             organisationId: orgId,
-            level: level ? +level : 1
+            level: level ? +level : 1,
+            isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         if (id) obj['_id'] = id;
@@ -110,7 +118,7 @@ exports.getAllLead = async (orgId, queryObj) => {
 /**
  * Updates a Lead by ID.
  *
- * @param {string} auth -The is contain is auth user .
+ * @param {object} auth -The is contain is auth user .
  * @param {string} leadId - The ID of the Lead to be updated.
  * @param {object} updatedData - Updated data for the Lead.
  * @param {object} orgId - contain organisation id .
@@ -124,17 +132,26 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const data = await query.findOne(leadModel, { _id: leadId, isActive: true });
+        const data = await query.findOne(leadModel, { _id: leadId, isDeleted: false });
         if (!data) {
             return {
                 success: false,
                 message: 'Lead not found.'
             };
         }
+        if (updatedData.companyName) {
+            const findUniqueCompanyName = await query.findOne(leadModel, { organisationId: orgId, companyName: updatedData.companyName, _id: { $ne: leadId } });
+            if (findUniqueCompanyName) {
+                return {
+                    success: false,
+                    message: 'Company name already exist.'
+                };
+            }
+        }
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead updated by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         updatedData['$push'] = { Activity: obj };
         const updatedLead = await leadModel.findByIdAndUpdate(
@@ -161,32 +178,45 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
  * Deletes a Lead by ID.
  *
  * @param {string} leadId - The ID of the Lead to be deleted.
+ * @param {object} auth -The is contain is auth user .
  * @returns {object} - An object with the results, including the deleted Lead.
  */
-exports.delete = async (leadId) => {
+exports.delete = async (leadId, auth) => {
     try {
-        const data = await query.findOne(leadModel, { _id: leadId });
+        const data = await query.findOne(leadModel, { _id: leadId, isDeleted: false });
         if (!data) {
             return {
                 success: false,
                 message: 'Lead not found.'
             };
         }
-        let arr = [];
+        // let arr = [];
 
-        if (data.isContactAdded) {
-            arr.push(leadContactModel.deleteMany({ leadId }));
-        }
-        if (data.isAddressAdded) {
-            arr.push(leadAddressModel.deleteMany({ leadId }));
-        }
-        arr.push(leadModel.findByIdAndDelete(leadId));
-        await Promise.all(arr);
-        return {
-            success: true,
-            message: 'Lead deleted successfully.',
-            data
+        // if (data.isContactAdded) {
+        //     arr.push(leadContactModel.deleteMany({ leadId }));
+        // }
+        // if (data.isAddressAdded) {
+        //     arr.push(leadAddressModel.deleteMany({ leadId }));
+        // }
+        // arr.push(leadModel.findByIdAndDelete(leadId));
+        // await Promise.all(arr);
+        let updatedData = { isDeleted: true };
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        updatedData['$push'] = { Activity: obj };
+        const deleteLead = await leadModel.findByIdAndUpdate(
+            leadId,
+            updatedData
+        );
+        if (deleteLead) {
+            return {
+                success: true,
+                message: 'Lead deleted successfully.'
+            };
+        }
     } catch (error) {
         logger.error(LOG_ID, `Error deleting lead: ${error}`);
         return {
@@ -213,7 +243,7 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const data = await query.findOne(leadModel, { _id: leadId, isActive: true });
+        const data = await query.findOne(leadModel, { _id: leadId, isDeleted: false });
         if (!data) {
             return {
                 success: false,
@@ -230,7 +260,7 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: !data.isQualified ? `Lead qualified (moved to prospect) by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}` : `Lead prospect qualifymeta added by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: !data.isQualified ? `Lead qualified (moved to prospect) by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}` : `Lead prospect qualifymeta added by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         let updatedData = { qualifymeta: updateData, level: CRMlevelEnum.PROSPECT, isQualified: true };
         updatedData['$push'] = { Activity: obj };
@@ -271,11 +301,18 @@ exports.createProspect = async (auth, prospectData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const { email, _id, fname } = auth;
+        const findUniqueCompanyName = await query.findOne(leadModel, { organisationId: orgId, companyName: prospectData.companyName });
+        if (findUniqueCompanyName) {
+            return {
+                success: false,
+                message: 'Company name already exist.'
+            };
+        }
+        const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead prospect creation by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead prospect creation by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         prospectData.Activity = [obj];
         prospectData.createdBy = _id;
@@ -310,14 +347,14 @@ exports.createProspect = async (auth, prospectData, orgId) => {
  */
 exports.addLeadFinance = async (auth, financeData, leadId, orgId) => {
     try {
-        const findLead = await query.findOne(leadModel, { _id: leadId, organisationId: orgId });
+        const findLead = await query.findOne(leadModel, { _id: leadId, organisationId: orgId, isDeleted: false });
         if (!findLead) {
             return {
                 success: false,
                 message: 'Lead not found.'
             };
         }
-        const { fname, email, _id } = auth;
+        const { fname, email, _id, lname } = auth;
         if (findLead.isFinanceAdded) {
             financeData.createdBy = findLead.financeMeta.createdBy || _id;
             financeData.updatedBy = _id;
@@ -326,7 +363,7 @@ exports.addLeadFinance = async (auth, financeData, leadId, orgId) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: findLead.isFinanceAdded ? `Lead finance updated by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.` : `Lead finance added by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+            actionName: findLead.isFinanceAdded ? `Lead finance updated by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.` : `Lead finance added by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
         };
         let updatedData = { isFinanceAdded: true, financeMeta: financeData, updatedBy: _id };
         updatedData['$push'] = { Activity: obj };
@@ -366,9 +403,9 @@ exports.uploadLeadDocument = async (leadId, { location }, auth) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead document uploaded by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead document uploaded by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
-        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
+        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId, isDeleted: false }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
 
         if (!findAndUpdateLeadDocument) {
             return {
@@ -404,9 +441,9 @@ exports.deleteLeadDocument = async (leadId, imageUrl, auth) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead document deleted by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead document deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
-        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
+        const findAndUpdateLeadDocument = await leadModel.findOneAndUpdate({ _id: leadId, isDeleted: false }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
 
         if (!findAndUpdateLeadDocument) {
             return {

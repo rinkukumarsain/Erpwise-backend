@@ -27,7 +27,8 @@ exports.jwtVerify = async (req, res, next) => {
                     _id: decoded.userId,
                     email: decoded.email,
                     role: decoded.role,
-                    fname: decoded.fname
+                    fname: decoded.fname,
+                    lname: decoded.lname
                 };
                 next();
             }

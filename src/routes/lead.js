@@ -68,7 +68,7 @@ router.post('/updateLeadById/:id', jwtVerify, authorizeRoleAccess, validate(upda
  */
 router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
-        const result = await leadServices.delete(req.params.id);
+        const result = await leadServices.delete(req.params.id, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

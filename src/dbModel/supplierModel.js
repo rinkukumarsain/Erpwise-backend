@@ -143,6 +143,10 @@ const supplierSchema = new Schema(
             type: Boolean,
             default: true
         },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
         isContactAdded: {
             type: Boolean,
             default: false

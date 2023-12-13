@@ -108,7 +108,7 @@ router.post('/update/:id', jwtVerify, validate(updateSupplierById), async (req, 
  */
 router.get('/delete/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await supplieServices.delete(req.params.id);
+        const result = await supplieServices.delete(req.params.id, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

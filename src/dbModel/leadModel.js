@@ -124,6 +124,10 @@ const leadSchema = new Schema(
             type: Boolean,
             default: true
         },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
         level: {
             type: Number,
             default: 1

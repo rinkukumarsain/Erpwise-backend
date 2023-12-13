@@ -84,9 +84,9 @@ exports.addLeadFinance = {
     body: Joi.object({
         paymentTermsId: Joi.string().required(),
         vatGroupId: Joi.string().required(),
-        vatStatus: Joi.number().required(),
+        vatStatus: Joi.string().required(),
         vatNumber: Joi.number().required(),
-        discount: Joi.number().required(),
+        discount: Joi.number().optional(),
         comment: Joi.string().required()
     })
 };

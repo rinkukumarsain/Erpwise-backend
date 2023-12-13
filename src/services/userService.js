@@ -45,6 +45,7 @@ exports.login = async (reqBody) => {
         const token = generateAuthToken({
             userId: findUser._id,
             fname: userData.fname,
+            lname: userData.lname,
             email: userData.email,
             role: userData.role
         });

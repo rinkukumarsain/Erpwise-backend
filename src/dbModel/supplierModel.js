@@ -180,7 +180,7 @@ const supplierSchema = new Schema(
                         ref: 'vat'
                     },
                     vatStatus: {
-                        type: Number,
+                        type: String,
                         required: true
                     },
                     vatNumber: {
@@ -188,8 +188,8 @@ const supplierSchema = new Schema(
                         required: true
                     },
                     discount: {
-                        type: Number,
-                        required: true
+                        type: Number
+                        // required: true
                     },
                     comment: {
                         type: String

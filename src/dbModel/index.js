@@ -8,3 +8,4 @@ exports.leadModel = require('./leadModel');
 exports.exchangeRateModel = require('./exchangeRateModel');
 exports.leadContactModel = require('./leadContactModel');
 exports.leadAddressModel = require('./leadAddressModel');
+exports.supplierModel = require('./supplierModel');

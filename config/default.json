@@ -293,5 +293,21 @@
         "NeedsDefined": 3,
         "EnquiryReceived": 4,
         "LeadWon": 5
+    },
+    "supplierLevelEnum": {
+        "PROSPECT": 1,
+        "PIPELINE": 2,
+        "APPROVEDSUPPLIERS": 3
+    },
+    "supplierValueByKey": {
+        "1": "PROSPECT",
+        "2": "PIPELINE",
+        "3": "APPROVEDSUPPLIERS"
+    },
+    "supplierPipelineLevel": {
+        "Contact_Made": 1,
+        "Meeting_1": 2,
+        "Meeting_2": 3,
+        "Meeting_3": 4
     }
 }

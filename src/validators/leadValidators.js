@@ -33,6 +33,7 @@ exports.getAllLead = {
 exports.updateLeadById = {
     body: Joi.object({
         companyName: Joi.string().optional(),
+        salesPerson: Joi.string().optional(),
         website: Joi.string().optional(),
         email: Joi.string().optional(),
         phone: Joi.string().optional(),

@@ -17,7 +17,7 @@ const { supplierValidators: {
     moveToPipeLine
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
-const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
+// const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
 
@@ -26,7 +26,7 @@ const LOG_ID = 'routes/lead';
 /**
  * Route for creating supplier.
  */
-router.post('/create', jwtVerify, authorizeRoleAccess, validate(createSupplier), async (req, res) => {
+router.post('/create', jwtVerify, validate(createSupplier), async (req, res) => {
     try {
         const result = await supplieServices.createSupplier(req.auth, req.body, req.headers['x-org-type']);
         if (result.success) {
@@ -42,7 +42,7 @@ router.post('/create', jwtVerify, authorizeRoleAccess, validate(createSupplier),
 /**
  * Route for creating approved supplier.
  */
-router.post('/approved/create', jwtVerify, authorizeRoleAccess, validate(createApprovedSupplier), async (req, res) => {
+router.post('/approved/create', jwtVerify, validate(createApprovedSupplier), async (req, res) => {
     try {
         const result = await supplieServices.createApprovedSupplier(req.auth, req.body, req.headers['x-org-type']);
         if (result.success) {
@@ -58,7 +58,7 @@ router.post('/approved/create', jwtVerify, authorizeRoleAccess, validate(createA
 /**
  * Route for getting supplier by.
  */
-router.get('/getAll', jwtVerify, authorizeRoleAccess, validate(getAllSupplier), async (req, res) => {
+router.get('/getAll', jwtVerify, validate(getAllSupplier), async (req, res) => {
     try {
         const result = await supplieServices.getAllSupplier(req.headers['x-org-type'], req.query);
         if (result.success) {
@@ -74,7 +74,7 @@ router.get('/getAll', jwtVerify, authorizeRoleAccess, validate(getAllSupplier), 
 /**
  * Route for getting supplier by id.
  */
-router.get('/get/:id', jwtVerify, authorizeRoleAccess, validate(getAllSupplier), async (req, res) => {
+router.get('/get/:id', jwtVerify, validate(getAllSupplier), async (req, res) => {
     try {
         const result = await supplieServices.getSupplierById(req.headers['x-org-type'], req.params.id);
         if (result.success) {
@@ -90,7 +90,7 @@ router.get('/get/:id', jwtVerify, authorizeRoleAccess, validate(getAllSupplier),
 /**
  * Route for update supplier By Id
  */
-router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(updateSupplierById), async (req, res) => {
+router.post('/update/:id', jwtVerify, validate(updateSupplierById), async (req, res) => {
     try {
         const result = await supplieServices.updateSupplierById(req.auth, req.params.id, req.body, req.headers['x-org-type']);
         if (result.success) {
@@ -106,7 +106,7 @@ router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(updateSuppli
 /**
  * Route for delete supplier By Id
  */
-router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/delete/:id', jwtVerify, async (req, res) => {
     try {
         const result = await supplieServices.delete(req.params.id);
         if (result.success) {
@@ -122,7 +122,7 @@ router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
 /**
  * Route for adding new supplier finance.
  */
-router.post('/finance/create/:id', jwtVerify, authorizeRoleAccess, validate(addSupplierFinance), async (req, res) => {
+router.post('/finance/create/:id', jwtVerify, validate(addSupplierFinance), async (req, res) => {
     try {
         const result = await supplieServices.addSupplierFinance(req.auth, req.body, req.params.id, req.headers['x-org-type']);
         if (result.success) {
@@ -138,7 +138,7 @@ router.post('/finance/create/:id', jwtVerify, authorizeRoleAccess, validate(addS
 /**
  * Route for uploading supplier document.
  */
-router.post('/upload/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
+router.post('/upload/:id', jwtVerify, uploadS3.single('image'), async (req, res) => {
     try {
         const result = await supplieServices.uploadSupplierDocument(req.params.id, req.file, req.auth);
         if (result.success) {
@@ -154,7 +154,7 @@ router.post('/upload/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('imag
 /**
  * Route for deleting supplier document.
  */
-router.post('/deleteDocument/:id', jwtVerify, authorizeRoleAccess, validate(deleteSupplierDocument), async (req, res) => {
+router.post('/deleteDocument/:id', jwtVerify, validate(deleteSupplierDocument), async (req, res) => {
     try {
         const result = await supplieServices.deleteSupplierDocument(req.params.id, req.body.imageUrl, req.auth);
         if (result.success) {
@@ -170,7 +170,7 @@ router.post('/deleteDocument/:id', jwtVerify, authorizeRoleAccess, validate(dele
 /**
  * Route for getting all supplier dashboard count.
  */
-router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/getDashboardCount', jwtVerify, async (req, res) => {
     try {
         const result = await supplieServices.getSupplierDashBoardCount(req.headers['x-org-type']);
         if (result.success) {
@@ -186,7 +186,7 @@ router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res
 /**
  * Route for getting all supplier pipeline data.
  */
-router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/getPipelineData', jwtVerify, async (req, res) => {
     try {
         const result = await supplieServices.getPipelineData(req.headers['x-org-type']);
         if (result.success) {
@@ -202,7 +202,7 @@ router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, async (req, res) 
 /**
  * Route for moving supplier to pipeline.
  */
-router.post('/moveToPipeline/:id', jwtVerify, authorizeRoleAccess, validate(moveToPipeLine), async (req, res) => {
+router.post('/moveToPipeline/:id', jwtVerify, validate(moveToPipeLine), async (req, res) => {
     try {
         const result = await supplieServices.moveToPipeLine(req.auth, req.params.id, req.body);
         if (result.success) {
@@ -218,7 +218,7 @@ router.post('/moveToPipeline/:id', jwtVerify, authorizeRoleAccess, validate(move
 /**
  * Route for moving supplier to approved suppliers
  */
-router.get('/moveToApprovedSupplier/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/moveToApprovedSupplier/:id', jwtVerify, async (req, res) => {
     try {
         const result = await supplieServices.moveToApprovedSupplier(req.auth, req.params.id);
         if (result.success) {

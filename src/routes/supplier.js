@@ -8,7 +8,7 @@ const { uploadS3 } = require('../utils/multer');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { supplieServices } = require('../services');
 const { supplierValidators: {
-    createApprovedSupplier,
+    // createApprovedSupplier,
     createSupplier,
     getAllSupplier,
     updateSupplierById,
@@ -28,7 +28,7 @@ const LOG_ID = 'routes/lead';
  */
 router.post('/create', jwtVerify, validate(createSupplier), async (req, res) => {
     try {
-        const result = await supplieServices.createSupplier(req.auth, req.body, req.headers['x-org-type']);
+        const result = await supplieServices.createSupplier(req.auth, req.body, req.headers['x-org-type'], req.query?.type);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -39,21 +39,21 @@ router.post('/create', jwtVerify, validate(createSupplier), async (req, res) => 
     }
 });
 
-/**
- * Route for creating approved supplier.
- */
-router.post('/approved/create', jwtVerify, validate(createApprovedSupplier), async (req, res) => {
-    try {
-        const result = await supplieServices.createApprovedSupplier(req.auth, req.body, req.headers['x-org-type']);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred during supplier/approved/create : ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
+// /**
+//  * Route for creating approved supplier.
+//  */
+// router.post('/approved/create', jwtVerify, validate(createApprovedSupplier), async (req, res) => {
+//     try {
+//         const result = await supplieServices.createApprovedSupplier(req.auth, req.body, req.headers['x-org-type']);
+//         if (result.success) {
+//             return handleResponse(res, statusCode.OK, result);
+//         }
+//         return handleResponse(res, statusCode.BAD_REQUEST, result);
+//     } catch (err) {
+//         logger.error(LOG_ID, `Error occurred during supplier/approved/create : ${err.message}`);
+//         handleErrorResponse(res, err.status, err.message, err);
+//     }
+// });
 
 /**
  * Route for getting supplier by.

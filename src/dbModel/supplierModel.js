@@ -175,7 +175,6 @@ const supplierSchema = new Schema(
                 {
                     paymentTermsId: {
                         type: Schema.Types.ObjectId,
-                        required: true,
                         ref: 'PaymentTerms'
                     },
                     vatGroupId: {
@@ -188,12 +187,11 @@ const supplierSchema = new Schema(
                         required: true
                     },
                     vatNumber: {
-                        type: Number,
-                        required: true
-                    },
-                    discount: {
                         type: Number
-                        // required: true
+                    },
+                    paymentOption: {
+                        type: String,
+                        required: true
                     },
                     comment: {
                         type: String

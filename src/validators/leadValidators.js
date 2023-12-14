@@ -83,10 +83,10 @@ exports.createProspect = {
 exports.addLeadFinance = {
     body: Joi.object({
         paymentTermsId: Joi.string().required(),
-        vatGroupId: Joi.string().required(),
+        vatGroupId: Joi.string().optional(),
         vatStatus: Joi.string().required(),
-        vatNumber: Joi.number().required(),
-        discount: Joi.number().optional(),
-        comment: Joi.string().required()
+        vatNumber: Joi.number().optional(),
+        discount: Joi.number().required(),
+        comment: Joi.string().optional()
     })
 };

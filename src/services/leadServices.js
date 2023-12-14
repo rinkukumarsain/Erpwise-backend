@@ -474,8 +474,25 @@ exports.deleteLeadDocument = async (leadId, imageUrl, auth) => {
  */
 exports.getLeadDashBoardCount = async (orgId) => {
     try {
-        let obj = {};
+        let obj = {
+            'LEAD': 0,
+            'PROSPECT': 0,
+            'ENQUIRY': 0,
+            'SALESORDER': 0
+        };
         const find = await query.aggregation(leadModel, leadDao.getLeadDashBoardCount(orgId));
+        if (!find.length) {
+            return {
+                success: true,
+                message: 'Lead dashboard count.',
+                data: {
+                    'LEAD': 0,
+                    'PROSPECT': 0,
+                    'ENQUIRY': 0,
+                    'SALESORDER': 0
+                }
+            };
+        }
         for (let ele of find) obj[CRMlevelValueByKey[ele._id]] = ele.count;
 
         if (find.length) {

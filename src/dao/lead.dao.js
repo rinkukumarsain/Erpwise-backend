@@ -107,19 +107,73 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
                 userDetails: 0
             }
         },
+        // {
+        //     $lookup: {
+        //         from: 'leadcontacts',
+        //         localField: '_id',
+        //         foreignField: 'leadId',
+        //         as: 'leadContacts'
+        //     }
+        // },
         {
             $lookup: {
                 from: 'leadcontacts',
-                localField: '_id',
-                foreignField: 'leadId',
+                let: {
+                    leadId: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$leadId', '$$leadId'] },
+                                    { $eq: ['$isDeleted', false] }
+                                ]
+                            }
+                        }
+                    }
+                    // {
+                    //     $project: {
+                    //         createdAt: 0,
+                    //         updatedAt: 0
+                    //     }
+                    // }
+                ],
                 as: 'leadContacts'
             }
         },
+        // {
+        //     $lookup: {
+        //         from: 'leadaddresses',
+        //         localField: '_id',
+        //         foreignField: 'leadId',
+        //         as: 'leadAddresses'
+        //     }
+        // },
         {
             $lookup: {
                 from: 'leadaddresses',
-                localField: '_id',
-                foreignField: 'leadId',
+                let: {
+                    leadId: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$leadId', '$$leadId'] },
+                                    { $eq: ['$isDeleted', false] }
+                                ]
+                            }
+                        }
+                    }
+                    // {
+                    //     $project: {
+                    //         createdAt: 0,
+                    //         updatedAt: 0
+                    //     }
+                    // }
+                ],
                 as: 'leadAddresses'
             }
         }

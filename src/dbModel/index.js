@@ -10,3 +10,4 @@ exports.leadContactModel = require('./leadContactModel');
 exports.leadAddressModel = require('./leadAddressModel');
 exports.supplierModel = require('./supplierModel');
 exports.supplierContactModel = require('./supplierContactModel');
+exports.supplierAddressModel = require('./supplierAddressModel');

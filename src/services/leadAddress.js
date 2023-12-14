@@ -16,9 +16,9 @@ const LOG_ID = 'services/leadAddressService';
  */
 exports.create = async (auth, body) => {
     try {
-        const { email, _id, fname } = auth;
+        const { email, _id, fname, lname } = auth;
 
-        const findLead = await query.findOne(leadModel, { _id: body.leadId, isActive: true });
+        const findLead = await query.findOne(leadModel, { _id: body.leadId, isActive: true, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -29,7 +29,7 @@ exports.create = async (auth, body) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead Address created by ${fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead Address created by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const newLeadAddress = await query.create(leadAddressModel, body);
@@ -50,35 +50,6 @@ exports.create = async (auth, body) => {
     }
 };
 
-// /**
-//  * Gets all Lead address.
-//  *
-//  * @param {string} leadId - Id of lead.
-//  * @returns {object} - An object with the results, including all Lead address.
-//  */
-// exports.getAllLeadAddress = async (leadId) => {
-//     try {
-//         if (!leadId) {
-//             return {
-//                 success: false,
-//                 message: 'lead not found.'
-//             };
-//         }
-//         const data = await query.aggregation(leadAddressModel, leadDao.getAllLeadAddressPipeline(leadId));
-//         return {
-//             success: true,
-//             message: 'Lead fetched successfully.',
-//             data
-//         };
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error fetching lead: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
-
 /**
  * Updates a Lead address by ID.
  *
@@ -89,14 +60,14 @@ exports.create = async (auth, body) => {
  */
 exports.update = async (auth, _id, body) => {
     try {
-        const findData = await query.findOne(leadAddressModel, { _id, isActive: true });
+        const findData = await query.findOne(leadAddressModel, { _id, isActive: true, isDeleted: false });
         if (!findData) {
             return {
                 success: false,
                 message: 'Lead address not found.'
             };
         }
-        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true });
+        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -107,7 +78,7 @@ exports.update = async (auth, _id, body) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead Address updated by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead Address updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const data = await leadAddressModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
@@ -131,23 +102,42 @@ exports.update = async (auth, _id, body) => {
 /**
  * Deletes a Lead by ID.
  *
+ * @param {object} auth - Data of logedin user.
  * @param {string} _id - The ID of the Lead address to be deleted.
  * @returns {object} - An object with the results, including the deleted Lead address.
  */
-exports.delete = async (_id) => {
+exports.delete = async (auth, _id) => {
     try {
-        const data = await leadAddressModel.findByIdAndDelete(_id);
-        if (!data) {
+        const findData = await query.findOne(leadAddressModel, { _id, isActive: true, isDeleted: false });
+        if (!findData) {
             return {
                 success: false,
                 message: 'Lead address not found.'
             };
         }
-        return {
-            success: true,
-            message: 'Lead Contact deleted successfully.',
-            data
+        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true, isDeleted: false });
+        // console.log('findLead>>>>>>>>>>>>>', findLead);
+        if (!findLead) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead Address deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        findLead.Activity.push(obj);
+        const data = await leadAddressModel.findByIdAndUpdate(_id, { isDeleted: true }, { new: true, runValidators: true });
+        if (data) {
+            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity });
+            return {
+                success: true,
+                message: 'lead Address deleted successfully.',
+                data
+            };
+        }
     } catch (error) {
         logger.error(LOG_ID, `Error deleting lead: ${error}`);
         return {
@@ -167,8 +157,8 @@ exports.delete = async (_id) => {
 exports.makeAddressPrimary = async (addressId) => {
     try {
         await leadAddressModel.updateMany({ _id: { $ne: addressId } }, { isDefault: false });
-        const makePrimary = await leadAddressModel.findOneAndUpdate({ _id: addressId }, { isDefault: true });
-        const findAllAddress = await query.find(leadAddressModel, { leadId: makePrimary.leadId });
+        const makePrimary = await leadAddressModel.findOneAndUpdate({ _id: addressId, isDeleted: false }, { isDefault: true });
+        const findAllAddress = await query.find(leadAddressModel, { leadId: makePrimary.leadId, isDeleted: false });
         if (makePrimary) {
             return {
                 success: true,

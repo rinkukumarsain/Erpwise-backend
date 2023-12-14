@@ -108,8 +108,27 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
         {
             $lookup: {
                 from: 'suppliercontacts',
-                localField: '_id',
-                foreignField: 'supplierId',
+                let: {
+                    suppierId: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$supplierId', '$$suppierId'] },
+                                    { $eq: ['$isDeleted', false] }
+                                ]
+                            }
+                        }
+                    }
+                    // {
+                    //     $project: {
+                    //         createdAt: 0,
+                    //         updatedAt: 0
+                    //     }
+                    // }
+                ],
                 as: 'supplierContacts'
             }
         },
@@ -230,8 +249,27 @@ exports.getSupplierByIdPipeline = (orgId, supplierId) => [
     {
         $lookup: {
             from: 'suppliercontacts',
-            localField: '_id',
-            foreignField: 'supplierId',
+            let: {
+                suppierId: '$_id'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ['$supplierId', '$$suppierId'] },
+                                { $eq: ['$isDeleted', false] }
+                            ]
+                        }
+                    }
+                }
+                // {
+                //     $project: {
+                //         createdAt: 0,
+                //         updatedAt: 0
+                //     }
+                // }
+            ],
             as: 'supplierContacts'
         }
     },

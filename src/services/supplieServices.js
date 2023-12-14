@@ -448,8 +448,23 @@ exports.deleteSupplierDocument = async (supplierId, imageUrl, auth) => {
  */
 exports.getSupplierDashBoardCount = async (orgId) => {
     try {
-        let obj = {};
+        let obj = {
+            'PROSPECT': 0,
+            'PIPELINE': 0,
+            'APPROVEDSUPPLIERS': 0
+        };
         const find = await query.aggregation(supplierModel, supplierDao.getSupplierDashBoardCount(orgId));
+        if (!find.length) {
+            return {
+                success: true,
+                message: 'Supplier dashboard count.',
+                data: {
+                    'PROSPECT': 0,
+                    'PIPELINE': 0,
+                    'APPROVEDSUPPLIERS': 0
+                }
+            };
+        }
         for (let ele of find) obj[supplierValueByKey[ele._id]] = ele.count;
 
         if (find.length) {

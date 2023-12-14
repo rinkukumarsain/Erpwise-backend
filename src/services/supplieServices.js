@@ -492,7 +492,7 @@ exports.getSupplierDashBoardCount = async (orgId) => {
 exports.getPipelineData = async (orgId) => {
     try {
         const find = await query.aggregation(supplierModel, supplierDao.getPipelineData(orgId));
-        if (!find.length) {
+        if (find.length == 0) {
             return {
                 success: false,
                 message: 'Supplier pipeline not found.',

@@ -108,7 +108,7 @@ const supplierSchema = new Schema(
             type: Number,
             default: 1
         },
-        billingAddress: {
+        businessAddress: {
             type: String,
             required: true
         },

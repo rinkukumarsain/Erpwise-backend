@@ -8,7 +8,7 @@ exports.createSupplier = {
         phone: Joi.string().required(),
         industryType: Joi.string().required(),
         note: Joi.string().required(),
-        billingAddress: Joi.string().required(),
+        businessAddress: Joi.string().required(),
         salesPerson: Joi.string().required(),
         currency: Joi.string().required(),
         isActive: Joi.boolean().required()
@@ -23,7 +23,7 @@ exports.updateSupplierById = {
         phone: Joi.string().optional(),
         industryType: Joi.string().optional(),
         note: Joi.string().optional(),
-        billingAddress: Joi.string().optional(),
+        businessAddress: Joi.string().optional(),
         salesPerson: Joi.string().optional(),
         // currency: Joi.string().optional(),
         isActive: Joi.boolean().optional()
@@ -38,7 +38,7 @@ exports.createApprovedSupplier = {
         phone: Joi.string().required(),
         industryType: Joi.string().required(),
         note: Joi.string().required(),
-        billingAddress: Joi.string().required(),
+        businessAddress: Joi.string().required(),
         salesPerson: Joi.string().required(),
         currency: Joi.string().required(),
         isActive: Joi.boolean().required()

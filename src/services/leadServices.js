@@ -520,11 +520,18 @@ exports.getLeadDashBoardCount = async (orgId) => {
 exports.getPipelineData = async (orgId) => {
     try {
         const find = await query.aggregation(leadModel, leadDao.getPipelineData(orgId));
-        if (find.length) {
+        // console.log('find', find);
+        if (find.length > 0) {
             return {
                 success: true,
                 message: 'Lead pipeline data.',
                 data: find
+            };
+        }else {
+            return {
+                success: false,
+                message: 'Lead pipeline not found.',
+                data: []
             };
         }
     } catch (error) {

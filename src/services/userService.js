@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+// const Redis = require('ioredis');
+// const redis = new Redis(); // Connect to the default Redis server on localhost
 
 // Local Import
 const { userModel, organisationModel } = require('../dbModel');
@@ -23,7 +25,6 @@ const LOG_ID = 'services/userService';
 exports.login = async (reqBody) => {
     try {
         const { email, password } = reqBody;
-
         const findUser = await query.findOne(userModel, { email, isActive: true }, { _id: 1, password: 1 });
         if (!findUser) {
             return {
@@ -77,6 +78,20 @@ exports.login = async (reqBody) => {
  */
 exports.uesrProfile = async ({ userId }) => {
     try {
+        // const data = await redis.get(`userprofile-${userId}`);
+        // let findUser;
+        // if (!data) {
+        //     findUser = await query.aggregation(userModel, userDao.userProfilePipeline(userId));
+        //     // console.log('findUser', findUser);
+        //     await redis.set(`userprofile-${userId}`, JSON.stringify(findUser));
+        // } else findUser = JSON.parse(data);
+
+        // if (findUser.length == 0) {
+        //     return {
+        //         success: false,
+        //         message: 'User not found'
+        //     };
+        // }
         const findUser = await query.aggregation(userModel, userDao.userProfilePipeline(userId));
         // console.log('findUser', findUser);
         if (findUser.length == 0) {

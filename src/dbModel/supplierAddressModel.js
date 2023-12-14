@@ -2,30 +2,28 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 /**
- * @typedef {object} SupplierContact
- * @property {string} name - The name of the supplier contact (required).
+ * @typedef {object} SupplierAddress
+ * @property {string} addresstype - The type of address, should be either 'Billing' or 'Shipment' (required).
  * @property {mongoose.Types.ObjectId} supplierId - The ID of the associated supplier (referenced from 'Supplier' model, required).
- * @property {string} email - The email address of the supplier contact (required).
- * @property {string} phone - The phone number of the supplier contact (required).
- * @property {string} xerocontactid - The Xero contact ID of the supplier contact (required).
- * @property {string} address1 - The first line of the address (required).
- * @property {string} address2 - The second line of the address (required).
- * @property {string} designation - The designation or role of the supplier contact (required).
- * @property {string} country - The country of the supplier contact (required).
- * @property {string} state - The state of the supplier contact (required).
- * @property {string} city - The city of the supplier contact (required).
- * @property {string} pinCode - The pin code or postal code of the supplier contact (required).
- * @property {mongoose.Types.ObjectId} createdBy - The user ID who created the supplier contact (referenced from 'User' model).
- * @property {mongoose.Types.ObjectId} updatedBy - The user ID who last updated the supplier contact (referenced from 'User' model, default: null).
- * @property {boolean} isActive - Indicates whether the supplier contact is active (default: true).
+ * @property {string} address - The main address information (required).
+ * @property {string} street - The street information (required).
+ * @property {string} area - The area information.
+ * @property {string} country - The country of the supplier address (required).
+ * @property {string} state - The state of the supplier address (required).
+ * @property {string} city - The city of the supplier address (required).
+ * @property {string} pincode - The pin code or postal code of the supplier address.
+ * @property {mongoose.Types.ObjectId} createdBy - The user ID who created the supplier address (referenced from 'User' model).
+ * @property {mongoose.Types.ObjectId} updatedBy - The user ID who last updated the supplier address (referenced from 'User' model, default: null).
+ * @property {boolean} isActive - Indicates whether the supplier address is active (default: true).
+ * @property {boolean} isDeleted - Indicates whether the supplier address is deleted (default: false).
  */
 
 /**
- * Mongoose schema for supplier contacts.
+ * Mongoose schema for supplier addresses.
  *
- * @type {mongoose.Schema<SupplierContact>}
+ * @type {mongoose.Schema<SupplierAddress>}
  */
-const supplierContactSchema = new Schema(
+const supplierAddressSchema = new Schema(
     {
         addresstype: {
             type: String,
@@ -37,29 +35,16 @@ const supplierContactSchema = new Schema(
             required: true,
             ref: 'Supplier'
         },
-        email: {
+        address: {
             type: String,
             required: true
         },
-        phone: {
+        street: {
             type: String,
             required: true
         },
-        xerocontactid: {
-            type: String,
-            default: ''
-        },
-        address1: {
-            type: String,
-            required: true
-        },
-        address2: {
-            type: String,
-            required: true
-        },
-        designation: {
-            type: String,
-            required: true
+        area: {
+            type: String
         },
         country: {
             type: String,
@@ -73,9 +58,8 @@ const supplierContactSchema = new Schema(
             type: String,
             required: true
         },
-        pinCode: {
-            type: String,
-            required: true
+        pincode: {
+            type: String
         },
         createdBy: {
             type: mongoose.Types.ObjectId,
@@ -86,9 +70,9 @@ const supplierContactSchema = new Schema(
             ref: 'User',
             default: null
         },
-        isActive: {
+        isDefault: {
             type: Boolean,
-            default: true
+            default: false
         },
         isDeleted: {
             type: Boolean,
@@ -101,4 +85,4 @@ const supplierContactSchema = new Schema(
     }
 );
 
-module.exports = mongoose.model('SupplierContact', supplierContactSchema);
+module.exports = mongoose.model('SupplierAddress', supplierAddressSchema);

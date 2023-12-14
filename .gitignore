@@ -3,3 +3,5 @@
 node_modules/
 server.log
 public
+swagger-output.json
+swagger.js

@@ -46,7 +46,7 @@ const supplierContactSchema = new Schema(
         },
         xerocontactid: {
             type: String,
-            required: true
+            default: ''
         },
         address1: {
             type: String,
@@ -88,6 +88,10 @@ const supplierContactSchema = new Schema(
         isActive: {
             type: Boolean,
             default: true
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false
         }
     },
     {

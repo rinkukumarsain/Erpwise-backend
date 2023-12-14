@@ -8,3 +8,4 @@ exports.leadValidators = require('./leadValidators');
 exports.leadContactValidators = require('./leadContactValidators');
 exports.leadAddressValidators = require('./leadAddressValidators.js');
 exports.supplierValidators = require('./supplierValidators.js');
+exports.supplierContactValidators = require('./supplierContactValidators');

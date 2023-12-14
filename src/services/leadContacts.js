@@ -53,7 +53,7 @@ exports.createLeadContact = async (auth, leadContactData) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead contact creation by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead contact creation by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const newLeadContact = await query.create(leadContactModel, leadContactData);
@@ -74,35 +74,6 @@ exports.createLeadContact = async (auth, leadContactData) => {
     }
 };
 
-// /**
-//  * Gets all Lead.
-//  *
-//  * @param {string} leadId - Id of logedin user organisation.
-//  * @returns {object} - An object with the results, including all Lead.
-//  */
-// exports.getAllLeadContact = async (leadId) => {
-//     try {
-//         if (!leadId) {
-//             return {
-//                 success: false,
-//                 message: 'lead not found.'
-//             };
-//         }
-//         const data = await query.aggregation(leadContactModel, leadDao.getAllLeadContectPipeline(leadId));
-//         return {
-//             success: true,
-//             message: 'Lead contact fetched successfully.',
-//             data
-//         };
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error fetching lead: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
-
 /**
  * Updates a Lead contact by ID.
  *
@@ -113,14 +84,14 @@ exports.createLeadContact = async (auth, leadContactData) => {
  */
 exports.updateLeadContactById = async (auth, _id, body) => {
     try {
-        const findData = await query.findOne(leadContactModel, { _id, isActive: true });
+        const findData = await query.findOne(leadContactModel, { _id, isActive: true, isDeleted: false });
         if (!findData) {
             return {
                 success: false,
                 message: 'Lead Contact not found.'
             };
         }
-        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true });
+        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -132,7 +103,7 @@ exports.updateLeadContactById = async (auth, _id, body) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Lead contact update  by ${auth.fname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Lead contact update  by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const data = await leadContactModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
@@ -154,27 +125,47 @@ exports.updateLeadContactById = async (auth, _id, body) => {
 };
 
 /**
- * Deletes a Lead by ID.
+ * Deletes a Lead Contact by ID.
  *
+ * @param {string} auth - req.auth.
  * @param {string} _id - The ID of the Lead Contact to be deleted.
- * @returns {object} - An object with the results, including the deleted Lead.
+ * @returns {object} - An object with the results, including the deleted Lead Contact.
  */
-exports.delete = async (_id) => {
+exports.delete = async (auth, _id) => {
     try {
-        const data = await leadContactModel.findByIdAndDelete(_id);
-        if (!data) {
+        const findData = await query.findOne(leadContactModel, { _id, isActive: true, isDeleted: false });
+        if (!findData) {
             return {
                 success: false,
                 message: 'Lead Contact not found.'
             };
         }
-        return {
-            success: true,
-            message: 'Lead Contact deleted successfully.',
-            data
+        const findLead = await query.findOne(leadModel, { _id: findData.leadId, isActive: true, isDeleted: false });
+        // console.log('findLead>>>>>>>>>>>>>', findLead);
+        if (!findLead) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Lead contact deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        findLead.Activity.push(obj);
+        const data = await leadContactModel.findByIdAndUpdate(_id, { isDeleted: true }, { new: true, runValidators: true });
+        if (data) {
+            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity });
+            return {
+                success: true,
+                message: 'Lead contact deleted successfully.',
+                data
+            };
+        }
     } catch (error) {
-        logger.error(LOG_ID, `Error deleting lead: ${error}`);
+        logger.error(LOG_ID, `Error deleting lead contact: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

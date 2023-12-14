@@ -19,4 +19,5 @@ module.exports = (app) => {
     app.use(`${apiV1Prefix}/leadContact`, require('./leadContact'));
     app.use(`${apiV1Prefix}/leadAddress`, require('./leadAddress'));
     app.use(`${apiV1Prefix}/supplier`, require('./supplier'));
+    app.use(`${apiV1Prefix}/supplierContact`, require('./supplierContact'));
 };

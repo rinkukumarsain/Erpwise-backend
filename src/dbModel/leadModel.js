@@ -182,7 +182,8 @@ const leadSchema = new Schema(
                         type: Date
                     },
                     nextaction: {
-                        type: Number
+                        type: String,
+                        default: 'Phone Call'
                     },
                     productdescription: {
                         type: String

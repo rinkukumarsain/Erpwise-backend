@@ -54,7 +54,7 @@ exports.qualifyLeadById = {
         startdate: Joi.string().required(),
         expectedclosingdate: Joi.string().required(),
         duedate: Joi.string().required(),
-        nextaction: Joi.number().required(),
+        nextaction: Joi.string().required(),
         productdescription: Joi.string().required(),
         pipelineName: Joi.string().required(),
         pipelinestagenumber: Joi.number().required()

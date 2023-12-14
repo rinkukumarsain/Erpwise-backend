@@ -14,9 +14,10 @@ const LOG_ID = 'services/supplierService';
  * @param {object} auth - Data of logedin user.
  * @param {object} supplierData - Data for creating a new supplier.
  * @param {string} orgId - Id of logedin user organisation.
+ * @param {string} type - req.query.
  * @returns {object} - An object with the results, including the new supplier.
  */
-exports.createSupplier = async (auth, supplierData, orgId) => {
+exports.createSupplier = async (auth, supplierData, orgId, type) => {
     try {
         if (!orgId) {
             return {
@@ -35,17 +36,17 @@ exports.createSupplier = async (auth, supplierData, orgId) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Supplier creation by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `${(type && type == 'yes') ? 'Approved ' : ''}Supplier creation by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         supplierData.Activity = [obj];
         supplierData.createdBy = _id;
         supplierData.organisationId = orgId;
-        supplierData.level = supplierLevelEnum.PROSPECT;
+        supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
         supplierData.Id = `Supplier-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,
-            message: 'Supplier created successfully.',
+            message: `${(type && type == 'yes') ? 'Approved ' : ''}Supplier created successfully.`,
             data: newSupplier
         };
     } catch (error) {
@@ -261,6 +262,7 @@ exports.delete = async (supplierId, auth) => {
 
 
 /**
+ * (Not useing for now)
  * Creates a new Supplier Approved Supplier.
  *
  * @param {object} auth - Data of logedin user.

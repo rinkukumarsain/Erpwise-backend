@@ -172,28 +172,35 @@ exports.delete = async (auth, _id) => {
     }
 };
 
-// exports.checkUniqueHsCode = async (data) => {
-//     try {
-//         if (data.length > 0) {
-//             let arr = [];
-//             for (let ele of data) {
-//                 ele.hscode && arr.push(ele.hscode);
-//             }
-//             const findData = await query.find(supplierItemsModel, { hscode: { $in: arr } });
-//             if (findData.length == 0) {
-//                 return {
-//                     success: true,
-//                     message: 'No dupllicate hs code found.',
-//                     data: []
-//                 };
-//             }
+/**
+ * Deletes a Supplier item by ID.
+ *
+ * @param {object} data - req.body.
+ * @returns {object} - An object with the results.
+ */
+exports.checkUniqueHsCode = async (data) => {
+    try {
+        if (data.length > 0) {
+            let arr = [];
+            for (let ele of data) {
+                ele.hscode && arr.push(ele.hscode);
+            }
+            console.log('arr>>>>>>', arr.length);
+            // const findData = await query.find(supplierItemsModel, { hscode: { $in: arr } });
+            // if (findData.length == 0) {
+            //     return {
+            //         success: true,
+            //         message: 'No dupllicate hs code found.',
+            //         data: []
+            //     };
+            // }
 
-//         }
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// }
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

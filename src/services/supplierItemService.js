@@ -1,0 +1,162 @@
+const moment = require('moment');
+// Local Import
+// const { rolesKeys } = require('../../config/default.json');
+const { supplierModel, supplierItemsModel } = require('../dbModel');
+// const { registerUser } = require('./userService');
+const { query } = require('../utils/mongodbQuery');
+const { logger } = require('../utils/logger');
+
+const LOG_ID = 'services/supplierItemService';
+
+/**
+ * Creates a new supplier item.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {object} supplierItemData - Data for creating a new supplier item.
+ * @returns {object} - An object with the results, including the new supplier item.
+ */
+exports.createSupplierItem = async (auth, supplierItemData) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierItemData.supplierId, isActive: true, isDeleted: false });
+        // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
+        if (!findSupplier) {
+            return {
+                success: false,
+                message: 'Supplier not found.'
+            };
+        }
+
+        const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: supplierItemData.partNumber, supplierId: supplierItemData.supplierId });
+        if (findUniqueName) {
+            return {
+                success: false,
+                message: 'Supplier item part number already exist.'
+            };
+        }
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Supplier item added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        findSupplier.Activity.push(obj);
+        const newsupplierItem = await query.create(supplierItemsModel, supplierItemData);
+        if (newsupplierItem) {
+            await supplierModel.updateOne({ _id: supplierItemData.supplierId }, { Activity: findSupplier.Activity, isItemAdded: true });
+            return {
+                success: true,
+                message: 'Supplier item added successfully.',
+                data: newsupplierItem
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while adding Supplier item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Updates a Supplier contact by ID.
+ *
+ * @param {string} auth - req.auth.
+ * @param {string} _id - The ID of the Supplier contact be updated.
+ * @param {string} body - Updated data for the Supplier contact.
+ * @returns {object} - An object with the results, including updated Supplier contact.
+ */
+exports.updateSupplierContactById = async (auth, _id, body) => {
+    try {
+        const findData = await query.findOne(supplierItemsModel, { _id, isActive: true, isDeleted: false });
+        if (!findData) {
+            return {
+                success: false,
+                message: 'Supplier Contact not found.'
+            };
+        }
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
+        if (!findSupplier) {
+            return {
+                success: false,
+                message: 'Supplier not found.'
+            };
+        }
+
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Supplier contact update by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        findSupplier.Activity.push(obj);
+        const data = await supplierItemsModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
+        if (data) {
+            await supplierModel.updateOne({ _id: findSupplier._id }, { Activity: findSupplier.Activity });
+            return {
+                success: true,
+                message: 'Supplier contact updated successfully.',
+                data
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error updating Supplier contact: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Deletes a Supplier contact by ID.
+ *
+ * @param {string} auth - req.auth.
+ * @param {string} _id - The ID of the Supplier Contact to be deleted.
+ * @returns {object} - An object with the results, including the deleted Supplier Contact.
+ */
+exports.delete = async (auth, _id) => {
+    try {
+        const findData = await query.findOne(supplierItemsModel, { _id, isActive: true, isDeleted: false });
+        if (!findData) {
+            return {
+                success: false,
+                message: 'Supplier Contact not found.'
+            };
+        }
+
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
+        if (!findSupplier) {
+            return {
+                success: false,
+                message: 'Supplier not found.'
+            };
+        }
+        const data = await supplierItemsModel.findByIdAndUpdate(_id, { isDeleted: true });
+        if (!data) {
+            return {
+                success: false,
+                message: 'Supplier Contact not found.'
+            };
+        }
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Supplier contact deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        findSupplier.Activity.push(obj);
+        await supplierModel.updateOne({ _id: findSupplier._id }, { Activity: findSupplier.Activity });
+        return {
+            success: true,
+            message: 'Supplier Contact deleted successfully.'
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error deleting Supplier: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

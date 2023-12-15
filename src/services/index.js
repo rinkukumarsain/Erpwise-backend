@@ -11,3 +11,4 @@ exports.leadAddress = require('./leadAddress');
 exports.supplieServices = require('./supplieServices');
 exports.supplierContactServices = require('./supplierContactServices');
 exports.supplierAddressServices = require('./supplierAddressServices');
+exports.supplierItemService = require('./supplierItemService');

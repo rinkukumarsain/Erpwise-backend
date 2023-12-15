@@ -30,7 +30,7 @@ const supplierItemSchema = new Schema(
         },
         hscode: {
             type: String,
-            default: null
+            required: true
         },
         createdBy: {
             type: mongoose.Types.ObjectId,

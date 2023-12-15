@@ -41,6 +41,7 @@ exports.createSupplierItem = async (auth, supplierItemData) => {
             actionName: `Supplier item added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findSupplier.Activity.push(obj);
+        supplierItemData.createdBy = _id;
         const newsupplierItem = await query.create(supplierItemsModel, supplierItemData);
         if (newsupplierItem) {
             await supplierModel.updateOne({ _id: supplierItemData.supplierId }, { Activity: findSupplier.Activity, isItemAdded: true });
@@ -60,20 +61,20 @@ exports.createSupplierItem = async (auth, supplierItemData) => {
 };
 
 /**
- * Updates a Supplier contact by ID.
+ * Updates a Supplier Item by ID.
  *
  * @param {string} auth - req.auth.
- * @param {string} _id - The ID of the Supplier contact be updated.
- * @param {string} body - Updated data for the Supplier contact.
- * @returns {object} - An object with the results, including updated Supplier contact.
+ * @param {string} _id - The ID of the Supplier Item be updated.
+ * @param {string} body - Updated data for the Supplier Item.
+ * @returns {object} - An object with the results, including updated Supplier Item.
  */
-exports.updateSupplierContactById = async (auth, _id, body) => {
+exports.updateSupplierItemById = async (auth, _id, body) => {
     try {
-        const findData = await query.findOne(supplierItemsModel, { _id, isActive: true, isDeleted: false });
+        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false });
         if (!findData) {
             return {
                 success: false,
-                message: 'Supplier Contact not found.'
+                message: 'Supplier Item not found.'
             };
         }
         const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
@@ -84,24 +85,34 @@ exports.updateSupplierContactById = async (auth, _id, body) => {
                 message: 'Supplier not found.'
             };
         }
+        if (body.partNumber) {
+            const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: body.partNumber, supplierId: findSupplier.supplierId });
+            if (findUniqueName) {
+                return {
+                    success: false,
+                    message: 'Supplier item part number already exist.'
+                };
+            }
+        }
 
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Supplier contact update by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Supplier item update by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findSupplier.Activity.push(obj);
+        body.updatedBy = auth._id;
         const data = await supplierItemsModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
         if (data) {
             await supplierModel.updateOne({ _id: findSupplier._id }, { Activity: findSupplier.Activity });
             return {
                 success: true,
-                message: 'Supplier contact updated successfully.',
+                message: 'Supplier item updated successfully.',
                 data
             };
         }
     } catch (error) {
-        logger.error(LOG_ID, `Error updating Supplier contact: ${error}`);
+        logger.error(LOG_ID, `Error updating Supplier item: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -110,19 +121,19 @@ exports.updateSupplierContactById = async (auth, _id, body) => {
 };
 
 /**
- * Deletes a Supplier contact by ID.
+ * Deletes a Supplier item by ID.
  *
  * @param {string} auth - req.auth.
- * @param {string} _id - The ID of the Supplier Contact to be deleted.
- * @returns {object} - An object with the results, including the deleted Supplier Contact.
+ * @param {string} _id - The ID of the Supplier item to be deleted.
+ * @returns {object} - An object with the results.
  */
 exports.delete = async (auth, _id) => {
     try {
-        const findData = await query.findOne(supplierItemsModel, { _id, isActive: true, isDeleted: false });
+        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false });
         if (!findData) {
             return {
                 success: false,
-                message: 'Supplier Contact not found.'
+                message: 'Supplier Item not found.'
             };
         }
 
@@ -138,19 +149,19 @@ exports.delete = async (auth, _id) => {
         if (!data) {
             return {
                 success: false,
-                message: 'Supplier Contact not found.'
+                message: 'Supplier Item not found.'
             };
         }
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Supplier contact deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Supplier item deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findSupplier.Activity.push(obj);
         await supplierModel.updateOne({ _id: findSupplier._id }, { Activity: findSupplier.Activity });
         return {
             success: true,
-            message: 'Supplier Contact deleted successfully.'
+            message: 'Supplier item deleted successfully.'
         };
     } catch (error) {
         logger.error(LOG_ID, `Error deleting Supplier: ${error}`);
@@ -160,3 +171,29 @@ exports.delete = async (auth, _id) => {
         };
     }
 };
+
+// exports.checkUniqueHsCode = async (data) => {
+//     try {
+//         if (data.length > 0) {
+//             let arr = [];
+//             for (let ele of data) {
+//                 ele.hscode && arr.push(ele.hscode);
+//             }
+//             const findData = await query.find(supplierItemsModel, { hscode: { $in: arr } });
+//             if (findData.length == 0) {
+//                 return {
+//                     success: true,
+//                     message: 'No dupllicate hs code found.',
+//                     data: []
+//                 };
+//             }
+
+//         }
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// }

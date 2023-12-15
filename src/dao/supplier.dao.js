@@ -88,7 +88,7 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
                 _id: 1,
                 Id: 1,
                 companyName: 1,
-                billingAddress: 1,
+                businessAddress: 1,
                 level: 1,
                 isContactAdded: 1,
                 isBillingAddressAdded: 1,

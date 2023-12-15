@@ -27,7 +27,7 @@ const supplierAddressSchema = new Schema(
     {
         addresstype: {
             type: String,
-            enum: ['Billing', 'Shipment'],
+            enum: ['Billing', 'Shipping'],
             required: true
         },
         supplierId: {

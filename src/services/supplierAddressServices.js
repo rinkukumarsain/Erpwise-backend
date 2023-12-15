@@ -17,6 +17,14 @@ exports.create = async (auth, body) => {
     try {
         const { email, _id, fname, lname } = auth;
 
+        const findUnique = await query.findOne(supplierAddressModel, { supplierId: body.supplierId, addresstype: body.addresstype, address: body.address });
+        // console.log('findUnique', findUnique);
+        if (findUnique) {
+            return {
+                success: false,
+                message: `${body.addresstype} address already exist!`
+            };
+        }
         const findLead = await query.findOne(supplierModel, { _id: body.supplierId, isActive: true, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
@@ -28,15 +36,18 @@ exports.create = async (auth, body) => {
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Supplier address created by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Supplier ${body.addresstype.toLowerCase()} address created by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const newSupplierAddress = await query.create(supplierAddressModel, body);
         if (newSupplierAddress) {
-            await supplierModel.updateOne({ _id: body.supplierId }, { Activity: findLead.Activity, isAddressAdded: true });
+            let updateData = { Activity: findLead.Activity };
+            if (body.addresstype == 'Billing') updateData.isBillingAddressAdded = true;
+            if (body.addresstype == 'Shipping') updateData.isShippingAddressAdded = true;
+            await supplierModel.updateOne({ _id: body.supplierId }, updateData);
             return {
                 success: true,
-                message: 'Supplier Address created successfully.',
+                message: `Supplier ${body.addresstype.toLowerCase()} address created successfully.`,
                 data: newSupplierAddress
             };
         }
@@ -63,8 +74,19 @@ exports.update = async (auth, _id, body) => {
         if (!findData) {
             return {
                 success: false,
-                message: 'Supplier address not found.'
+                message: 'Supplier address not found!'
             };
+        }
+        const addressType = body.addresstype || findData.addresstype;
+        if (body.address) {
+            const findUnique = await query.findOne(supplierAddressModel, { supplierId: findData.supplierId, addresstype: addressType, address: body.address });
+            // console.log('findUnique', findUnique);
+            if (findUnique) {
+                return {
+                    success: false,
+                    message: `${addressType} address already exist!`
+                };
+            }
         }
         const findLead = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
@@ -77,7 +99,7 @@ exports.update = async (auth, _id, body) => {
         let obj = {
             performedBy: auth._id,
             performedByEmail: auth.email,
-            actionName: `Supplier address updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Supplier ${addressType.toLowerCase()} address updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         findLead.Activity.push(obj);
         const data = await supplierAddressModel.findByIdAndUpdate(_id, body, { new: true, runValidators: true });
@@ -85,7 +107,7 @@ exports.update = async (auth, _id, body) => {
             await supplierModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity, isAddressAdded: true });
             return {
                 success: true,
-                message: 'Supplier address updated successfully.',
+                message: `Supplier ${addressType.toLowerCase()} address updated successfully.`,
                 data
             };
         }

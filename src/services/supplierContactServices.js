@@ -28,7 +28,7 @@ exports.createSupplierContact = async (auth, supplierContactData) => {
             };
         }
 
-        const findUniqueName = await query.findOne(supplierContactModel, { name: supplierContactData.name });
+        const findUniqueName = await query.findOne(supplierContactModel, { name: supplierContactData.name, supplierId: supplierContactData.supplierId });
         if (findUniqueName) {
             return {
                 success: false,
@@ -90,6 +90,17 @@ exports.updateSupplierContactById = async (auth, _id, body) => {
                 message: 'Supplier Contact not found.'
             };
         }
+
+        if (body.name) {
+            const findUniqueName = await query.findOne(supplierContactModel, { _id: { $ne: _id }, name: body.name, supplierId: findData.supplierId });
+            if (findUniqueName) {
+                return {
+                    success: false,
+                    message: 'Supplier contact name already exist.'
+                };
+            }
+        }
+
         const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {

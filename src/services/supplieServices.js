@@ -42,7 +42,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         supplierData.createdBy = _id;
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
-        supplierData.Id = `Supplier-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        supplierData.Id = `SI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,
@@ -278,6 +278,7 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        // const {} = body
         const findUniqueCompanyName = await query.findOne(supplierModel, { organisationId: orgId, companyName: body.companyName });
         if (findUniqueCompanyName) {
             return {
@@ -296,8 +297,11 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
         body.organisationId = orgId;
         body.level = supplierLevelEnum.APPROVEDSUPPLIERS;
         // body.pipelineStage = supplierValueByKey[supplierLevelEnum.APPROVEDSUPPLIERS];
-        body.Id = `Supplier-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = `SI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newLead = await query.create(supplierModel, body);
+        // if(newLead){
+
+        // }
         return {
             success: true,
             message: 'Approved supplier created successfully.',

@@ -79,17 +79,17 @@ router.get('/makeDefalut/:addressType/:id', jwtVerify, async (req, res) => {
 });
 
 /**
- * Route for checking unique hs code.
+ * Route for getting all available hscodes.
  */
-router.post('/check/hscode', jwtVerify, async (req, res) => {
+router.get('/get/hscode', jwtVerify, async (req, res) => {
     try {
-        const result = await supplierItemService.checkUniqueHsCode(req.body);
+        const result = await supplierItemService.getAllAvailableHsCode();
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during supplierItem/update/:id : ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during supplierItem/get/hscode : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

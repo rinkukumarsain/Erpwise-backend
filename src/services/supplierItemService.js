@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-// const { rolesKeys } = require('../../config/default.json');
+const { leadDao } = require('../dao');
 const { supplierModel, supplierItemsModel } = require('../dbModel');
 // const { registerUser } = require('./userService');
 const { query } = require('../utils/mongodbQuery');
@@ -173,29 +173,28 @@ exports.delete = async (auth, _id) => {
 };
 
 /**
- * Deletes a Supplier item by ID.
+ * get All Available HsCode
  *
- * @param {object} data - req.body.
  * @returns {object} - An object with the results.
  */
-exports.checkUniqueHsCode = async (data) => {
+exports.getAllAvailableHsCode = async () => {
     try {
-        if (data.length > 0) {
-            let arr = [];
-            for (let ele of data) {
-                ele.hscode && arr.push(ele.hscode);
-            }
-            console.log('arr>>>>>>', arr.length);
-            // const findData = await query.find(supplierItemsModel, { hscode: { $in: arr } });
-            // if (findData.length == 0) {
-            //     return {
-            //         success: true,
-            //         message: 'No dupllicate hs code found.',
-            //         data: []
-            //     };
-            // }
 
+        const findData = await query.aggregation(supplierItemsModel, leadDao.getAllAvailableHsCodePipeline());
+        if (findData.length > 0) {
+            return {
+                success: true,
+                message: 'All availabe hscodes',
+                data: findData[0]?.hscode || []
+            };
+        } else {
+            return {
+                success: false,
+                message: 'Error while fetching hscode',
+                data: []
+            };
         }
+
     } catch (error) {
         logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
         return {

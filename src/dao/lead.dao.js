@@ -346,3 +346,23 @@ exports.getPipelineData = (orgId) => [
         }
     }
 ];
+
+/**
+ *
+ * @returns {Array} - An array representing the aggregation pipeline.
+ */
+exports.getAllAvailableHsCodePipeline = () => [
+    {
+        $project: {
+            hscode: 1
+        }
+    },
+    {
+        $group: {
+            _id: '',
+            hscode: {
+                $push: '$hscode'
+            }
+        }
+    }
+];

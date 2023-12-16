@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-// const { rolesKeys } = require('../../config/default.json');
+const { leadDao } = require('../dao');
 const { supplierModel, supplierItemsModel } = require('../dbModel');
 // const { registerUser } = require('./userService');
 const { query } = require('../utils/mongodbQuery');
@@ -172,28 +172,34 @@ exports.delete = async (auth, _id) => {
     }
 };
 
-// exports.checkUniqueHsCode = async (data) => {
-//     try {
-//         if (data.length > 0) {
-//             let arr = [];
-//             for (let ele of data) {
-//                 ele.hscode && arr.push(ele.hscode);
-//             }
-//             const findData = await query.find(supplierItemsModel, { hscode: { $in: arr } });
-//             if (findData.length == 0) {
-//                 return {
-//                     success: true,
-//                     message: 'No dupllicate hs code found.',
-//                     data: []
-//                 };
-//             }
+/**
+ * get All Available HsCode
+ *
+ * @returns {object} - An object with the results.
+ */
+exports.getAllAvailableHsCode = async () => {
+    try {
 
-//         }
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// }
+        const findData = await query.aggregation(supplierItemsModel, leadDao.getAllAvailableHsCodePipeline());
+        if (findData.length > 0) {
+            return {
+                success: true,
+                message: 'All availabe hscodes',
+                data: findData[0]?.hscode || []
+            };
+        } else {
+            return {
+                success: false,
+                message: 'Error while fetching hscode',
+                data: []
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

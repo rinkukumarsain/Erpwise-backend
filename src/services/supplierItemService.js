@@ -13,9 +13,10 @@ const LOG_ID = 'services/supplierItemService';
  *
  * @param {object} auth - Data of logedin user.
  * @param {object} supplierItemData - Data for creating a new supplier item.
+ * @param {string} orgId - id of organisation.
  * @returns {object} - An object with the results, including the new supplier item.
  */
-exports.createSupplierItem = async (auth, supplierItemData) => {
+exports.createSupplierItem = async (auth, supplierItemData, orgId) => {
     try {
         const { email, _id, fname, lname } = auth;
 
@@ -28,7 +29,7 @@ exports.createSupplierItem = async (auth, supplierItemData) => {
             };
         }
 
-        const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: supplierItemData.partNumber, supplierId: supplierItemData.supplierId });
+        const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: supplierItemData.partNumber, supplierId: supplierItemData.supplierId, organisationId: orgId });
         if (findUniqueName) {
             return {
                 success: false,
@@ -42,6 +43,7 @@ exports.createSupplierItem = async (auth, supplierItemData) => {
         };
         findSupplier.Activity.push(obj);
         supplierItemData.createdBy = _id;
+        supplierItemData.organisationId = orgId;
         const newsupplierItem = await query.create(supplierItemsModel, supplierItemData);
         if (newsupplierItem) {
             await supplierModel.updateOne({ _id: supplierItemData.supplierId }, { Activity: findSupplier.Activity, isItemAdded: true });
@@ -66,11 +68,12 @@ exports.createSupplierItem = async (auth, supplierItemData) => {
  * @param {string} auth - req.auth.
  * @param {string} _id - The ID of the Supplier Item be updated.
  * @param {string} body - Updated data for the Supplier Item.
+ * @param {string} orgId - id of organisation.
  * @returns {object} - An object with the results, including updated Supplier Item.
  */
-exports.updateSupplierItemById = async (auth, _id, body) => {
+exports.updateSupplierItemById = async (auth, _id, body, orgId) => {
     try {
-        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false });
+        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false, organisationId: orgId });
         if (!findData) {
             return {
                 success: false,
@@ -86,7 +89,7 @@ exports.updateSupplierItemById = async (auth, _id, body) => {
             };
         }
         if (body.partNumber) {
-            const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: body.partNumber, supplierId: findSupplier.supplierId });
+            const findUniqueName = await query.findOne(supplierItemsModel, { partNumber: body.partNumber, supplierId: findSupplier.supplierId, organisationId: orgId });
             if (findUniqueName) {
                 return {
                     success: false,
@@ -125,11 +128,12 @@ exports.updateSupplierItemById = async (auth, _id, body) => {
  *
  * @param {string} auth - req.auth.
  * @param {string} _id - The ID of the Supplier item to be deleted.
+ * @param {string} orgId - id of organisation.
  * @returns {object} - An object with the results.
  */
-exports.delete = async (auth, _id) => {
+exports.delete = async (auth, _id, orgId) => {
     try {
-        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false });
+        const findData = await query.findOne(supplierItemsModel, { _id, isDeleted: false, organisationId: orgId });
         if (!findData) {
             return {
                 success: false,
@@ -175,12 +179,13 @@ exports.delete = async (auth, _id) => {
 /**
  * get All Available HsCode
  *
+ * @param {string} orgId - id of organisation.
  * @returns {object} - An object with the results.
  */
-exports.getAllAvailableHsCode = async () => {
+exports.getAllAvailableHsCode = async (orgId) => {
     try {
 
-        const findData = await query.aggregation(supplierItemsModel, leadDao.getAllAvailableHsCodePipeline());
+        const findData = await query.aggregation(supplierItemsModel, leadDao.getAllAvailableHsCodePipeline(orgId));
         if (findData.length > 0) {
             let obj = {};
             for (let ele of findData) obj[ele.hscode] = ele.hscode;

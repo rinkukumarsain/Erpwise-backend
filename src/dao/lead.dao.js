@@ -349,9 +349,16 @@ exports.getPipelineData = (orgId) => [
 
 /**
  *
+ * @param {string} orgId - id of organisation.
  * @returns {Array} - An array representing the aggregation pipeline.
  */
-exports.getAllAvailableHsCodePipeline = () => [
+exports.getAllAvailableHsCodePipeline = (orgId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            isDeleted: false
+        }
+    },
     {
         $project: {
             hscode: 1

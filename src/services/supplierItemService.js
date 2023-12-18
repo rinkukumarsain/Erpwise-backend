@@ -182,16 +182,18 @@ exports.getAllAvailableHsCode = async () => {
 
         const findData = await query.aggregation(supplierItemsModel, leadDao.getAllAvailableHsCodePipeline());
         if (findData.length > 0) {
+            let obj = {};
+            for (let ele of findData) obj[ele.hscode] = ele.hscode;
             return {
                 success: true,
                 message: 'All availabe hscodes',
-                data: findData[0]?.hscode || []
+                data: obj || {}
             };
         } else {
             return {
                 success: false,
                 message: 'Error while fetching hscode',
-                data: []
+                data: {}
             };
         }
 

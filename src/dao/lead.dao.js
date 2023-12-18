@@ -356,13 +356,14 @@ exports.getAllAvailableHsCodePipeline = () => [
         $project: {
             hscode: 1
         }
-    },
-    {
-        $group: {
-            _id: '',
-            hscode: {
-                $push: '$hscode'
-            }
-        }
     }
+    // ,
+    // {
+    //     $group: {
+    //         _id: '',
+    //         hscode: {
+    //             $push: '$hscode'
+    //         }
+    //     }
+    // }
 ];

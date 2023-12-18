@@ -41,6 +41,11 @@ const supplierItemSchema = new Schema(
             ref: 'User',
             default: null
         },
+        organisationId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organisation',
+            required: true
+        },
         isDeleted: {
             type: Boolean,
             default: false

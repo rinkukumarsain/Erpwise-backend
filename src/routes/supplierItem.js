@@ -18,7 +18,7 @@ const LOG_ID = 'routes/supplierItem';
  */
 router.post('/create', jwtVerify, validate(createSupplierItem), async (req, res) => {
     try {
-        const result = await supplierItemService.createSupplierItem(req.auth, req.body);
+        const result = await supplierItemService.createSupplierItem(req.auth, req.body, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -35,7 +35,7 @@ router.post('/create', jwtVerify, validate(createSupplierItem), async (req, res)
  */
 router.post('/update/:id', jwtVerify, validate(updateSupplierItemById), async (req, res) => {
     try {
-        const result = await supplierItemService.updateSupplierItemById(req.auth, req.params.id, req.body);
+        const result = await supplierItemService.updateSupplierItemById(req.auth, req.params.id, req.body, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -51,7 +51,7 @@ router.post('/update/:id', jwtVerify, validate(updateSupplierItemById), async (r
  */
 router.get('/delete/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await supplierItemService.delete(req.auth, req.params.id);
+        const result = await supplierItemService.delete(req.auth, req.params.id, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -63,27 +63,11 @@ router.get('/delete/:id', jwtVerify, async (req, res) => {
 });
 
 /**
- * Route for designating a address as a primary address of supplier.
- */
-router.get('/makeDefalut/:addressType/:id', jwtVerify, async (req, res) => {
-    try {
-        const result = await supplierItemService.makeAddressDefault(req.params.id, req.params.addressType);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred while makeing a address - defalut (makeAddressDefault): ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
-
-/**
  * Route for getting all available hscodes.
  */
 router.get('/get/hscode', jwtVerify, async (req, res) => {
     try {
-        const result = await supplierItemService.getAllAvailableHsCode();
+        const result = await supplierItemService.getAllAvailableHsCode(req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

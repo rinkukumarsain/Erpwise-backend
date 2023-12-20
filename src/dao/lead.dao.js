@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
  * @property {number} perPage - The number of leads to display per page.
  * @property {string} sortBy - Field to sort by.
  * @property {string} sortOrder - Sort order.
+ * @property {string} search - complete search on all fields.
  * @property {number} level - The level of the lead.
  */
 
@@ -20,7 +21,7 @@ const mongoose = require('mongoose');
  * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of leads.
  */
-exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, leadId }) => {
+exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, leadId, search }) => {
     let pipeline = [
         {
             $match: {
@@ -189,6 +190,17 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
 
     if (level) {
         pipeline[0]['$match']['level'] = +level;
+    }
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { address: { $regex: `${search}.*`, $options: 'i' } }
+            // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+            // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+            // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        ];
     }
 
     if (sortBy && sortOrder) {

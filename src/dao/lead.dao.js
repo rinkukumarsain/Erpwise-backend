@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
  * @property {string} sortBy - Field to sort by.
  * @property {string} sortOrder - Sort order.
  * @property {string} search - complete search on all fields.
+ * @property {string} salesPerson - search on sales person.
  * @property {number} level - The level of the lead.
  */
 
@@ -21,7 +22,7 @@ const mongoose = require('mongoose');
  * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of leads.
  */
-exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, leadId, search }) => {
+exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, leadId, search, salesPerson }) => {
     let pipeline = [
         {
             $match: {
@@ -186,6 +187,9 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
 
     if (leadId) {
         pipeline[0]['$match']['_id'] = new mongoose.Types.ObjectId(leadId);
+    }
+    if (salesPerson) {
+        pipeline[0]['$match']['salesPerson'] = new mongoose.Types.ObjectId(salesPerson);
     }
 
     if (level) {

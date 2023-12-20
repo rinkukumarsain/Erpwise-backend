@@ -26,6 +26,7 @@ exports.getAllLead = {
         perPage: Joi.string().optional(),
         sortBy: Joi.string().optional(),
         sortOrder: Joi.string().optional(),
+        search: Joi.string().optional(),
         level: Joi.string().optional()
     })
 };

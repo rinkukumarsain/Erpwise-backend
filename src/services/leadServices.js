@@ -41,7 +41,7 @@ exports.createLead = async (auth, leadData, orgId) => {
         leadData.createdBy = _id;
         leadData.organisationId = orgId;
         leadData.level = CRMlevelEnum.LEAD;
-        leadData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        leadData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const newLead = await query.create(leadModel, leadData);
         return {
             success: true,

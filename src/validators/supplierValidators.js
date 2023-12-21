@@ -64,7 +64,7 @@ exports.addSupplierFinance = {
         vatStatus: Joi.string().required(),
         vatNumber: Joi.number().optional(),
         paymentOption: Joi.string().required(),
-        comment: Joi.string().optional()
+        comment: Joi.string().allow(null)
     })
 };
 

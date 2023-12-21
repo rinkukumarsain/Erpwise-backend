@@ -7,7 +7,7 @@ const { statusCode } = require('../../config/default.json');
 const { uploadS3 } = require('../utils/multer');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { leadServices } = require('../services');
-const { leadValidators: { createLead, getAllLead, updateLeadById, qualifyLeadById, createProspect, addLeadFinance } } = require('../validators');
+const { leadValidators: { createLead, getAllLead, updateLeadById, qualifyLeadById, createProspect, addLeadFinance, changePipelineStage } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -187,6 +187,22 @@ router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, async (req, res) 
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during getting all lead pipeline data: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for changing pipeline stage of lead.
+ */
+router.post('/pipeline/changeStage/:id', jwtVerify, authorizeRoleAccess, validate(changePipelineStage),  async (req, res) => {
+    try {
+        const result = await leadServices.changePipelineStage(req.params.id, req.headers['x-org-type'], req.body.pipelineName, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during /pipeline/changeStage: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

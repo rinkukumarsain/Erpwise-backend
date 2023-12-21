@@ -92,3 +92,9 @@ exports.addLeadFinance = {
         comment: Joi.string().allow(null)
     })
 };
+
+exports.changePipelineStage = {
+    body: Joi.object({
+        pipelineName: Joi.string().required()
+    })
+};

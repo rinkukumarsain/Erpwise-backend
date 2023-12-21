@@ -14,7 +14,9 @@ mongoose.set('strictQuery', true);
  */
 exports.connectDB = async () => {
     try {
-        const conn = await mongoose.connect(`${process.env.DB_URL}${process.env.DB_NAME}`, {
+        // logger.info(LOG_ID, `Database connection Url :-  ${process.env.DB_URL}`);
+        // logger.info(LOG_ID, `Database connection Name :-  ${process.env.DB_NAME}?authSource=admin`);
+        const conn = await mongoose.connect(`${process.env.DB_URL}${process.env.DB_NAME}?authSource=admin`, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });

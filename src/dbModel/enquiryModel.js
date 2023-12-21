@@ -2,13 +2,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 /**
- * Schema definition for user actions.
- *
  * @typedef {object} UserAction
- * @property {string} performedBy - The user ID who performed the action.
+ * @property {mongoose.Types.ObjectId} performedBy - The user ID who performed the action.
  * @property {string} performedByEmail - The email of the user who performed the action.
  * @property {string} actionName - The name or description of the action performed.
- * @property {Date} dateTime - The timestamp when the action was performed. Defaults to the current date and time.
+ * @property {Date} createdAt - The timestamp when the document was created.
+ * @property {Date} updatedAt - The timestamp when the document was last updated.
  */
 
 /**
@@ -38,8 +37,6 @@ const userActionSchema = new Schema(
 );
 
 /**
- * Schema definition for enquiries.
- *
  * @typedef {object} Enquiry
  * @property {string} companyName - The name of the company associated with the enquiry.
  * @property {string} Id - The unique identifier for the enquiry.
@@ -47,21 +44,24 @@ const userActionSchema = new Schema(
  * @property {string} email - The email address associated with the enquiry.
  * @property {string} phone - The phone number associated with the enquiry.
  * @property {mongoose.Types.ObjectId} salesPerson - The ID of the salesperson (referenced from 'User' model).
- * @property {string} totalOrderValue - The total order value for the enquiry.
- * @property {Date} enquiryDate - The date when the enquiry was made.
+ * @property {Date} dueDate - The due date associated with the enquiry.
+ * @property {number} totalOrderValue - The total order value associated with the enquiry.
  * @property {string} note - Additional notes or comments about the enquiry.
  * @property {mongoose.Types.ObjectId} organisationId - The ID of the organisation (referenced from 'Organisation' model).
+ * @property {mongoose.Types.ObjectId} leadId - The ID of the lead (referenced from 'Lead' model).
+ * @property {mongoose.Types.ObjectId} leadContactId - The ID of the lead contact (referenced from 'LeadContact' model).
  * @property {mongoose.Types.ObjectId} currency - The ID of the currency (referenced from 'Currency' model).
  * @property {mongoose.Types.ObjectId} createdBy - The ID of the user who created the enquiry (referenced from 'User' model).
  * @property {mongoose.Types.ObjectId} updatedBy - The ID of the user who last updated the enquiry (referenced from 'User' model).
- * @property {Array} Activity - An array of user actions associated with the enquiry.
+ * @property {Array<UserAction>} Activity - An array of user actions associated with the enquiry.
  * @property {boolean} isActive - Indicates whether the enquiry is active.
+ * @property {boolean} isDeleted - Indicates whether the enquiry is deleted.
  * @property {Date} createdAt - The timestamp when the enquiry was created.
  * @property {Date} updatedAt - The timestamp when the enquiry was last updated.
  */
 
 /**
- * Mongoose schema for enquiries.
+ * Mongoose schema for enquiry.
  *
  * @type {mongoose.Schema<Enquiry>}
  */
@@ -79,22 +79,30 @@ const enquirySchema = new Schema(
             type: String,
             required: true
         },
+        email: {
+            type: String,
+            required: true
+        },
+        phone: {
+            type: String,
+            required: true
+        },
         salesPerson: {
             type: mongoose.Types.ObjectId,
             required: true,
             ref: 'User'
         },
-        totalOrderValue: {
-            type: String,
-            required: true
-        },
-        enquiryDate: {
+        dueDate: {
             type: Date,
+            default: ''
+        },
+        totalOrderValue: {
+            type: Number,
             required: true
         },
         note: {
             type: String,
-            required: true
+            default: ''
         },
         organisationId: {
             type: mongoose.Types.ObjectId,
@@ -108,7 +116,7 @@ const enquirySchema = new Schema(
         },
         leadContactId: {
             type: mongoose.Types.ObjectId,
-            ref: 'Lead',
+            ref: 'LeadContact',
             required: true
         },
         currency: {
@@ -122,11 +130,14 @@ const enquirySchema = new Schema(
         },
         updatedBy: {
             type: mongoose.Types.ObjectId,
-            ref: 'User',
-            default: null
+            ref: 'User'
         },
         Activity: [userActionSchema],
         isActive: {
+            type: Boolean,
+            default: true
+        },
+        isDeleted: {
             type: Boolean,
             default: true
         }

@@ -89,6 +89,6 @@ exports.addLeadFinance = {
         vatStatus: Joi.string().required(),
         vatNumber: Joi.number().optional(),
         discount: Joi.number().required(),
-        comment: Joi.string().optional()
+        comment: Joi.string().allow(null)
     })
 };

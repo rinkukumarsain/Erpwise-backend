@@ -1,7 +1,7 @@
 const moment = require('moment');
 // Local Import
 const { leadModel } = require('../dbModel');
-const { CRMlevelEnum, CRMlevelValueByKey } = require('../../config/default.json');
+const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -527,7 +527,7 @@ exports.getPipelineData = async (orgId) => {
                 message: 'Lead pipeline data.',
                 data: find
             };
-        }else {
+        } else {
             return {
                 success: false,
                 message: 'Lead pipeline not found.',
@@ -536,6 +536,60 @@ exports.getPipelineData = async (orgId) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching lead pipeline data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Get lead pipeline data.
+ *
+ * @param {string} leadId - Id of lead (req.params).
+ * @param {string} orgId - Id of logedin user organisation (req.headrs).
+ * @param {string} pipelineName - name of changing pipeline stage (req.body).
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the lead pipeline data.
+ */
+exports.changePipelineStage = async (leadId, orgId, pipelineName, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        if (!crmPipelineLevel[pipelineName]) {
+            return {
+                success: false,
+                message: 'Please provide a valid stage name.'
+            };
+        }
+        const findLead = await query.findOne(leadModel, { _id: leadId, organisationId: orgId, isDeleted: false });
+        if (!findLead) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Lead pipeline stage (${pipelineName}) updated by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+        let updatedData = { 'qualifymeta.pipelineName': pipelineName, 'qualifymeta.pipelinestagenumber': crmPipelineLevel[pipelineName] };
+        updatedData['$push'] = { Activity: obj };
+        const updatedLeadFinance = await leadModel.findByIdAndUpdate(
+            leadId,
+            updatedData,
+            { new: true, runValidators: true }
+        );
+
+        if (updatedLeadFinance) {
+            return {
+                success: true,
+                message: 'Lead pipeline stage updated successfully.',
+                data: updatedLeadFinance
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during changing Pipeline Stage: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -16,7 +16,7 @@ exports.connectDB = async () => {
     try {
         // logger.info(LOG_ID, `Database connection Url :-  ${process.env.DB_URL}`);
         // logger.info(LOG_ID, `Database connection Name :-  ${process.env.DB_NAME}?authSource=admin`);
-        const conn = await mongoose.connect(`${process.env.DB_URL}${process.env.DB_NAME}?authSource=admin`, {
+        const conn = await mongoose.connect(`${process.env.DB_URL}${process.env.DB_NAME}`, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });

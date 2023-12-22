@@ -361,12 +361,23 @@ exports.getPipelineData = (orgId) => [
         }
     },
     {
+        $lookup: {
+            from: 'users',
+            localField: 'updatedBy',
+            foreignField: '_id',
+            as: 'updatedByName'
+        }
+    },
+    {
         $addFields: {
             result: {
                 $arrayElemAt: ['$result', 0]
             },
             userDetails: {
                 $arrayElemAt: ['$userDetails', 0]
+            },
+            updatedByName: {
+                $arrayElemAt: ['$updatedByName', 0]
             }
         }
     },
@@ -386,6 +397,13 @@ exports.getPipelineData = (orgId) => [
                     ' ',
                     '$userDetails.lname'
                 ]
+            },
+            updatedByName: {
+                $concat: [
+                    '$updatedByName.fname',
+                    ' ',
+                    '$updatedByName.lname'
+                ]
             }
         }
     },
@@ -404,6 +422,14 @@ exports.getPipelineData = (orgId) => [
             isBillingAddressAdded: 0,
             isFinanceAdded: 0,
             isItemAdded: 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'supplieritems',
+            localField: '_id',
+            foreignField: 'supplierId',
+            as: 'supplieritems'
         }
     },
     // {

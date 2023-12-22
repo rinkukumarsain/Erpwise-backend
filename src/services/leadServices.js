@@ -39,6 +39,7 @@ exports.createLead = async (auth, leadData, orgId) => {
         };
         leadData.Activity = [obj];
         leadData.createdBy = _id;
+        leadData.updatedBy = _id;
         leadData.organisationId = orgId;
         leadData.level = CRMlevelEnum.LEAD;
         leadData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
@@ -154,6 +155,7 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
             actionName: `Lead updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         updatedData['$push'] = { Activity: obj };
+        updatedData.updatedBy = auth._id;
         const updatedLead = await leadModel.findByIdAndUpdate(
             leadId,
             updatedData,
@@ -262,6 +264,7 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
             performedByEmail: auth.email,
             actionName: !data.isQualified ? `Lead qualified (moved to prospect) by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}` : `Lead prospect qualifymeta added by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        // leadData.updatedBy = _id;
         let updatedData = { qualifymeta: updateData, level: CRMlevelEnum.PROSPECT, isQualified: true };
         updatedData['$push'] = { Activity: obj };
         const updatedLead = await leadModel.findByIdAndUpdate(
@@ -316,6 +319,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         };
         prospectData.Activity = [obj];
         prospectData.createdBy = _id;
+        prospectData.updatedBy = _id;
         prospectData.organisationId = orgId;
         prospectData.level = CRMlevelEnum.PROSPECT;
         prospectData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
@@ -573,7 +577,7 @@ exports.changePipelineStage = async (leadId, orgId, pipelineName, auth) => {
             performedByEmail: email,
             actionName: `Lead pipeline stage (${pipelineName}) updated by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
         };
-        let updatedData = { 'qualifymeta.pipelineName': pipelineName, 'qualifymeta.pipelinestagenumber': crmPipelineLevel[pipelineName] };
+        let updatedData = { 'qualifymeta.pipelineName': pipelineName, 'qualifymeta.pipelinestagenumber': crmPipelineLevel[pipelineName], updatedBy: _id };
         updatedData['$push'] = { Activity: obj };
         const updatedLeadFinance = await leadModel.findByIdAndUpdate(
             leadId,

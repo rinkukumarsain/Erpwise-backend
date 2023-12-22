@@ -322,7 +322,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         prospectData.updatedBy = _id;
         prospectData.organisationId = orgId;
         prospectData.level = CRMlevelEnum.PROSPECT;
-        prospectData.Id = `LeadId-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        prospectData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         prospectData.isQualified = true;
         prospectData.qualifymeta.interest = 'LOW';
         const newLead = await query.create(leadModel, prospectData);

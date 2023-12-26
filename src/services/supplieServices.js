@@ -40,6 +40,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         };
         supplierData.Activity = [obj];
         supplierData.createdBy = _id;
+        supplierData.updatedBy = _id;
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
         supplierData.Id = `SI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;

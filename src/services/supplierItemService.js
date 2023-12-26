@@ -44,6 +44,7 @@ exports.createSupplierItem = async (auth, supplierItemData, orgId) => {
         findSupplier.Activity.push(obj);
         supplierItemData.createdBy = _id;
         supplierItemData.organisationId = orgId;
+        supplierItemData.partNumberCode = supplierItemData.partNumber.replace(/[-/]/g, '').toLowerCase();
         const newsupplierItem = await query.create(supplierItemsModel, supplierItemData);
         if (newsupplierItem) {
             await supplierModel.updateOne({ _id: supplierItemData.supplierId }, { Activity: findSupplier.Activity, isItemAdded: true });
@@ -96,6 +97,7 @@ exports.updateSupplierItemById = async (auth, _id, body, orgId) => {
                     message: 'Supplier item part number already exist.'
                 };
             }
+            body.partNumberCode = body.partNumber.replace(/[-/]/g, '').toLowerCase();
         }
 
         let obj = {

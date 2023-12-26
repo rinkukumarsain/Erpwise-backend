@@ -534,7 +534,7 @@ exports.getPipelineData = async (orgId) => {
             };
         } else {
             return {
-                success: false,
+                success: true,
                 message: 'Lead pipeline not found.',
                 data: []
             };

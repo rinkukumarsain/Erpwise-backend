@@ -143,7 +143,7 @@ const supplierSchema = new Schema(
             type: Boolean,
             default: true
         },
-        isDeleted: {
+        isApproved: {
             type: Boolean,
             default: false
         },

@@ -79,3 +79,9 @@ exports.moveToPipeLine = {
         pipelineStage: Joi.string().required()
     })
 };
+
+exports.activateDeactivateSupplier = {
+    body: Joi.object({
+        isApproved: Joi.boolean().required()
+    })
+};

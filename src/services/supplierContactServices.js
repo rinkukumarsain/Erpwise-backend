@@ -19,7 +19,7 @@ exports.createSupplierContact = async (auth, supplierContactData) => {
     try {
         const { email, _id } = auth;
 
-        const findSupplier = await query.findOne(supplierModel, { _id: supplierContactData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierContactData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {
@@ -101,7 +101,7 @@ exports.updateSupplierContactById = async (auth, _id, body) => {
             }
         }
 
-        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {
@@ -151,7 +151,7 @@ exports.delete = async (auth, _id) => {
             };
         }
 
-        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {

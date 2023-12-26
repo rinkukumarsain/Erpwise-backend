@@ -25,8 +25,7 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
-                level: 1,
-                isDeleted: false
+                level: 1
             }
         },
         {
@@ -174,8 +173,7 @@ exports.getSupplierByIdPipeline = (orgId, supplierId) => [
     {
         $match: {
             organisationId: new mongoose.Types.ObjectId(orgId),
-            _id: new mongoose.Types.ObjectId(supplierId),
-            isDeleted: false
+            _id: new mongoose.Types.ObjectId(supplierId)
         }
     },
     {
@@ -300,8 +298,7 @@ exports.getSupplierByIdPipeline = (orgId, supplierId) => [
 exports.getSupplierDashBoardCount = (orgId) => [
     {
         $match: {
-            organisationId: new mongoose.Types.ObjectId(orgId),
-            isDeleted: false
+            organisationId: new mongoose.Types.ObjectId(orgId)
         }
     },
     {
@@ -324,8 +321,7 @@ exports.getPipelineData = (orgId) => [
     {
         $match: {
             organisationId: new mongoose.Types.ObjectId(orgId),
-            level: 2,
-            isDeleted: false
+            level: 2
         }
     },
     {

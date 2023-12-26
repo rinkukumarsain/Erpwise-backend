@@ -408,3 +408,59 @@ exports.getAllAvailableHsCodePipeline = (orgId) => [
     //     }
     // }
 ];
+
+/**
+ *
+ * @param {string} orgId - id of organisation.
+ * @returns {Array} - An array representing the aggregation pipeline.
+ */
+exports.getAllLeadsAvailableForEnquiry = (orgId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            isQualified: true,
+            isContactAdded: true,
+            isActive: true,
+            isDeleted: false
+        }
+    },
+    {
+        $project: {
+            _id: 1,
+            companyName: 1
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadcontacts',
+            let: {
+                leadId: '$_id'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$leadId', '$$leadId']
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        name: 1,
+                        email: 1,
+                        phone: 1
+                    }
+                }
+            ],
+            as: 'leadContacts'
+        }
+    }
+];

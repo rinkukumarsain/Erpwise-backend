@@ -14,7 +14,8 @@ const { supplierValidators: {
     updateSupplierById,
     addSupplierFinance,
     deleteSupplierDocument,
-    moveToPipeLine
+    moveToPipeLine,
+    activateDeactivateSupplier
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -104,17 +105,17 @@ router.post('/update/:id', jwtVerify, validate(updateSupplierById), async (req, 
 });
 
 /**
- * Route for delete supplier By Id
+ * Route for activate or deactivate supplier By Id
  */
-router.get('/delete/:id', jwtVerify, async (req, res) => {
+router.post('/activateDeactivate/:id', jwtVerify, validate(activateDeactivateSupplier), async (req, res) => {
     try {
-        const result = await supplieServices.delete(req.params.id, req.auth);
+        const result = await supplieServices.activateDeactivateSupplier(req.params.id, req.auth, req.body.isApproved);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during supplier/delete/:id : ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during supplier/activateDeactivate/:id : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

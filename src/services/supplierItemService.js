@@ -20,7 +20,7 @@ exports.createSupplierItem = async (auth, supplierItemData, orgId) => {
     try {
         const { email, _id, fname, lname } = auth;
 
-        const findSupplier = await query.findOne(supplierModel, { _id: supplierItemData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: supplierItemData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {
@@ -81,7 +81,7 @@ exports.updateSupplierItemById = async (auth, _id, body, orgId) => {
                 message: 'Supplier Item not found.'
             };
         }
-        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {
@@ -143,7 +143,7 @@ exports.delete = async (auth, _id, orgId) => {
             };
         }
 
-        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findSupplier = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findSupplier>>>>>>>>>>>>>', findSupplier);
         if (!findSupplier) {
             return {

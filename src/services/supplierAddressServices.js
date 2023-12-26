@@ -25,7 +25,7 @@ exports.create = async (auth, body) => {
                 message: `${body.addresstype} address already exist!`
             };
         }
-        const findLead = await query.findOne(supplierModel, { _id: body.supplierId, isActive: true, isDeleted: false });
+        const findLead = await query.findOne(supplierModel, { _id: body.supplierId, isActive: true });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -88,7 +88,7 @@ exports.update = async (auth, _id, body) => {
                 };
             }
         }
-        const findLead = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findLead = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
@@ -136,7 +136,7 @@ exports.delete = async (auth, _id) => {
                 message: 'Supplier address not found.'
             };
         }
-        const findLead = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true, isDeleted: false });
+        const findLead = await query.findOne(supplierModel, { _id: findData.supplierId, isActive: true });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {

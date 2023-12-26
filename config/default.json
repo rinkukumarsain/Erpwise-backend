@@ -6,5 +6,311 @@
         "BAD_REQUEST": 400,
         "NOT_FOUND": 404
     },
-    "apiV1Prefix": "/api/v1"
+    "apiV1Prefix": "/api/v1",
+    "roles": {
+        "superAdmin": 7,
+        "admin": 6,
+        "sales": 5,
+        "finance": 4,
+        "operations": 3,
+        "warehouseManager": 2,
+        "user": 1
+    },
+    "rolesKeys": {
+        "1": "user",
+        "2": "warehouseManager",
+        "3": "operations",
+        "4": "finance",
+        "5": "sales",
+        "6": "admin",
+        "7": "superAdmin"
+    },
+    "roleAccess": {
+        "superAdmin": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": true
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": false
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": false
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            },
+            {
+                "label": "Users",
+                "icon": "ICONUSERS",
+                "route": "/base/user",
+                "isactive": false
+            },
+            {
+                "label": "Settings",
+                "icon": "ICONSETTING",
+                "route": "/base/settings",
+                "isactive": false
+            }
+        ],
+        "admin": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": true
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": false
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": false
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            },
+            {
+                "label": "Users",
+                "icon": "ICONUSERS",
+                "route": "/base/user",
+                "isactive": false
+            }
+        ],
+        "sales": [
+            {
+                "label": "Crm",
+                "icon": "ICONCRM",
+                "route": "/base/crm",
+                "isactive": false
+            },
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            }
+        ],
+        "warehouseManager": [
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": true
+            }
+        ],
+        "operations": [
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": true
+            },
+            {
+                "label": "Suppliers",
+                "icon": "ICONSUPPLIER",
+                "route": "/base/supplier",
+                "isactive": false
+            },
+            {
+                "label": "Warehouse",
+                "icon": "ICONWAREHOUSE",
+                "route": "/base/warehouses",
+                "isactive": false
+            }
+        ],
+        "finance": [
+            {
+                "label": "Sales",
+                "icon": "ICONSALES",
+                "route": "/base/sales",
+                "isactive": false
+            },
+            {
+                "label": "Finance",
+                "icon": "ICONFINANCE",
+                "route": "/base/finance",
+                "isactive": true
+            }
+        ]
+    },
+    "roleBaseRouteAccess": {
+        "superAdmin": [
+            "/paymentTerms/delete/:id",
+            "/paymentTerms/update/:id",
+            "/paymentTerms/create",
+            "/paymentTerms/updateStatus",
+            "/user/register",
+            "/user/getAll",
+            "/user/getById/:id",
+            "/user/edit/:id",
+            "/user/updateStatus",
+            "/user/uploadimage/:id",
+            "/vat/delete/:id",
+            "/vat/update/:id",
+            "/vat/create",
+            "/vat/updateStatus",
+            "/organisationAddress/delete/:id",
+            "/organisationAddress/update/:id",
+            "/organisationAddress/create",
+            "/organisation/update/:id",
+            "/organisation/create",
+            "/organisation/uploadimage/:id",
+            "/exchangeRate/create",
+            "/exchangeRate/update/:id",
+            "/exchangeRate/get",
+            "/exchangeRate/delete/:id",
+            "/lead/getDashboardCount",
+            "/lead/getPipelineData",
+            "/lead/create",
+            "/lead/getAll",
+            "/lead/updateLeadById/:id",
+            "/lead/delete/:id",
+            "/lead/qualify/:id",
+            "/lead/pipeline/changeStage/:id",
+            "/lead/prospect/create",
+            "/lead/finance/create/:id",
+            "/lead/upload/:id",
+            "/lead/deleteDocument/:id",
+            "/leadContact/create",
+            "/leadContact/update/:id",
+            "/leadContact/delete/:id",
+            "/leadAddress/create",
+            "/leadAddress/update/:id",
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
+        ],
+        "admin": [
+            "/user/register",
+            "/user/getAll",
+            "/user/getById/:id",
+            "/user/edit/:id",
+            "/user/updateStatus",
+            "/user/uploadimage/:id",
+            "/vat/delete/:id",
+            "/vat/update/:id",
+            "/vat/create",
+            "/vat/updateStatus",
+            "/paymentTerms/delete/:id",
+            "/paymentTerms/update/:id",
+            "/paymentTerms/updateStatus",
+            "/paymentTerms/create",
+            "/exchangeRate/create",
+            "/exchangeRate/update/:id",
+            "/exchangeRate/get",
+            "/exchangeRate/delete/:id",
+            "/lead/getDashboardCount",
+            "/lead/getPipelineData",
+            "/lead/create",
+            "/lead/getAll",
+            "/lead/updateLeadById/:id",
+            "/lead/delete/:id",
+            "/lead/qualify/:id",
+            "/lead/prospect/create",
+            "/lead/finance/create/:id",
+            "/lead/pipeline/changeStage/:id",
+            "/lead/upload/:id",
+            "/lead/deleteDocument/:id",
+            "/leadContact/create",
+            "/leadContact/update/:id",
+            "/leadContact/delete/:id",
+            "/leadAddress/create",
+            "/leadAddress/update/:id",
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
+        ],
+        "sales": [
+            "/lead/getDashboardCount",
+            "/lead/getPipelineData",
+            "/lead/create",
+            "/lead/getAll",
+            "/lead/updateLeadById/:id",
+            "/lead/delete/:id",
+            "/lead/qualify/:id",
+            "/lead/prospect/create",
+            "/lead/finance/create/:id",
+            "/lead/pipeline/changeStage/:id",
+            "/lead/upload/:id",
+            "/lead/deleteDocument/:id",
+            "/leadContact/create",
+            "/leadContact/update/:id",
+            "/leadContact/delete/:id",
+            "/leadAddress/create",
+            "/leadAddress/update/:id",
+            "/leadAddress/delete/:id",
+            "/leadAddress/makePrimary/:id"
+        ]
+    },
+    "CRMlevelEnum": {
+        "LEAD": 1,
+        "PROSPECT": 2,
+        "ENQUIRY": 3,
+        "SALESORDER": 4
+    },
+    "CRMlevelValueByKey": {
+        "1": "LEAD",
+        "2": "PROSPECT",
+        "3": "ENQUIRY",
+        "4": "SALESORDER"
+    },
+    "crmPipelineLevel": {
+        "ContactMade": 1,
+        "MeetingArranged": 2,
+        "NeedsDefined": 3,
+        "EnquiryReceived": 4,
+        "LeadWon": 5
+    },
+    "supplierLevelEnum": {
+        "PROSPECT": 1,
+        "PIPELINE": 2,
+        "APPROVEDSUPPLIERS": 3
+    },
+    "supplierValueByKey": {
+        "1": "PROSPECT",
+        "2": "PIPELINE",
+        "3": "APPROVEDSUPPLIERS"
+    },
+    "supplierPipelineLevel": {
+        "Contact_Made": 1,
+        "Meeting_1": 2,
+        "Meeting_2": 3,
+        "Meeting_3": 4
+    }
 }

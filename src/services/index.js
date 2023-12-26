@@ -1,0 +1,14 @@
+exports.userService = require('./userService');
+exports.currencyService = require('./currencyService');
+exports.vatService = require('./vatService');
+exports.organisationService = require('./organisationService');
+exports.organisationAddressService = require('./organisationAddressService');
+exports.paymentTermsService = require('./paymentTermsService');
+exports.exchangeRateService = require('./exchangeRateService');
+exports.leadServices = require('./leadServices');
+exports.leadContacts = require('./leadContacts');
+exports.leadAddress = require('./leadAddress');
+exports.supplieServices = require('./supplieServices');
+exports.supplierContactServices = require('./supplierContactServices');
+exports.supplierAddressServices = require('./supplierAddressServices');
+exports.supplierItemService = require('./supplierItemService');

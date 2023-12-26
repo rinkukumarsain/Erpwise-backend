@@ -2,3 +2,8 @@
 .env
 node_modules/
 server.log
+public
+swagger-output.json
+swagger.js
+git.sh
+gitAfter.sh

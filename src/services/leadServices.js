@@ -601,3 +601,39 @@ exports.changePipelineStage = async (leadId, orgId, pipelineName, auth) => {
         };
     }
 };
+
+/**
+ * Get All Leads Available For Enquiry
+ *
+ * @param {string} orgId - Id of logedin user organisation (req.headers).
+ * @returns {object} - An object with the results, including the lead pipeline data.
+ */
+exports.getAllLeadForEnquiry = async (orgId) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const findData = await query.aggregation(leadModel, leadDao.getAllLeadsAvailableForEnquiry(orgId));
+        if (findData.length > 0) {
+            return {
+                success: true,
+                message: 'All availabe lead for enquiry',
+                data: findData
+            };
+        }
+        return {
+            success: true,
+            message: 'No lead availabe for enruiry',
+            data: []
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during changing Pipeline Stage: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

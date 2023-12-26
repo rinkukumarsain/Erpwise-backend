@@ -207,5 +207,21 @@ router.post('/pipeline/changeStage/:id', jwtVerify, authorizeRoleAccess, validat
     }
 });
 
+/**
+ * Route for getting All Leads Available For Enquiry
+ */
+router.get('/availableForEnquiry', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadServices.getAllLeadForEnquiry(req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

@@ -340,10 +340,10 @@ exports.getPipelineData = (orgId) => [
             phone: 0,
             salesPerson: 0,
             address: 0,
-            isQualified: 0,
+            // isQualified: 0,
             isActive: 0,
             documents: 0,
-            isContactAdded: 0,
+            // isContactAdded: 0,
             isAddressAdded: 0,
             isFinanceAdded: 0,
             createdBy: 0

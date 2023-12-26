@@ -1,4 +1,6 @@
 const moment = require('moment');
+const XLSX = require('xlsx');
+
 // Local Import
 const { leadDao } = require('../dao');
 const { supplierModel, supplierItemsModel } = require('../dbModel');
@@ -206,6 +208,63 @@ exports.getAllAvailableHsCode = async (orgId) => {
 
     } catch (error) {
         logger.error(LOG_ID, `Error check Unique HsCode: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Bulk upload and insert multiple supplier iteams.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {string} orgId - id of organisation.
+ * @param {string} supplierId - id of supplier.
+ * @param {string} path - path of uploaded file.
+ * @returns {object} - An object with the results.
+ */
+exports.itemBulkUpload = async (auth, orgId, supplierId, path) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'delivery', 'notes'];
+        const workbook = XLSX.readFile(path);
+        const sheetNames = workbook.SheetNames;
+        const worksheet = workbook.Sheets[sheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const documentsToSave = [];
+        for (let i = 1; i < jsonData.length; i++) {
+            let obj = { supplierId, organisationId: orgId, createdBy: _id };
+            for (let j = 0; j < jsonData[i].length; j++) {
+                if (!jsonData[i][j]) jsonData[i][j] = 'testing';
+                if (j == 0) {
+                    obj['partNumberCode'] = `${jsonData[i][j]}`.replace(/[-/]/g, '').toLowerCase();
+                }
+                obj[constData[j]] = constData[j] == 'unitPrice' ? +jsonData[i][j] || 0 : jsonData[i][j];
+            }
+            documentsToSave.push(obj);
+        }
+        let data = await supplierItemsModel.insertMany(documentsToSave);
+        if (data.length > 0) {
+            let obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Supplier item (bulk upload item quantity :- ${data.length}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await supplierModel.updateOne({ _id: supplierId }, { $push: { Activity: obj } });
+            return {
+                success: true,
+                message: 'Supplier iteam bulk upload',
+                data: data
+            };
+        }
+        return {
+            success: false,
+            message: 'Eoor while supplier iteam bulk upload',
+            data: []
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while uploading supplier iteam in bulk: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

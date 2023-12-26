@@ -40,6 +40,7 @@
     "nodemon": "^2.0.21",
     "pkginfo": "^0.4.1",
     "swagger-ui-express": "^5.0.0",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "xlsx": "^0.18.5"
   }
 }

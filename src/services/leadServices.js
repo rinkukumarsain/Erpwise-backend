@@ -156,6 +156,7 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
         };
         updatedData['$push'] = { Activity: obj };
         updatedData.updatedBy = auth._id;
+        if (updatedData?.qualifymeta && Object.keys(updatedData.qualifymeta).length == 12) updatedData.isQualified = true;
         const updatedLead = await leadModel.findByIdAndUpdate(
             leadId,
             updatedData,
@@ -323,7 +324,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         prospectData.organisationId = orgId;
         prospectData.level = CRMlevelEnum.PROSPECT;
         prospectData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
-        prospectData.isQualified = true;
+        // if (Object.keys(prospectData.qualifymeta).length > 2) prospectData.isQualified = true;
         prospectData.qualifymeta.interest = 'LOW';
         const newLead = await query.create(leadModel, prospectData);
         return {

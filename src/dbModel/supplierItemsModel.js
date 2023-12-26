@@ -12,6 +12,10 @@ const supplierItemSchema = new Schema(
             type: String,
             required: true
         },
+        partNumberCode: {
+            type: String,
+            required: true
+        },
         partDesc: {
             type: String,
             required: true

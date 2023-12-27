@@ -11,3 +11,4 @@ exports.supplierValidators = require('./supplierValidators.js');
 exports.supplierContactValidators = require('./supplierContactValidators');
 exports.supplierAddressValidators = require('./supplierAddressValidators.js');
 exports.supplierItemValidators = require('./supplierItemValidators.js');
+exports.enquiryValidators = require('./enquiryValidators.js');

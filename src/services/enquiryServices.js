@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { enquiryModel } = require('../dbModel');
+const { enquiryModel, leadModel } = require('../dbModel');
 const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -18,39 +18,38 @@ const LOG_ID = 'services/enquiryService';
  */
 exports.createEnquiry = async (auth, enquiryData, orgId) => {
     try {
+        const { email, _id, fname, lname } = auth;
         if (!orgId) {
             return {
                 success: false,
                 message: 'Organisation not found.'
             };
         }
-        const findUniqueCompanyName = await query.findOne(enquiryModel, { organisationId: orgId, companyName: enquiryData.companyName });
-        if (findUniqueCompanyName) {
-            return {
-                success: false,
-                message: 'Company name already exist.'
-            };
-        }
-        const { email, _id } = auth;
         let obj = {
             performedBy: _id,
             performedByEmail: email,
-            actionName: `Lead creation by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            actionName: `Enquiry creation by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         enquiryData.Activity = [obj];
         enquiryData.createdBy = _id;
         enquiryData.updatedBy = _id;
         enquiryData.organisationId = orgId;
-        enquiryData.level = CRMlevelEnum.LEAD;
-        enquiryData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
-        const newLead = await query.create(enquiryModel, enquiryData);
-        return {
-            success: true,
-            message: 'Lead created successfully.',
-            data: newLead
-        };
+        enquiryData.Id = `EQ-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        const newEnquiry = await query.create(enquiryModel, enquiryData);
+        if (newEnquiry) {
+            await leadModel.findByIdAndUpdate(
+                enquiryData.leadId,
+                { isMovedToEnquiry: true },
+                { runValidators: true }
+            );
+            return {
+                success: true,
+                message: 'Enquiry created successfully.',
+                data: newEnquiry
+            };
+        }
     } catch (error) {
-        logger.error(LOG_ID, `Error creating lead: ${error}`);
+        logger.error(LOG_ID, `Error creating enquiry: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

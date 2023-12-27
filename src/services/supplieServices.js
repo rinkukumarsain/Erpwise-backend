@@ -491,7 +491,7 @@ exports.getPipelineData = async (orgId) => {
         const find = await query.aggregation(supplierModel, supplierDao.getPipelineData(orgId));
         if (find.length == 0) {
             return {
-                success: false,
+                success: true,
                 message: 'Supplier pipeline not found.',
                 data: []
             };

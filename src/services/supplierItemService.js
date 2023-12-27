@@ -251,7 +251,7 @@ exports.itemBulkUpload = async (auth, orgId, supplierId, path) => {
                 performedByEmail: email,
                 actionName: `Supplier item (bulk upload item quantity :- ${data.length}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
-            await supplierModel.updateOne({ _id: supplierId }, { $push: { Activity: obj } });
+            await supplierModel.updateOne({ _id: supplierId }, { $push: { Activity: obj }, isItemAdded: true });
             return {
                 success: true,
                 message: 'Supplier iteam bulk upload',

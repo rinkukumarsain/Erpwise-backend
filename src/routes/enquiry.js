@@ -8,7 +8,8 @@ const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { enquiryServices } = require('../services');
 const { enquiryValidators: {
-    createEnquiry
+    createEnquiry,
+    getAllEnquiry
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -28,6 +29,22 @@ router.post('/create', jwtVerify, validate(createEnquiry), async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while creating new enquiry: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all enquiries.
+ */
+router.get('/getAll', jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllEnquiry(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiries: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

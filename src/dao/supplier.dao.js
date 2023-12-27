@@ -100,7 +100,8 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
                 createdAt: 1,
                 updatedAt: 1,
                 organisationId: 1,
-                industryType: 1
+                industryType: 1,
+                isApproved: 1
 
             }
         },

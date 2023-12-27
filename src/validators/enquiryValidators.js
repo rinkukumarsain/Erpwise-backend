@@ -16,3 +16,21 @@ exports.createEnquiry = {
         leadContactId: Joi.string().required()
     })
 };
+
+exports.getAllEnquiry = {
+    query: Joi.object({
+        id: Joi.string().optional(),
+        leadId: Joi.string().optional(),
+        isActive: Joi.string().optional(),
+        salesPerson: Joi.string().optional(),
+        isQualified: Joi.string().optional(),
+        dueDate: Joi.string().optional(),
+        organisationId: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional(),
+        search: Joi.string().optional(),
+        level: Joi.string().optional()
+    })
+};

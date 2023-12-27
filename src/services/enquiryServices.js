@@ -2,7 +2,7 @@ const moment = require('moment');
 // Local Import
 const { enquiryModel, leadModel } = require('../dbModel');
 const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../config/default.json');
-const { leadDao } = require('../dao');
+const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -58,13 +58,13 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
 };
 
 /**
- * Gets all Lead.
+ * Gets all enquiry.
  *
  * @param {string} orgId - Id of logedin user organisation.
- * @param {object} queryObj - filters for getting all leads.
- * @returns {object} - An object with the results, including all Lead.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all Enquiry.
  */
-exports.getAllLead = async (orgId, queryObj) => {
+exports.getAllEnquiry = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {
@@ -72,42 +72,32 @@ exports.getAllLead = async (orgId, queryObj) => {
                 message: 'Organisation not found.'
             };
         }
-        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search, salesPerson } = queryObj;
-        if (level) {
-            if (!CRMlevelValueByKey[level]) {
-                return {
-                    success: false,
-                    message: 'Please provied a vaild crm level.'
-                };
-            }
-        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search, salesPerson, leadId } = queryObj;
         let obj = {
             organisationId: orgId,
-            level: level ? +level : 1,
+            // level: level ? +level : 1,
             isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         if (id) obj['_id'] = id;
-        const leadListCount = await query.find(enquiryModel, obj, { _id: 1 });
-        const totalPages = Math.ceil(leadListCount.length / perPage);
-        const enquiryData = await query.aggregation(enquiryModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId: id, search, salesPerson }));
-        const messageName = CRMlevelValueByKey[level ? level : '1'];
-        const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllEnquiryPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId, enquiryId: id, search, salesPerson }));
         return {
             success: true,
-            message: `${formattedString} fetched successfully.`,
+            message: `Enquiry fetched successfully.`,
             data: {
                 enquiryData,
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: leadListCount.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }
         };
     } catch (error) {
-        logger.error(LOG_ID, `Error fetching lead: ${error}`);
+        logger.error(LOG_ID, `Error fetching enquiry: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -483,7 +473,7 @@ exports.getLeadDashBoardCount = async (orgId) => {
             'ENQUIRY': 0,
             'SALESORDER': 0
         };
-        const find = await query.aggregation(enquiryModel, leadDao.getLeadDashBoardCount(orgId));
+        const find = await query.aggregation(enquiryModel, enquiryDao.getLeadDashBoardCount(orgId));
         if (!find.length) {
             return {
                 success: true,
@@ -522,7 +512,7 @@ exports.getLeadDashBoardCount = async (orgId) => {
  */
 exports.getPipelineData = async (orgId) => {
     try {
-        const find = await query.aggregation(enquiryModel, leadDao.getPipelineData(orgId));
+        const find = await query.aggregation(enquiryModel, enquiryDao.getPipelineData(orgId));
         // console.log('find', find);
         if (find.length > 0) {
             return {

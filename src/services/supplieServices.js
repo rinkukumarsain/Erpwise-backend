@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { supplierModel } = require('../dbModel');
+const { supplierModel, supplierItemsModel } = require('../dbModel');
 const { supplierLevelEnum, supplierValueByKey, supplierPipelineLevel } = require('../../config/default.json');
 const { supplierDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -594,6 +594,33 @@ exports.moveToApprovedSupplier = async (auth, supplierId) => {
                 success: true,
                 message: `Supplier approved succcessfully.`,
                 data: updateSupplier
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during moving supplier to ApprovedSupplier: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Move Supplier to ApprovedSupplier.
+ *
+ * @param {string} orgId - Id of organisation
+ * @param {string} searchString - search string to search items by their part nunmber
+ * @returns {object} -  An object with the results, including the new Approved Supplier.
+ */
+exports.searchIteamForEnquiry = async (orgId, searchString) => {
+    try {
+
+        const data = await query.aggregation(supplierItemsModel, supplierDao.searchIteamForEnquiry(orgId, searchString));
+        if (data.length > 0) {
+            return {
+                success: true,
+                message: 'Supplier item fetched for enquiry',
+                data
             };
         }
     } catch (error) {

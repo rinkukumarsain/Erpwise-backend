@@ -236,7 +236,7 @@ exports.itemBulkUpload = async (auth, orgId, supplierId, path) => {
         for (let i = 1; i < jsonData.length; i++) {
             let obj = { supplierId, organisationId: orgId, createdBy: _id };
             for (let j = 0; j < jsonData[i].length; j++) {
-                if (!jsonData[i][j]) jsonData[i][j] = 'testing';
+                if (!jsonData[i][j]) jsonData[i][j] = 'N/A';
                 if (j == 0) {
                     obj['partNumberCode'] = `${jsonData[i][j]}`.replace(/[-/]/g, '').toLowerCase();
                 }

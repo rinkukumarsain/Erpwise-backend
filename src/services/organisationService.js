@@ -254,3 +254,34 @@ exports.uploadOrgDocument = async (orgId, { location }) => {
     }
 };
 
+/**
+ * delete organisation Document.
+ *
+ * @param {string} orgId - The ID of the organisation.
+ * @param {string} imageUrl - Parameters containing 'file url'.
+ * @returns {object} - An object with the results, including organisation details.
+ */
+exports.deleteOrgDocument = async (orgId, imageUrl) => {
+    try {
+        const updateDocument = await organisationModel.findOneAndUpdate({ _id: orgId }, { $pull: { documents: imageUrl } }, { new: true });
+
+        if (!updateDocument) {
+            return {
+                success: false,
+                message: 'Error while deleting organisation document.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Organisation document deleted successfully.`,
+            data: updateDocument
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching deleting organisation document (deleteOrgDocument): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

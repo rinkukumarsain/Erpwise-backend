@@ -193,6 +193,8 @@
             "/organisation/update/:id",
             "/organisation/create",
             "/organisation/uploadimage/:id",
+            "/organisation/upload/:id",
+            "/organisation/deleteDocument/:id",
             "/exchangeRate/create",
             "/exchangeRate/update/:id",
             "/exchangeRate/get",

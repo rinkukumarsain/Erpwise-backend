@@ -43,30 +43,6 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
         },
         {
             $lookup: {
-                from: 'currencies',
-                let: {
-                    currencyId: '$currency'
-                },
-                pipeline: [
-                    {
-                        $match: {
-                            $expr: {
-                                $eq: ['$_id', '$$currencyId']
-                            }
-                        }
-                    },
-                    {
-                        $project: {
-                            createdAt: 0,
-                            updatedAt: 0
-                        }
-                    }
-                ],
-                as: 'result'
-            }
-        },
-        {
-            $lookup: {
                 from: 'users',
                 localField: 'salesPerson',
                 foreignField: '_id',
@@ -75,9 +51,6 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
         },
         {
             $addFields: {
-                result: {
-                    $arrayElemAt: ['$result', 0]
-                },
                 userDetails: {
                     $arrayElemAt: ['$userDetails', 0]
                 }
@@ -85,14 +58,6 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
         },
         {
             $addFields: {
-                currencyText: {
-                    $concat: [
-                        '$result.currencyShortForm',
-                        ' (',
-                        '$result.currencySymbol',
-                        ')'
-                    ]
-                },
                 salesPersonName: {
                     $concat: [
                         '$userDetails.fname',
@@ -105,7 +70,16 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
         {
             $project: {
                 result: 0,
-                userDetails: 0
+                userDetails: 0,
+                email: 0,
+                phone: 0,
+                leadId: 0,
+                leadContactId: 0,
+                createdBy: 0,
+                updatedBy: 0,
+                createdAt: 0,
+                Activity: 0
+
             }
         }
     ];

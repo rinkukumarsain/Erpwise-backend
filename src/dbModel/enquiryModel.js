@@ -128,18 +128,26 @@ const enquirySchema = new Schema(
             type: mongoose.Types.ObjectId,
             ref: 'User'
         },
+        stageName: {
+            type: String,
+            default: 'Add_Item'
+        },
         updatedBy: {
             type: mongoose.Types.ObjectId,
             ref: 'User'
         },
         Activity: [userActionSchema],
+        isItemAdded: {
+            type: Boolean,
+            default: false
+        },
         isActive: {
             type: Boolean,
             default: true
         },
         isDeleted: {
             type: Boolean,
-            default: true
+            default: false
         }
     },
     {

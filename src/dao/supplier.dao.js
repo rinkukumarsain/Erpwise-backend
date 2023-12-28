@@ -457,3 +457,62 @@ exports.getPipelineData = (orgId) => [
         }
     }
 ];
+
+/**
+ * Generate an aggregation pipeline to fetch supplier pipeline section data.
+ * 
+ * @param {string} orgId - Id of organisation
+ * @param {string} searchString - search string to search items by their part nunmber
+ * @returns {Array} - An array representing the aggregation pipeline of all available supplier items
+ */
+exports.searchIteamForEnquiry = (orgId, searchString) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            partNumberCode: {
+                $regex: new RegExp(searchString, 'i')
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            let: {
+                supplierId: '$supplierId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$supplierId']
+                                },
+                                {
+                                    $eq: ['$level', 3]
+                                },
+                                {
+                                    $eq: ['$isActive', true]
+                                },
+                                {
+                                    $eq: ['$isApproved', true]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'companyName'
+        }
+    },
+    {
+        $unwind: {
+            path: '$companyName'
+        }
+    },
+    {
+        $addFields: {
+            companyName: '$companyName.companyName'
+        }
+    }
+];

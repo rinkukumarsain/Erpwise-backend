@@ -64,7 +64,7 @@ router.post('/create', jwtVerify, authorizeRoleAccess, validate(createOrganisati
 /**
  * Route for updating the organisation address.
  */
-router.post('/update/:id', authorizeRoleAccess, validate(updateOrganisationAddress), jwtVerify, async (req, res) => {
+router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(updateOrganisationAddress), async (req, res) => {
     try {
         const result = await organisationAddressService.updateOrganisationAddress(req.params.id, req.body);
         if (result.success) {
@@ -80,7 +80,7 @@ router.post('/update/:id', authorizeRoleAccess, validate(updateOrganisationAddre
 /**
  * Route for deleting the organisation addresss.
  */
-router.post('/delete/:id', authorizeRoleAccess, jwtVerify, async (req, res) => {
+router.post('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     try {
         const result = await organisationAddressService.deleteOrganisationAddress(req.params.id);
         if (result.success) {

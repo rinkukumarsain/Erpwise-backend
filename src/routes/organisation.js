@@ -93,4 +93,20 @@ router.post('/uploadimage/:id', jwtVerify, authorizeRoleAccess, uploadS3.single(
     }
 });
 
+/**
+ * Route for upload user image.
+ */
+router.post('/upload/:id', jwtVerify, authorizeRoleAccess, uploadS3.single('image'), async (req, res) => {
+    try {
+        const result = await organisationService.uploadOrgDocument(req.params.id, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during uploadOrgimage: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

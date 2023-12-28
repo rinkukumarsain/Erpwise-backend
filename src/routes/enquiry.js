@@ -49,5 +49,21 @@ router.get('/getAll', jwtVerify, validate(getAllEnquiry), async (req, res) => {
     }
 });
 
+/**
+ * Route for getting enquiry by id.
+ */
+router.get('/get/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getEnquiryById(req.headers['x-org-type'], req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/get/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

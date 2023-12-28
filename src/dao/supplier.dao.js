@@ -135,8 +135,27 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
         {
             $lookup: {
                 from: 'supplieritems',
-                localField: '_id',
-                foreignField: 'supplierId',
+                let: {
+                    supplierId: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$supplierId', '$$supplierId'] },
+                                    { $eq: ['$isDeleted', false] }
+                                ]
+                            }
+                        }
+                    }
+                    // {
+                    //     $project: {
+                    //         createdAt: 0,
+                    //         updatedAt: 0
+                    //     }
+                    // }
+                ],
                 as: 'supplierItems'
             }
         }

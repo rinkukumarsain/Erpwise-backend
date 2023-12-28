@@ -232,5 +232,21 @@ router.get('/moveToApprovedSupplier/:id', jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for search Iteam For Enquiry
+ */
+router.get('/searchIteamForEnquiry/:searchString', jwtVerify, async (req, res) => {
+    try {
+        const result = await supplieServices.searchIteamForEnquiry(req.headers['x-org-type'], req.params.searchString);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during supplier/searchIteamForEnquiry/:searchString : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

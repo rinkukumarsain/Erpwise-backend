@@ -414,9 +414,9 @@ exports.deleteSupplierDocument = async (supplierId, imageUrl, auth) => {
             performedByEmail: auth.email,
             actionName: `Supplier document deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
-        const findAndUpdateLeadDocument = await supplierModel.findOneAndUpdate({ _id: supplierId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
+        const updateDocument = await supplierModel.findOneAndUpdate({ _id: supplierId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
 
-        if (!findAndUpdateLeadDocument) {
+        if (!updateDocument) {
             return {
                 success: false,
                 message: 'Error while deleting supplier document.'
@@ -426,7 +426,7 @@ exports.deleteSupplierDocument = async (supplierId, imageUrl, auth) => {
         return {
             success: true,
             message: `Supplier document deleted successfully.`,
-            data: findAndUpdateLeadDocument
+            data: updateDocument
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching deleting supplier document (deleteSupplierDocument): ${error}`);

@@ -32,3 +32,9 @@ exports.updateOrganisation = {
         documents: Joi.array().optional()
     })
 };
+
+exports.deleteOrgDocument = {
+    body: Joi.object({
+        imageUrl: Joi.string().required()
+    })
+};

@@ -23,4 +23,5 @@ module.exports = (app) => {
     app.use(`${apiV1Prefix}/supplierAddress`, require('./supplierAddress'));
     app.use(`${apiV1Prefix}/supplierItem`, require('./supplierItem'));
     app.use(`${apiV1Prefix}/enquiry`, require('./enquiry'));
+    app.use(`${apiV1Prefix}/enquiryItem`, require('./enquiryItem'));
 };

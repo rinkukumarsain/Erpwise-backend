@@ -260,7 +260,7 @@ exports.itemBulkUpload = async (auth, orgId, supplierId, path) => {
         }
         return {
             success: false,
-            message: 'Eoor while supplier iteam bulk upload',
+            message: 'Error while supplier iteam bulk upload',
             data: []
         };
     } catch (error) {

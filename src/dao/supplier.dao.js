@@ -249,14 +249,14 @@ exports.getSupplierByIdPipeline = (orgId, supplierId) => [
         $lookup: {
             from: 'suppliercontacts',
             let: {
-                suppierId: '$_id'
+                supplierId: '$_id'
             },
             pipeline: [
                 {
                     $match: {
                         $expr: {
                             $and: [
-                                { $eq: ['$supplierId', '$$suppierId'] },
+                                { $eq: ['$supplierId', '$$supplierId'] },
                                 { $eq: ['$isDeleted', false] }
                             ]
                         }
@@ -283,8 +283,27 @@ exports.getSupplierByIdPipeline = (orgId, supplierId) => [
     {
         $lookup: {
             from: 'supplieritems',
-            localField: '_id',
-            foreignField: 'supplierId',
+            let: {
+                supplierId: '$_id'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ['$supplierId', '$$supplierId'] },
+                                { $eq: ['$isDeleted', false] }
+                            ]
+                        }
+                    }
+                }
+                // {
+                //     $project: {
+                //         createdAt: 0,
+                //         updatedAt: 0
+                //     }
+                // }
+            ],
             as: 'supplierItems'
         }
     }

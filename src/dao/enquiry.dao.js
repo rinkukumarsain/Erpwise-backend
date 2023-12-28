@@ -81,6 +81,27 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
                 // Activity: 0
 
             }
+        },
+        {
+            $lookup: {
+                from: 'enquiryitems',
+                let: {
+                    enquiryId: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$enquiryId', '$$enquiryId'] },
+                                    { $eq: ['$isDeleted', false] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: 'enquiryItems'
+            }
         }
     ];
 
@@ -120,3 +141,108 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
 
     return pipeline;
 };
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry by id.
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a enquiry by id.
+ */
+exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            _id: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $lookup: {
+            from: 'currencies',
+            let: {
+                currencyId: '$currency'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$_id', '$$currencyId']
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        createdAt: 0,
+                        updatedAt: 0
+                    }
+                }
+            ],
+            as: 'result'
+        }
+    },
+    {
+        $lookup: {
+            from: 'users',
+            localField: 'salesPerson',
+            foreignField: '_id',
+            as: 'userDetails'
+        }
+    },
+    {
+        $addFields: {
+            result: {
+                $arrayElemAt: ['$result', 0]
+            },
+            userDetails: {
+                $arrayElemAt: ['$userDetails', 0]
+            }
+        }
+    },
+    {
+        $addFields: {
+            currencyText: {
+                $concat: [
+                    '$result.currencyShortForm',
+                    ' (',
+                    '$result.currencySymbol',
+                    ')'
+                ]
+            },
+            salesPersonName: {
+                $concat: [
+                    '$userDetails.fname',
+                    ' ',
+                    '$userDetails.lname'
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            result: 0,
+            userDetails: 0,
+            Activity: 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryitems',
+            let: {
+                enquiryId: '$_id'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ['$enquiryId', '$$enquiryId'] },
+                                { $eq: ['$isDeleted', false] }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'enquiryItems'
+        }
+    }
+];

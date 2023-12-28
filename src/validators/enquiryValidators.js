@@ -8,7 +8,7 @@ exports.createEnquiry = {
         phone: Joi.string().required(),
         salesPerson: Joi.string().required(),
         dueDate: Joi.string().required(),
-        isActive: Joi.string().optional(),
+        isActive: Joi.boolean().optional(),
         currency: Joi.string().required(),
         totalOrderValue: Joi.string().required(),
         note: Joi.string().optional(),

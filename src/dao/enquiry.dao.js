@@ -77,8 +77,8 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
                 leadContactId: 0,
                 createdBy: 0,
                 updatedBy: 0,
-                createdAt: 0,
-                Activity: 0
+                createdAt: 0
+                // Activity: 0
 
             }
         }

@@ -153,7 +153,8 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
     {
         $match: {
             organisationId: new mongoose.Types.ObjectId(orgId),
-            _id: new mongoose.Types.ObjectId(enquiryId)
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            isDeleted: false
         }
     },
     {
@@ -235,10 +236,38 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
                     $match: {
                         $expr: {
                             $and: [
-                                { $eq: ['$enquiryId', '$$enquiryId'] },
-                                { $eq: ['$isDeleted', false] }
+                                {
+                                    $eq: [
+                                        '$enquiryId',
+                                        '$$enquiryId'
+                                    ]
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
                             ]
                         }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'supplieritems',
+                        let: {
+                            code: '$partNumberCode'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $eq: [
+                                            '$partNumberCode',
+                                            '$$code'
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'data'
                     }
                 }
             ],

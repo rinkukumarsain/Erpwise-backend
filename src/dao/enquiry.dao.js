@@ -265,9 +265,56 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
                                         ]
                                     }
                                 }
+                            },
+                            {
+                                $lookup: {
+                                    from: 'suppliers',
+                                    let: {
+                                        supplierId: '$supplierId'
+                                    },
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                $expr: {
+                                                    $and: [
+                                                        {
+                                                            $eq: ['$_id', '$$supplierId']
+                                                        },
+                                                        {
+                                                            $eq: ['$level', 3]
+                                                        },
+                                                        {
+                                                            $eq: ['$isActive', true]
+                                                        },
+                                                        {
+                                                            $eq: ['$isApproved', true]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                companyName: 1
+                                            }
+                                        }
+                                    ],
+                                    as: 'companyName'
+                                }
+                            },
+                            {
+                                $unwind: {
+                                    path: '$companyName'
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    companyName: '$companyName.companyName'
+                                }
                             }
                         ],
-                        as: 'data'
+
+                        as: 'supplierItems'
                     }
                 }
             ],

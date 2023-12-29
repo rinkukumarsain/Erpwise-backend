@@ -46,7 +46,7 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
         enquiryItemData.partNumberCode = enquiryItemData.partNumber.replace(/[-/]/g, '').toLowerCase();
         const newenquiryItem = await query.create(enquiryItemModel, enquiryItemData);
         if (newenquiryItem) {
-            await enquiryModel.updateOne({ _id: enquiryItemData.enquiryId }, { Activity: findenquiry.Activity, isItemAdded: true });
+            await enquiryModel.updateOne({ _id: enquiryItemData.enquiryId }, { Activity: findenquiry.Activity, isItemAdded: true, stageName: 'Find_Suppliers' });
             return {
                 success: true,
                 message: 'Enquiry item added successfully.',
@@ -210,7 +210,7 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
                 performedByEmail: email,
                 actionName: `Enquiry item (bulk upload item quantity :- ${data.length}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
-            await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, isItemAdded: true });
+            await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers', isItemAdded: true });
             return {
                 success: true,
                 message: 'Enquiry iteam bulk upload',

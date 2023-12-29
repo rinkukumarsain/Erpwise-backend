@@ -244,32 +244,5 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
             ],
             as: 'enquiryItems'
         }
-    },
-    {
-        $lookup: {
-            from: 'leadcontacts',
-            let: {
-                leadId: '$leadId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                { $eq: ['$leadId', '$$leadId'] },
-                                { $eq: ['$isDeleted', false] }
-                            ]
-                        }
-                    }
-                }
-                // {
-                //     $project: {
-                //         createdAt: 0,
-                //         updatedAt: 0
-                //     }
-                // }
-            ],
-            as: 'availableLeadContacts'
-        }
     }
 ];

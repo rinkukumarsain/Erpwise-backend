@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { enquiryModel, leadModel } = require('../dbModel');
+const { enquiryModel, leadModel, enquiryItemModel } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -127,6 +127,31 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting enquiry by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Get Recommended Supplier With Items
+ *
+ * @param {string} enquiryId - Id of enquiry.
+ * @returns {object} - An object with the results, including enquiry.
+ */
+exports.getRecommendedSupplierWithItems = async (enquiryId) => {
+    try {
+        const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
+        if (recommendedSupplierWithItems.length > 0) {
+            return {
+                success: true,
+                message: 'Recommended supplier with items fetched successfully.',
+                data: recommendedSupplierWithItems
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while getting Recommended Supplier With Items: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

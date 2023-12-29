@@ -332,3 +332,192 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve Recommended Supplier With Items.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
+ */
+exports.getRecommendedSupplierWithItems = (enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $lookup: {
+            from: 'supplieritems',
+            let: {
+                code: '$partNumberCode'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$partNumberCode',
+                                        '$$code'
+                                    ]
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'suppliers',
+                        let: {
+                            supplierId: '$supplierId'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$_id',
+                                                    '$$supplierId'
+                                                ]
+                                            },
+                                            {
+                                                $eq: ['$level', 3]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isActive',
+                                                    true
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isApproved',
+                                                    true
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                $project: {
+                                    supplierId: '$_id',
+                                    companyName: 1,
+                                    _id: 0,
+                                    industryType: 1,
+                                    currency: 1
+                                }
+                            }
+                        ],
+                        as: 'supplier'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$supplier'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'suppliercontacts',
+                        let: {
+                            suppierId: '$supplierId'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$suppierId'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isDeleted',
+                                                    false
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'supplierContacts'
+                    }
+                }
+            ],
+            as: 'result'
+        }
+    },
+    {
+        $unwind: {
+            path: '$result'
+        }
+    },
+    {
+        $project: {
+            enquiryItemId: '$_id',
+            enquiryId: 1,
+            quantity: 1,
+            supplierItemId: '$result._id',
+            supplierId: '$result.supplierId',
+            sCompanyName:
+                '$result.supplier.companyName',
+            sIndustryType:
+                '$result.supplier.industryType',
+            sCurrency: '$result.supplier.currency',
+            sipartNumber: '$result.partNumber',
+            sipartNumberCode:
+                '$result.partNumberCode',
+            sipartDesc: '$result.partDesc',
+            sidelivery: '$result.delivery',
+            sinotes: '$result.notes',
+            siunitPrice: '$result.unitPrice',
+            supplierContacts:
+                '$result.supplierContacts',
+            _id: 0
+        }
+    },
+    {
+        $group: {
+            _id: '$supplierId',
+            items: {
+                $push: '$$ROOT'
+            },
+            currency: {
+                $first: '$sCurrency'
+            },
+            supplierContacts: {
+                $first: '$supplierContacts'
+            },
+            companyName: {
+                $first: '$sCompanyName'
+            },
+            industryType: {
+                $first: '$sIndustryType'
+            },
+            enquiryId: {
+                $first: '$enquiryId'
+            }
+        }
+    },
+    {
+        $project: {
+            'items.supplierContacts': 0,
+            'items.sCurrency': 0,
+            'items.sCompanyName': 0,
+            'items.sIndustryType': 0,
+            'items.enquiryId': 0,
+            'items.supplierId': 0
+        }
+    }
+];

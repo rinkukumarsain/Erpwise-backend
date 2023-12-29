@@ -8,9 +8,7 @@ exports.createEnquiryItem = {
         unitPrice: Joi.string().required(),
         delivery: Joi.string().required(),
         notes: Joi.string().optional(),
-        hscode: Joi.string().required(),
-        supplierId: Joi.string().optional(),
-        supplierItemId: Joi.string().optional()
+        hscode: Joi.string().required()
     })
 };
 
@@ -21,8 +19,6 @@ exports.updateEnquiryItemById = {
         unitPrice: Joi.string().optional(),
         delivery: Joi.string().optional(),
         notes: Joi.string().optional(),
-        hscode: Joi.string().optional(),
-        supplierId: Joi.string().optional(),
-        supplierItemId: Joi.string().optional()
+        hscode: Joi.string().optional()
     })
 };

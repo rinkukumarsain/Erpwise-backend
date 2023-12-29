@@ -23,6 +23,10 @@ const EnquiryItemSchema = new Schema(
             type: String,
             required: true
         },
+        quantity: {
+            type: String,
+            required: true
+        },
         delivery: {
             type: String,
             required: true

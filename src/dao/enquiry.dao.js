@@ -311,6 +311,14 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
                                 $addFields: {
                                     companyName: '$companyName.companyName'
                                 }
+                            },
+                            {
+                                $project: {
+                                    companyName: 1,
+                                    supplierId: 1,
+                                    supplierItemId: '$_id',
+                                    _id: 0
+                                }
                             }
                         ],
 

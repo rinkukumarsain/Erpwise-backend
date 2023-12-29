@@ -65,5 +65,21 @@ router.get('/get/:id', jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for getting Recommended Supplier With Items.
+ */
+router.get('/getRecommendedSupplier/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getRecommendedSupplierWithItems(req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/getRecommendedSupplier/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

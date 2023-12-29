@@ -235,9 +235,9 @@ router.get('/moveToApprovedSupplier/:id', jwtVerify, async (req, res) => {
 /**
  * Route for search Iteam For Enquiry
  */
-router.get('/searchIteamForEnquiry/:searchString', jwtVerify, async (req, res) => {
+router.get('/searchIteamForEnquiry/:searchString/:exactMatch?', jwtVerify, async (req, res) => {
     try {
-        const result = await supplieServices.searchIteamForEnquiry(req.headers['x-org-type'], req.params.searchString);
+        const result = await supplieServices.searchIteamForEnquiry(req.headers['x-org-type'], req.params.searchString, req.params.exactMatch);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

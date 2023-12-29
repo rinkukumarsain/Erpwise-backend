@@ -501,56 +501,64 @@ exports.getPipelineData = (orgId) => [
  * 
  * @param {string} orgId - Id of organisation
  * @param {string} searchString - search string to search items by their part nunmber
+ * @param {string} exactMatch - yes/no
  * @returns {Array} - An array representing the aggregation pipeline of all available supplier items
  */
-exports.searchIteamForEnquiry = (orgId, searchString) => [
-    {
-        $match: {
-            organisationId: new mongoose.Types.ObjectId(orgId),
-            partNumberCode: {
-                $regex: new RegExp(searchString, 'i')
+exports.searchIteamForEnquiry = (orgId, searchString, exactMatch) => {
+    let arr = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                partNumberCode: {
+                    $regex: new RegExp(searchString, 'i')
+                }
             }
-        }
-    },
-    {
-        $lookup: {
-            from: 'suppliers',
-            let: {
-                supplierId: '$supplierId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
-                                    $eq: ['$_id', '$$supplierId']
-                                },
-                                {
-                                    $eq: ['$level', 3]
-                                },
-                                {
-                                    $eq: ['$isActive', true]
-                                },
-                                {
-                                    $eq: ['$isApproved', true]
-                                }
-                            ]
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                let: {
+                    supplierId: '$supplierId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ['$_id', '$$supplierId']
+                                    },
+                                    {
+                                        $eq: ['$level', 3]
+                                    },
+                                    {
+                                        $eq: ['$isActive', true]
+                                    },
+                                    {
+                                        $eq: ['$isApproved', true]
+                                    }
+                                ]
+                            }
                         }
                     }
-                }
-            ],
-            as: 'companyName'
+                ],
+                as: 'companyName'
+            }
+        },
+        {
+            $unwind: {
+                path: '$companyName'
+            }
+        },
+        {
+            $addFields: {
+                companyName: '$companyName.companyName'
+            }
         }
-    },
-    {
-        $unwind: {
-            path: '$companyName'
-        }
-    },
-    {
-        $addFields: {
-            companyName: '$companyName.companyName'
-        }
+    ];
+
+    if(exactMatch == 'yes'){
+        arr[0]['$match'].partNumberCode = searchString;
     }
-];
+    return arr;
+};

@@ -610,12 +610,13 @@ exports.moveToApprovedSupplier = async (auth, supplierId) => {
  *
  * @param {string} orgId - Id of organisation
  * @param {string} searchString - search string to search items by their part nunmber
+ * @param {string} exactMatch - yes/no
  * @returns {object} -  An object with the results, including the new Approved Supplier.
  */
-exports.searchIteamForEnquiry = async (orgId, searchString) => {
+exports.searchIteamForEnquiry = async (orgId, searchString, exactMatch) => {
     try {
 
-        const data = await query.aggregation(supplierItemsModel, supplierDao.searchIteamForEnquiry(orgId, searchString));
+        const data = await query.aggregation(supplierItemsModel, supplierDao.searchIteamForEnquiry(orgId, searchString, exactMatch));
         if (data.length > 0) {
             return {
                 success: true,

@@ -519,5 +519,31 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             'items.enquiryId': 0,
             'items.supplierId': 0
         }
+    },
+    {
+        $lookup: {
+            from: 'currencies',
+            localField: 'currency',
+            foreignField: '_id',
+            as: 'currencyName'
+        }
+    },
+    {
+        $unwind: {
+            path: '$currencyName',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            currencyName: {
+                $concat: [
+                    '$currencyName.currencyShortForm',
+                    '(',
+                    '$currencyName.currencySymbol',
+                    ')'
+                ]
+            }
+        }
     }
 ];

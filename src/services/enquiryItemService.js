@@ -29,7 +29,7 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
             };
         }
 
-        const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: enquiryItemData.partNumber, enquiryId: enquiryItemData.enquiryId });
+        const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: enquiryItemData.partNumber, enquiryId: enquiryItemData.enquiryId, isDeleted: false });
         if (findUniqueName) {
             return {
                 success: false,
@@ -88,7 +88,7 @@ exports.updateEnquiryItemById = async (auth, _id, body) => {
             };
         }
         if (body.partNumber) {
-            const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: body.partNumber, enquiryId: findenquiry.enquiryId });
+            const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: body.partNumber, enquiryId: findenquiry.enquiryId, isDeleted: false });
             if (findUniqueName) {
                 return {
                     success: false,

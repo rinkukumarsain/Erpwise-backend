@@ -624,6 +624,11 @@ exports.searchIteamForEnquiry = async (orgId, searchString, exactMatch) => {
                 data
             };
         }
+        return {
+            success: false,
+            message: 'Supplier item for enquiry not found',
+            data: []
+        };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during moving supplier to ApprovedSupplier: ${error}`);
         return {

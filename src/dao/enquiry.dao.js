@@ -559,6 +559,70 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                     else: false
                 }
             },
+            isSkipped: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems.isSkipped',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$enquirysupplierselecteditems.isSkipped',
+                    else: false
+                }
+            },
+            isMailSent: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems.isMailSent',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$enquirysupplierselecteditems.isMailSent',
+                    else: false
+                }
+            },
             selectedItemQuantity: {
                 $cond: {
                     if: {
@@ -655,7 +719,8 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             'items.sCompanyName': 0,
             'items.sIndustryType': 0,
             'items.enquiryId': 0,
-            'items.supplierId': 0
+            'items.supplierId': 0,
+            'items.enquirysupplierselecteditems': 0
         }
     },
     {

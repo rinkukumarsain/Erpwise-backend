@@ -19,6 +19,14 @@ const EnquirySupplierSelectedItemSchema = new Schema(
             type: mongoose.Types.ObjectId,
             ref: 'SupplierItem'
         },
+        supplierContactId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'SupplierContact'
+        },
+        currency: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Currency'
+        },
         quantity: {
             type: String,
             required: true

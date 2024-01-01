@@ -107,4 +107,20 @@ router.post('/addEnquirySupplierSelectedItem', jwtVerify, validate(addEnquirySup
     }
 });
 
+/**
+ * Route for deselecting Enquiry Supplier Selected Item.
+ */
+router.get('/deleteEnquirySupplierSelectedItem/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryItemService.deleteEnquirySupplierSelectedItem(req.auth, req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/deleteEnquirySupplierSelectedItem/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

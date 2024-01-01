@@ -305,7 +305,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                 performedByEmail: email,
                 actionName: `Enquiry supplier item selected by ${fname} ${lname} | supplier - ${findSupplier.companyName} | suppler Item - ${findSupplierItem.partNumber} | enquiry Item - ${findEnquiryItem.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
-            await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, isItemAdded: true, stageName: 'Compare_Suppliers_Quote' });
+            await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, stageName: 'Compare_Suppliers_Quote' });
             return {
                 success: true,
                 message: 'Enquiry supplier item selected successfully.',
@@ -318,6 +318,51 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while adding enquiry supplier selected item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Deleted Enquiry Supplier Selected Item
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {string} _id - Enquiry Supplier Selected Item id
+ * @returns {object} - An object with the results.
+ */
+exports.deleteEnquirySupplierSelectedItem = async (auth, _id) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+
+        const find = await query.findOne(enquirySupplierSelectedItems, { _id });
+        if (!find) {
+            return {
+                success: false,
+                message: `This enquiry item is not associated with the any supplier and their item.`
+            };
+        }
+        const deleteData = await enquirySupplierSelectedItems.deleteOne({ _id });
+        if (deleteData) {
+            let obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry supplier item deselected by ${fname} ${lname} | supplier - ${find.companyName} | suppler Item - ${find.partNumber} | enquiry Item - ${find.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await enquiryModel.updateOne({ _id: find.enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers' });
+            return {
+                success: true,
+                message: 'Enquiry supplier item deselected successfully.',
+                data: {}
+            };
+        }
+        return {
+            success: false,
+            message: 'Error while deselecting enquiry supplier item.'
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while deleting enquiry supplier selected item: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

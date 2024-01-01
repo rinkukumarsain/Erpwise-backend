@@ -329,22 +329,21 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
  * Deleted Enquiry Supplier Selected Item
  *
  * @param {object} auth - Data of logedin user.
- * @param {string} _id - Enquiry Supplier Selected Item id
+ * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
  * @returns {object} - An object with the results.
  */
-exports.deleteEnquirySupplierSelectedItem = async (auth, _id) => {
+exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemId) => {
     try {
         const { email, _id, fname, lname } = auth;
 
-        const find = await query.findById(enquirySupplierSelectedItemsModel, _id);
-        console.log('find', find);
+        const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: enquirySupplierSelectedItemId });
         if (!find) {
             return {
                 success: false,
                 message: `This enquiry item is not associated with the any supplier and their item.`
             };
         }
-        const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id });
+        const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id: enquirySupplierSelectedItemId });
         if (deleteData) {
             let obj = {
                 performedBy: _id,

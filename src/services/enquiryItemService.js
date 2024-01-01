@@ -299,6 +299,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
         body.createdBy = _id;
         body.updatedBy = _id;
         const save = await query.create(enquirySupplierSelectedItemsModel, body);
+        save._doc.isSelected = true;
         if (save) {
             let obj = {
                 performedBy: _id,
@@ -343,6 +344,12 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
                 message: `This enquiry item is not associated with the any supplier and their item.`
             };
         }
+        if (find.isMailSent || find.isSkipped) {
+            return {
+                success: false,
+                message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item. You can't deselect the enquiry supplier item now.`
+            };
+        }
         const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id: enquirySupplierSelectedItemId });
         if (deleteData) {
             let obj = {
@@ -363,6 +370,52 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while deleting enquiry supplier selected item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Deleted Enquiry Supplier Selected Item
+ *
+ * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
+ * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @returns {object} - An object with the results.
+ */
+exports.sendOrSkipMailForEnquirySupplierSelectedItem = async (enquirySupplierSelectedItemId, updateData) => {
+    try {
+        // const { email, _id, fname, lname } = auth;
+
+        const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: enquirySupplierSelectedItemId });
+        if (!find) {
+            return {
+                success: false,
+                message: `This enquiry item is not associated with the any supplier and their item.`
+            };
+        }
+        if (find.isMailSent || find.isSkipped) {
+            return {
+                success: false,
+                message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
+            };
+        }
+        const update = await enquirySupplierSelectedItemsModel.findByIdAndUpdate(enquirySupplierSelectedItemId, updateData, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Enquiry item mail ${update.isMailSent ? 'sent to supplier' : 'skipped'}.`,
+                data: update
+            };
+        }
+        return {
+            success: false,
+            message: `Error while ${updateData.isMailSent ? 'sending mail to supplier' : 'skipping mail'}.`,
+            data: update
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while sending Or Skiping Mail For Enquiry Supplier Selected Item: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

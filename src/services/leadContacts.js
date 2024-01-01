@@ -1,7 +1,7 @@
 const moment = require('moment');
 // Local Import
 // const { rolesKeys } = require('../../config/default.json');
-const { leadModel, leadContactModel } = require('../dbModel');
+const { leadModel, leadContactModel, enquiryModel } = require('../dbModel');
 // const { registerUser } = require('./userService');
 // const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -146,6 +146,13 @@ exports.delete = async (auth, _id) => {
             return {
                 success: false,
                 message: 'Lead not found.'
+            };
+        }
+        const findEnquiryData = await query.find(enquiryModel, { leadContactId: _id, isDeleted: false });
+        if (findEnquiryData.length > 0) {
+            return {
+                success: false,
+                message: 'This lead contact cannot be deleted due to its association with an active enquiry.'
             };
         }
 

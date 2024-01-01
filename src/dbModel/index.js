@@ -14,3 +14,4 @@ exports.supplierAddressModel = require('./supplierAddressModel');
 exports.supplierItemsModel = require('./supplierItemsModel');
 exports.enquiryModel = require('./enquiryModel');
 exports.enquiryItemModel = require('./enquiryItemModel');
+exports.enquirySupplierSelectedItems = require('./enquirySupplierSelectedItems');

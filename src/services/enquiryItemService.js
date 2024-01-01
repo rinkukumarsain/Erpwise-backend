@@ -256,7 +256,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
             };
         }
         console.log('body.quantity > findEnquiryItem.quantity', body.quantity, findEnquiryItem.quantity);
-        if (body.quantity > findEnquiryItem.quantity) {
+        if (+body.quantity > +findEnquiryItem.quantity) {
             return {
                 success: false,
                 message: `You can not select not item quantity more then  ${findEnquiryItem.quantity}`

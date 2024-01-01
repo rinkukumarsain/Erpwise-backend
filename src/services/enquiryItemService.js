@@ -337,6 +337,7 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, _id) => {
         const { email, _id, fname, lname } = auth;
 
         const find = await query.findOne(enquirySupplierSelectedItems, { _id });
+        console.log('find', find);
         if (!find) {
             return {
                 success: false,

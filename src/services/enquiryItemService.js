@@ -269,6 +269,8 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                 message: 'Supplier item not found.'
             };
         }
+        body.createdBy = _id;
+        body.updatedBy = _id;
         const save = await query.create(enquirySupplierSelectedItems, body);
         if (save) {
             let obj = {

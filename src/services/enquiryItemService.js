@@ -268,7 +268,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                 message: 'Enquiry item not found.'
             };
         }
-        console.log('body.quantity > findEnquiryItem.quantity', body.quantity, findEnquiryItem.quantity);
+        // console.log('body.quantity > findEnquiryItem.quantity', body.quantity, findEnquiryItem.quantity);
         if (+body.quantity > +findEnquiryItem.quantity) {
             return {
                 success: false,

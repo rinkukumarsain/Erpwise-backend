@@ -8,7 +8,12 @@ const { upload } = require('../utils/multer');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { enquiryItemService } = require('../services');
-const { enquiryItemValidators: { createEnquiryItem, updateEnquiryItemById, addEnquirySupplierSelectedItem } } = require('../validators');
+const { enquiryItemValidators: {
+    createEnquiryItem,
+    updateEnquiryItemById,
+    addEnquirySupplierSelectedItem,
+    sendOrSkipMailForEnquirySupplierSelectedItem
+} } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
@@ -119,6 +124,22 @@ router.get('/deleteEnquirySupplierSelectedItem/:id', jwtVerify, async (req, res)
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiryItem/deleteEnquirySupplierSelectedItem/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route sending of skipping mail for Enquiry Supplier Selected Item.
+ */
+router.post('/enquirySupplierSelectedItem/sendOrSkipMail/:id', jwtVerify, validate(sendOrSkipMailForEnquirySupplierSelectedItem), async (req, res) => {
+    try {
+        const result = await enquiryItemService.sendOrSkipMailForEnquirySupplierSelectedItem(req.params.id, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/sendOrSkipMail/:id : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

@@ -274,7 +274,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
             let obj = {
                 performedBy: _id,
                 performedByEmail: email,
-                actionName: `Enquiry supplier item selected by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+                actionName: `Enquiry supplier item selected by ${fname} ${lname} | supplier - ${findSupplier.companyName} | suppler Item - ${findSupplierItem.partNumber} | enquiry Item - ${findEnquiryItem.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
             await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, isItemAdded: true, stageName: 'Compare_Suppliers_Quote' });
             return {

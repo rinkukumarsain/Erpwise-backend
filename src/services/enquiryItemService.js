@@ -3,7 +3,7 @@ const XLSX = require('xlsx');
 
 // Local Import
 // const { leadDao } = require('../dao');
-const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItems } = require('../dbModel');
+const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItems, supplierContactModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -267,6 +267,13 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
             return {
                 success: false,
                 message: 'Supplier item not found.'
+            };
+        }
+        const findSupplierContact = await query.findOne(supplierContactModel, { _id: body.supplierContactId, isDeleted: false });
+        if (!findSupplierContact) {
+            return {
+                success: false,
+                message: 'Supplier contact not found'
             };
         }
         body.createdBy = _id;

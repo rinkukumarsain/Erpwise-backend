@@ -186,7 +186,7 @@ exports.delete = async (auth, _id) => {
 exports.itemBulkUpload = async (auth, enquiryId, path) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'delivery', 'notes'];
+        const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'delivery', 'notes', 'quantity'];
         const workbook = XLSX.readFile(path);
         const sheetNames = workbook.SheetNames;
         const worksheet = workbook.Sheets[sheetNames[0]];

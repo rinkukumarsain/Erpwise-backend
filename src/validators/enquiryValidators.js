@@ -17,6 +17,23 @@ exports.createEnquiry = {
     })
 };
 
+exports.updateEnquiryById = {
+    body: Joi.object({
+        // companyName: Joi.string().optional(),
+        contactPerson: Joi.string().optional(),
+        email: Joi.string().optional(),
+        phone: Joi.string().optional(),
+        salesPerson: Joi.string().optional(),
+        dueDate: Joi.string().optional(),
+        isActive: Joi.boolean().optional(),
+        currency: Joi.string().optional(),
+        totalOrderValue: Joi.string().optional(),
+        note: Joi.string().optional(),
+        // leadId: Joi.string().optional(),
+        leadContactId: Joi.string().optional()
+    })
+};
+
 exports.getAllEnquiry = {
     query: Joi.object({
         id: Joi.string().optional(),

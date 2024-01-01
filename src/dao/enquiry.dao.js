@@ -686,6 +686,40 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                     then: '$enquirysupplierselecteditems._id',
                     else: null
                 }
+            },
+            enquirysupplierselectedContactId: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            // Check if the object field is not null
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems._id',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            } // Check if the quantity key is not null
+                        ]
+                    },
+                    then: '$enquirysupplierselecteditems._id',
+                    // If the conditions are met, use the quantity value
+                    else: null // Otherwise, set the value to null
+                }
             }
         }
     },

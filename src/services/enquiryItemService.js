@@ -241,6 +241,19 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
 exports.addEnquirySupplierSelectedItem = async (auth, body) => {
     try {
         const { email, _id, fname, lname } = auth;
+
+        const findAlreadyExist = await query.findOne(enquirySupplierSelectedItems, {
+            enquiryId: body.enquiryId,
+            enquiryItemId: body.enquiryItemId,
+            supplierId: body.supplierId,
+            supplierItemId: body.supplierItemId
+        });
+        if (findAlreadyExist) {
+            return {
+                success: false,
+                message: `This enquiry item has already been associated with the specified supplier and their item.`
+            };
+        }
         const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false });
         if (!findEnquiry) {
             return {

@@ -34,3 +34,9 @@ exports.getAllEnquiry = {
         level: Joi.string().optional()
     })
 };
+
+exports.deleteEnquiryDocument = {
+    body: Joi.object({
+        imageUrl: Joi.string().required()
+    })
+};

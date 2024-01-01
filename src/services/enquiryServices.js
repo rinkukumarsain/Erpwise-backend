@@ -158,3 +158,80 @@ exports.getRecommendedSupplierWithItems = async (enquiryId) => {
         };
     }
 };
+
+/**
+ * Upload enquiry Document.
+ *
+ * @param {string} enquiryId - The ID of the enquiry.
+ * @param {object} file - Parameters containing 'file details'.
+ * @param {string} file.location - Parameters containing 'file location'.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including enquiry details.
+ */
+exports.uploadEnquiryDocument = async (enquiryId, { location }, auth) => {
+    try {
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Enquiry document uploaded by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const findAndUpdateLeadDocument = await enquiryModel.findOneAndUpdate({ _id: enquiryId }, { $push: { documents: location, Activity: obj }, updatedBy: auth._id }, { new: true });
+
+        if (!findAndUpdateLeadDocument) {
+            return {
+                success: false,
+                message: 'Error while uploading enquiry document.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Enquiry document uploaded successfully.`,
+            data: findAndUpdateLeadDocument
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching uploading enquiry document (uploadEnquiryDocument): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * delete enquiry Document.
+ *
+ * @param {string} enquiryId - The ID of the enquiry.
+ * @param {string} imageUrl - Parameters containing 'file url'.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including enquiry details.
+ */
+exports.deleteEnquiryDocument = async (enquiryId, imageUrl, auth) => {
+    try {
+        let obj = {
+            performedBy: auth._id,
+            performedByEmail: auth.email,
+            actionName: `Enquiry document deleted by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const updateDocument = await enquiryModel.findOneAndUpdate({ _id: enquiryId }, { $pull: { documents: imageUrl }, $push: { Activity: obj } }, { new: true });
+
+        if (!updateDocument) {
+            return {
+                success: false,
+                message: 'Error while deleting enquiry document.'
+            };
+        }
+
+        return {
+            success: true,
+            message: `Enquiry document deleted successfully.`,
+            data: updateDocument
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching deleting enquiry document (deleteEnquiryDocument): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

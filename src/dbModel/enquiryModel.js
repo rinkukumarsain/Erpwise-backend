@@ -137,6 +137,9 @@ const enquirySchema = new Schema(
             ref: 'User'
         },
         Activity: [userActionSchema],
+        documents: {
+            type: Array
+        },
         isItemAdded: {
             type: Boolean,
             default: false

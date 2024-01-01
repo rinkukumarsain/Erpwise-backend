@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { leadModel } = require('../dbModel');
+const { leadModel, enquiryModel } = require('../dbModel');
 const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -178,7 +178,7 @@ exports.updateLeadById = async (auth, leadId, updatedData, orgId) => {
 };
 
 /**
- * Deletes a Lead by ID.
+ * Delete a Lead by ID.
  *
  * @param {string} leadId - The ID of the Lead to be deleted.
  * @param {object} auth -The is contain is auth user .
@@ -191,6 +191,13 @@ exports.delete = async (leadId, auth) => {
             return {
                 success: false,
                 message: 'Lead not found.'
+            };
+        }
+        const findData = await query.find(enquiryModel, { leadId, isDeleted: false });
+        if (findData.length > 0) {
+            return {
+                success: false,
+                message: 'This lead cannot be deleted due to its association with an active enquiry.'
             };
         }
         // let arr = [];

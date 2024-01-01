@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const EnquiryItemSchema = new Schema(
+const EnquirySupplierSelectedItemSchema = new Schema(
     {
         enquiryId: {
             type: mongoose.Types.ObjectId,
@@ -51,4 +51,4 @@ const EnquiryItemSchema = new Schema(
     }
 );
 
-module.exports = mongoose.model('EnquiryItem', EnquiryItemSchema);
+module.exports = mongoose.model('EnquirySupplierSelectedItem', EnquirySupplierSelectedItemSchema);

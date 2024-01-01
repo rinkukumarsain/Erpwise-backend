@@ -3,7 +3,7 @@ const XLSX = require('xlsx');
 
 // Local Import
 // const { leadDao } = require('../dao');
-const { enquiryModel, enquiryItemModel } = require('../dbModel');
+const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItems } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -224,6 +224,71 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while uploading enquiry iteam in bulk: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Add Enquiry Supplier Selected Item
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {object} body - Enquiry Supplier Selected Item data
+ * @returns {object} - An object with the results.
+ */
+exports.addEnquirySupplierSelectedItem = async (auth, body) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+        const findEnquiryItem = await query.findOne(enquiryItemModel, { _id: body.enquiryItemId, isDeleted: false });
+        if (!findEnquiryItem) {
+            return {
+                success: false,
+                message: 'Enquiry item not found.'
+            };
+        }
+        const findSupplier = await query.findOne(supplierModel, { _id: body.supplierId, isActive: false });
+        if (!findSupplier) {
+            return {
+                success: false,
+                message: 'Suppleir not found.'
+            };
+        }
+        const findSupplierItem = await query.findOne(supplierItemsModel, { _id: body.supplierItemId, isDeleted: false });
+        if (!findSupplierItem) {
+            return {
+                success: false,
+                message: 'Supplier item not found.'
+            };
+        }
+        const save = await query.create(enquirySupplierSelectedItems, body);
+        if (save) {
+            let obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry supplier item selected by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, isItemAdded: true, stageName: 'Compare_Suppliers_Quote' });
+            return {
+                success: true,
+                message: 'Enquiry supplier item selected successfully.',
+                data: save
+            };
+        }
+        return {
+            success: false,
+            message: 'Error while selecting enquiry supplier item.'
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while adding enquiry supplier selected item: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

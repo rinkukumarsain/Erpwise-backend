@@ -186,7 +186,7 @@ exports.delete = async (auth, _id) => {
 exports.itemBulkUpload = async (auth, enquiryId, path) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'delivery', 'notes'];
+        const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'quantity', 'delivery', 'notes'];
         const workbook = XLSX.readFile(path);
         const sheetNames = workbook.SheetNames;
         const worksheet = workbook.Sheets[sheetNames[0]];
@@ -199,7 +199,7 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
                 if (j == 0) {
                     obj['partNumberCode'] = `${jsonData[i][j]}`.replace(/[-/]/g, '').toLowerCase();
                 }
-                obj[constData[j]] = constData[j] == 'unitPrice' ? +jsonData[i][j] || 0 : jsonData[i][j];
+                obj[constData[j]] = (constData[j] == 'unitPrice' || constData[j] == 'quantity') ? +jsonData[i][j] || 0 : jsonData[i][j];
             }
             documentsToSave.push(obj);
         }

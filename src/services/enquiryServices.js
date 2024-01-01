@@ -57,6 +57,57 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
 };
 
 /**
+ * Update Enquiry.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {string} enquiryId - Id of enquiry.
+ * @param {object} enquiryData - Data for creating a new enquiry.
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the new enquiry.
+ */
+exports.updateEnquiryById = async (auth, enquiryId, enquiryData, orgId) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findEnquiry = await query.findOne({ _id: enquiryId, organisationId: orgId, isDeleted: false });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        enquiryData.updatedBy = _id;
+        let obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `${findEnquiry.Id} | Enquiry updated by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        enquiryData['$push'] = { Activity: obj };
+        const update = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            enquiryData,
+            { new: true, runValidators: true }
+        );
+        if (update) {
+            return {
+                success: true,
+                message: 'Enquiry updated successfully.',
+                data: update
+            };
+        }
+        return {
+            success: false,
+            message: 'Error while updating enquiry.'
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error updating enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Gets all enquiry.
  *
  * @param {string} orgId - Id of logedin user organisation.

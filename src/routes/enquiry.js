@@ -10,7 +10,8 @@ const { enquiryServices } = require('../services');
 const { enquiryValidators: {
     createEnquiry,
     getAllEnquiry,
-    deleteEnquiryDocument
+    deleteEnquiryDocument,
+    updateEnquiryById
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -30,6 +31,22 @@ router.post('/create', jwtVerify, validate(createEnquiry), async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while creating new enquiry: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for update enquiry By Id
+ */
+router.post('/update/:id', jwtVerify, validate(updateEnquiryById), async (req, res) => {
+    try {
+        const result = await enquiryServices.updateEnquiryById(req.auth, req.params.id, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/update/:id : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

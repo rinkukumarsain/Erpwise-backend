@@ -319,7 +319,12 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
                                     supplierItemId: '$_id',
                                     _id: 0,
                                     hscode: 1,
-                                    partDesc: 1
+                                    partDesc: 1,
+                                    partNumber: 1,
+                                    partNumberCode: 1,
+                                    delivery: 1,
+                                    notes: 1,
+                                    unitPrice: 1
                                 }
                             }
                         ],

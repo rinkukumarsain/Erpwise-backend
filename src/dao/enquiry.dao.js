@@ -655,7 +655,8 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             'items.sCompanyName': 0,
             'items.sIndustryType': 0,
             'items.enquiryId': 0,
-            'items.supplierId': 0
+            'items.supplierId': 0,
+            'items.enquirysupplierselecteditems': 0
         }
     },
     {

@@ -3,7 +3,7 @@ const XLSX = require('xlsx');
 
 // Local Import
 // const { leadDao } = require('../dao');
-const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItems, supplierContactModel } = require('../dbModel');
+const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItemsModel, supplierContactModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -242,7 +242,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
     try {
         const { email, _id, fname, lname } = auth;
 
-        const findAlreadyExist = await query.findOne(enquirySupplierSelectedItems, {
+        const findAlreadyExist = await query.findOne(enquirySupplierSelectedItemsModel, {
             enquiryId: body.enquiryId,
             enquiryItemId: body.enquiryItemId,
             supplierId: body.supplierId,
@@ -298,7 +298,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
         }
         body.createdBy = _id;
         body.updatedBy = _id;
-        const save = await query.create(enquirySupplierSelectedItems, body);
+        const save = await query.create(enquirySupplierSelectedItemsModel, body);
         if (save) {
             let obj = {
                 performedBy: _id,
@@ -336,7 +336,7 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, _id) => {
     try {
         const { email, _id, fname, lname } = auth;
 
-        const find = await query.findOne(enquirySupplierSelectedItems, { _id });
+        const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
         console.log('find', find);
         if (!find) {
             return {
@@ -344,7 +344,7 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, _id) => {
                 message: `This enquiry item is not associated with the any supplier and their item.`
             };
         }
-        const deleteData = await enquirySupplierSelectedItems.deleteOne({ _id });
+        const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id });
         if (deleteData) {
             let obj = {
                 performedBy: _id,

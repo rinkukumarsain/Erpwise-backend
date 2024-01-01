@@ -255,6 +255,12 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                 message: 'Enquiry item not found.'
             };
         }
+        if (body.quantity > findEnquiryItem.quantity) {
+            return {
+                success: false,
+                message: `You can not select not item quantity more then  ${findEnquiryItem.quantity}`
+            };
+        }
         const findSupplier = await query.findOne(supplierModel, { _id: body.supplierId, isActive: false });
         if (!findSupplier) {
             return {

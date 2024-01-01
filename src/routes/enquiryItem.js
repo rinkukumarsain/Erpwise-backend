@@ -8,7 +8,7 @@ const { upload } = require('../utils/multer');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { enquiryItemService } = require('../services');
-const { enquiryItemValidators: { createEnquiryItem, updateEnquiryItemById } } = require('../validators');
+const { enquiryItemValidators: { createEnquiryItem, updateEnquiryItemById, addEnquirySupplierSelectedItem } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 const router = express.Router();
@@ -86,6 +86,23 @@ router.post('/bulkupload/:id', jwtVerify, upload.single('file'), async (req, res
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiryItem/bulkupload/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding Enquiry Supplier Selected Item
+ */
+router.post('/addEnquirySupplierSelectedItem', jwtVerify, validate(addEnquirySupplierSelectedItem), async (req, res) => {
+    try {
+        const result = await enquiryItemService.addEnquirySupplierSelectedItem(req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/addEnquirySupplierSelectedItem: ${err.message}`);
+        logger.error(`${LOG_ID} - Error (enquiryItem/addEnquirySupplierSelectedItem)`, JSON.stringify(err));
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

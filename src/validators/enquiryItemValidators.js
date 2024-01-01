@@ -31,6 +31,8 @@ exports.addEnquirySupplierSelectedItem = {
         enquiryItemId: Joi.string().required(),
         supplierId: Joi.string().required(),
         supplierItemId: Joi.string().required(),
+        supplierContactId: Joi.string().required(),
+        currency: Joi.string().required(),
         quantity: Joi.string().required()
     })
 };

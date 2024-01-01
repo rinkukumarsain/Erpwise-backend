@@ -395,10 +395,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                                                 $eq: ['$level', 3]
                                             },
                                             {
-                                                $eq: [
-                                                    '$isActive',
-                                                    true
-                                                ]
+                                                $eq: ['$isActive', true]
                                             },
                                             {
                                                 $eq: [
@@ -481,8 +478,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                 '$result.supplier.industryType',
             sCurrency: '$result.supplier.currency',
             sipartNumber: '$result.partNumber',
-            sipartNumberCode:
-                '$result.partNumberCode',
+            sipartNumberCode: '$result.partNumberCode',
             sipartDesc: '$result.partDesc',
             sidelivery: '$result.delivery',
             sinotes: '$result.notes',
@@ -490,6 +486,143 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             supplierContacts:
                 '$result.supplierContacts',
             _id: 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierselecteditems',
+            let: {
+                enquiryId: '$enquiryId',
+                enquiryItemId: '$enquiryItemId',
+                supplierId: '$supplierId',
+                supplierItemId: '$supplierItemId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$enquiryId',
+                                        '$$enquiryId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$enquiryItemId',
+                                        '$$enquiryItemId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$supplierId',
+                                        '$$supplierId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$supplierItemId',
+                                        '$$supplierItemId'
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'enquirysupplierselecteditems'
+        }
+    },
+    {
+        $unwind: {
+            path: '$enquirysupplierselecteditems',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            isSelected: {
+                $cond: {
+                    if: {
+                        $gt: [
+                            {
+                                $ifNull: [
+                                    '$enquirysupplierselecteditems',
+                                    null
+                                ]
+                            },
+                            null
+                        ]
+                    },
+                    then: true,
+                    else: false
+                }
+            },
+            selectedItemQuantity: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems.quantity',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$enquirysupplierselecteditems.quantity',
+                    else: null
+                }
+            },
+            enquirysupplierselecteditemsId: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$enquirysupplierselecteditems._id',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$enquirysupplierselecteditems._id',
+                    else: null
+                }
+            }
         }
     },
     {

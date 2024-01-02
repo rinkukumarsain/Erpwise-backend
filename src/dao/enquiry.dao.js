@@ -785,3 +785,217 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve Recommended Supplier With Items.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
+ */
+exports.getIteamsSpllierResponse = async (enquiryId) => [
+    {
+        $match:
+        /**
+         * query: The query in MQL.
+         */
+        {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $lookup:
+        /**
+         * from: The target collection.
+         * localField: The local join field.
+         * foreignField: The target join field.
+         * as: The name for the results.
+         * pipeline: Optional pipeline to run on the foreign collection.
+         * let: Optional variables to use in the pipeline field stages.
+         */
+        {
+            from: 'enquiryitems',
+            let: {
+                id: '$enquiryItemId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$id']
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'enquiryitemsdetail'
+        }
+    },
+    {
+        $unwind:
+        /**
+         * path: Path to the array field.
+         * includeArrayIndex: Optional name for index.
+         * preserveNullAndEmptyArrays: Optional
+         *   toggle to unwind null and empty values.
+         */
+        {
+            path: '$enquiryitemsdetail',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup:
+        /**
+         * from: The target collection.
+         * localField: The local join field.
+         * foreignField: The target join field.
+         * as: The name for the results.
+         * pipeline: Optional pipeline to run on the foreign collection.
+         * let: Optional variables to use in the pipeline field stages.
+         */
+        {
+            from: 'supplieritems',
+            let: {
+                id: '$supplierItemId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$id']
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'supplieritemsdetail'
+        }
+    },
+    {
+        $unwind:
+        /**
+         * path: Path to the array field.
+         * includeArrayIndex: Optional name for index.
+         * preserveNullAndEmptyArrays: Optional
+         *   toggle to unwind null and empty values.
+         */
+        {
+            path: '$supplieritemsdetail',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            let: {
+                supplierId: '$supplierId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$supplierId']
+                                },
+                                {
+                                    $eq: ['$level', 3]
+                                },
+                                {
+                                    $eq: ['$isActive', true]
+                                },
+                                {
+                                    $eq: ['$isApproved', true]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        supplierId: '$_id',
+                        companyName: 1,
+                        _id: 0,
+                        industryType: 1,
+                        currency: 1
+                    }
+                }
+            ],
+            as: 'supplier'
+        }
+    },
+    {
+        $unwind: {
+            path: '$supplier'
+        }
+    },
+    {
+        $group:
+        /**
+         * _id: The id of the group.
+         * fieldN: The first field name.
+         */
+        {
+            _id: '$supplierId',
+            companyName: {
+                $first: '$supplier.companyName'
+            },
+            industryType: {
+                $first: '$supplier.industryType'
+            },
+            enquiryId: {
+                $first: '$enquiryId'
+            },
+            itemsSheet: {
+                $first: '$itemsSheet'
+            },
+            paymentTermsId: {
+                $first: '$financeMeta.paymentTermsId'
+            },
+            supplierTotal: {
+                $first: '$financeMeta.supplierTotal'
+            },
+            freightCharges: {
+                $first: '$financeMeta.freightCharges'
+            },
+            packingCharges: {
+                $first: '$financeMeta.packingCharges'
+            },
+            vatGroupId: {
+                $first: '$financeMeta.vatGroupId'
+            },
+            delivery: {
+                $first: '$finalItemDetails.delivery'
+            },
+            items: {
+                $push: '$$ROOT'
+            }
+        }
+    },
+    {
+        $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+            'items.enquiryId': 0,
+            'items.supplierId': 0,
+            'items.enquiryItemId': 0,
+            'items.supplierItemId': 0,
+            'items.supplier': 0
+        }
+    }
+];

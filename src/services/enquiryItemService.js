@@ -5,6 +5,7 @@ const XLSX = require('xlsx');
 // const { leadDao } = require('../dao');
 const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItemsModel, supplierContactModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
+const { enquiryDao } = require('../dao');
 const { logger } = require('../utils/logger');
 
 const LOG_ID = 'services/enquiryItemService';
@@ -534,10 +535,18 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
 exports.getIteamsSpllierResponse = async (enquiryId) => {
     try {
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
-        if(findData.length == 0){
+        if (findData.length == 0) {
             return {
-                success:false,
+                success: false,
                 message: 'This enquiry item is not associated with the any supplier and their item.'
+            };
+        }
+        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSpllierResponse(enquiryId));
+        if (IteamsSpllierResponse.length > 0) {
+            return {
+                success: true,
+                message: 'Items data of supplier for enquiry supplier selected item fetched successfully.',
+                data: IteamsSpllierResponse
             };
         }
     } catch (error) {

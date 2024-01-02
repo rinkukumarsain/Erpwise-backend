@@ -38,8 +38,20 @@ exports.addEnquirySupplierSelectedItem = {
 };
 
 exports.sendOrSkipMailForEnquirySupplierSelectedItem = {
-    body:Joi.object({
+    body: Joi.object({
         isMailSent: Joi.boolean().optional(),
         isSkipped: Joi.boolean().optional()
+    })
+};
+
+exports.addFinanceDetailsSuppler = {
+    body: Joi.object({
+        paymentTermsId: Joi.optional().required(),
+        vatGroupId: Joi.string().required(),
+        paymentOption: Joi.string().required(),
+        supplierTotal: Joi.string().required(),
+        freightCharges: Joi.string().required(),
+        packingCharges: Joi.string().required(),
+        currency: Joi.string().required()
     })
 };

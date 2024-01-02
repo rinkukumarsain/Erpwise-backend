@@ -792,7 +792,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
  * @param {string} enquiryId - The enquiry's unique identifier.
  * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
  */
-exports.getIteamsSpllierResponse = (enquiryId) => [
+exports.getIteamsSupplierResponse = (enquiryId) => [
     {
         $match: {
             enquiryId: new mongoose.Types.ObjectId(enquiryId)

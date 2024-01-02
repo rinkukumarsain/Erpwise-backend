@@ -792,27 +792,14 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
  * @param {string} enquiryId - The enquiry's unique identifier.
  * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
  */
-exports.getIteamsSpllierResponse = async (enquiryId) => [
+exports.getIteamsSpllierResponse = (enquiryId) => [
     {
-        $match:
-        /**
-         * query: The query in MQL.
-         */
-        {
+        $match: {
             enquiryId: new mongoose.Types.ObjectId(enquiryId)
         }
     },
     {
-        $lookup:
-        /**
-         * from: The target collection.
-         * localField: The local join field.
-         * foreignField: The target join field.
-         * as: The name for the results.
-         * pipeline: Optional pipeline to run on the foreign collection.
-         * let: Optional variables to use in the pipeline field stages.
-         */
-        {
+        $lookup: {
             from: 'enquiryitems',
             let: {
                 id: '$enquiryItemId'
@@ -837,29 +824,13 @@ exports.getIteamsSpllierResponse = async (enquiryId) => [
         }
     },
     {
-        $unwind:
-        /**
-         * path: Path to the array field.
-         * includeArrayIndex: Optional name for index.
-         * preserveNullAndEmptyArrays: Optional
-         *   toggle to unwind null and empty values.
-         */
-        {
+        $unwind: {
             path: '$enquiryitemsdetail',
             preserveNullAndEmptyArrays: true
         }
     },
     {
-        $lookup:
-        /**
-         * from: The target collection.
-         * localField: The local join field.
-         * foreignField: The target join field.
-         * as: The name for the results.
-         * pipeline: Optional pipeline to run on the foreign collection.
-         * let: Optional variables to use in the pipeline field stages.
-         */
-        {
+        $lookup: {
             from: 'supplieritems',
             let: {
                 id: '$supplierItemId'
@@ -884,14 +855,7 @@ exports.getIteamsSpllierResponse = async (enquiryId) => [
         }
     },
     {
-        $unwind:
-        /**
-         * path: Path to the array field.
-         * includeArrayIndex: Optional name for index.
-         * preserveNullAndEmptyArrays: Optional
-         *   toggle to unwind null and empty values.
-         */
-        {
+        $unwind: {
             path: '$supplieritemsdetail',
             preserveNullAndEmptyArrays: true
         }
@@ -942,12 +906,7 @@ exports.getIteamsSpllierResponse = async (enquiryId) => [
         }
     },
     {
-        $group:
-        /**
-         * _id: The id of the group.
-         * fieldN: The first field name.
-         */
-        {
+        $group: {
             _id: '$supplierId',
             companyName: {
                 $first: '$supplier.companyName'
@@ -985,12 +944,7 @@ exports.getIteamsSpllierResponse = async (enquiryId) => [
         }
     },
     {
-        $project:
-        /**
-         * specifications: The fields to
-         *   include or exclude.
-         */
-        {
+        $project: {
             'items.enquiryId': 0,
             'items.supplierId': 0,
             'items.enquiryItemId': 0,

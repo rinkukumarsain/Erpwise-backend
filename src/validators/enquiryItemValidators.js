@@ -36,3 +36,10 @@ exports.addEnquirySupplierSelectedItem = {
         quantity: Joi.string().required()
     })
 };
+
+exports.sendOrSkipMailForEnquirySupplierSelectedItem = {
+    body:Joi.object({
+        isMailSent: Joi.boolean().optional(),
+        isSkipped: Joi.boolean().optional()
+    })
+};

@@ -347,7 +347,8 @@ exports.getEnquiryByIdPipeline = (orgId, enquiryId) => [
 exports.getRecommendedSupplierWithItems = (enquiryId) => [
     {
         $match: {
-            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+            enquiryId: new mongoose.Types.ObjectId(enquiryId),
+            isDeleted: false
         }
     },
     {

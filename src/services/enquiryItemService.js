@@ -526,6 +526,30 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
 };
 
 /**
+ * Get Items Data Of Supplier For Enquiry Supplier Selected Item
+ *
+ * @param {string} enquiryId - Enquiry id
+ * @returns {object} - An object with the results.
+ */
+exports.getIteamsSpllierResponse = async (enquiryId) => {
+    try {
+        const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
+        if(findData.length == 0){
+            return {
+                success:false,
+                message: 'This enquiry item is not associated with the any supplier and their item.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error While Getting Items Data Of Supplier For Enquiry Supplier Selected Item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Updates data for selected items in the Enquiry Supplier.
  *
  * @param {Array} data - An array of items to be updated.

@@ -708,7 +708,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                                 $gt: [
                                     {
                                         $ifNull: [
-                                            '$enquirysupplierselecteditems._id',
+                                            '$enquirysupplierselecteditems.supplierContactId',
                                             null
                                         ]
                                     },
@@ -717,7 +717,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                             } // Check if the quantity key is not null
                         ]
                     },
-                    then: '$enquirysupplierselecteditems._id',
+                    then: '$enquirysupplierselecteditems.supplierContactId',
                     // If the conditions are met, use the quantity value
                     else: null // Otherwise, set the value to null
                 }

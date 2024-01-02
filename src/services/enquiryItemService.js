@@ -422,3 +422,133 @@ exports.sendOrSkipMailForEnquirySupplierSelectedItem = async (enquirySupplierSel
         };
     }
 };
+
+/**
+ * Bulk upload and insert multiple enquiry iteams.
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {string} path - path of uploaded file.
+ * @returns {object} - An object with the results.
+ */
+exports.itemSheetBySupplerUpload = async (auth, path) => {
+    try {
+        const { _id } = auth;
+        const constData = ['_id', 'partNumber', 'partDesc', 'quantity', 'hscode', 'unitPrice', 'delivery'];
+        const workbook = XLSX.readFile(path);
+        const sheetNames = workbook.SheetNames;
+        const worksheet = workbook.Sheets[sheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const documentsToSave = [];
+        for (let i = 1; i < jsonData.length; i++) {
+            let obj = { createdBy: _id };
+            for (let j = 0; j < jsonData[i].length; j++) {
+                if (!jsonData[i][j]) jsonData[i][j] = 'N/A';
+                if (j == 1) {
+                    obj['partNumberCode'] = `${jsonData[i][j]}`.replace(/[-/]/g, '').toLowerCase();
+                }
+                obj[constData[j]] = (constData[j] == 'unitPrice' || constData[j] == 'quantity') ? +jsonData[i][j] || 0 : jsonData[i][j];
+            }
+            obj['total'] = obj.quantity * obj.unitPrice;
+            documentsToSave.push(obj);
+        }
+        if (documentsToSave.length == jsonData.length - 1) {
+            updateDataToDbForEnquirySupplierSelectedItem(documentsToSave, path);
+            return {
+                success: true,
+                message: 'Supplier sheet uploaded successfully'
+            };
+        }
+        // let data = await enquiryItemModel.insertMany(documentsToSave);
+        // if (data.length > 0) {
+        //     let obj = {
+        //         performedBy: _id,
+        //         performedByEmail: email,
+        //         actionName: `Enquiry item (bulk upload item quantity :- ${data.length}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        //     };
+        //     await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers', isItemAdded: true });
+        //     return {
+        //         success: true,
+        //         message: 'Enquiry iteam bulk upload',
+        //         data: data
+        //     };
+        // }
+        return {
+            success: false,
+            message: 'Error while enquiry iteam bulk upload',
+            data: []
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while uploading enquiry iteam in bulk: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Add Finance Details For Enquiry Supplier Selected Item
+ *
+ * @param {object} auth - Data of logedin user.
+ * @param {string} enquiryId - Enquiry id
+ * @param {string} suppierId - Supplier id
+ * @param {object} body - Data of finance.
+ * @returns {object} - An object with the results.
+ */
+exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
+    try {
+        const { _id } = auth;
+        const find = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, suppierId });
+        if (find.length == 0) {
+            return {
+                success: false,
+                message: `This enquiry item is not associated with the any supplier and their item.`
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        const updatedData = await enquirySupplierSelectedItemsModel.updateMany({ enquiryId, suppierId }, { financeMeta: body });
+        if (updatedData) {
+            body.suppierId = suppierId;
+            return {
+                success: true,
+                message: 'Finance details for enquiry supplier selected items added successfully',
+                data: body
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error While Adding Finance Details For Enquiry Supplier Selected Item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Updates data for selected items in the Enquiry Supplier.
+ *
+ * @param {Array} data - An array of items to be updated.
+ * @param {string} path - The path to the items sheet.
+ * @returns {Promise<void>} - A Promise that resolves after the update operation.
+ */
+async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
+    try {
+        // console.log('path:::::::::::', path);
+        for (let ele of data) {
+            let _id = ele._id;
+            delete ele._id;
+            // console.log('ele:>>>', ele);
+            // const update = 
+            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, itemsSheet: path });
+            // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
+            // console.log('update>>>>>>>', update);
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while uploading enquiry iteam in bulk: ${error}`);
+        // return {
+        //     success: false,
+        //     message: 'Something went wrong'
+        // };
+    }
+}

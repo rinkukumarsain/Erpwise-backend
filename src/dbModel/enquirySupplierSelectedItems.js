@@ -64,13 +64,6 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         // required: true,
                         ref: 'vat'
                     },
-                    vatStatus: {
-                        type: String,
-                        required: true
-                    },
-                    vatNumber: {
-                        type: Number
-                    },
                     paymentOption: {
                         type: String,
                         required: true
@@ -83,7 +76,7 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         type: String,
                         required: true
                     },
-                    freight_charges: {
+                    freightCharges: {
                         type: String,
                         default: '0'
                     },
@@ -99,6 +92,10 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         type: mongoose.Types.ObjectId,
                         ref: 'User',
                         default: null
+                    },
+                    currency: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'Currency'
                     }
 
                 },
@@ -109,7 +106,7 @@ const EnquirySupplierSelectedItemSchema = new Schema(
             type: String,
             default: null
         },
-        finalitemDetails: {
+        finalItemDetails: {
             type: new Schema(
                 {
                     partNumber: {
@@ -147,6 +144,10 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                     total: {
                         type: String,
                         required: true
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
                     }
 
                 },

@@ -12,7 +12,8 @@ const { enquiryItemValidators: {
     createEnquiryItem,
     updateEnquiryItemById,
     addEnquirySupplierSelectedItem,
-    sendOrSkipMailForEnquirySupplierSelectedItem
+    sendOrSkipMailForEnquirySupplierSelectedItem,
+    addFinanceDetailsSuppler
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -143,5 +144,42 @@ router.post('/enquirySupplierSelectedItem/sendOrSkipMail/:id', jwtVerify, valida
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
+
+/**
+ * Route for uploading enquiry items in bulk.
+ */
+router.post('/itemsSheetBySupplerUpload/:id?', jwtVerify, upload.single('file'), async (req, res) => {
+    try {
+        logger.info(LOG_ID, `File to read all item's | File Path :- ${req.file.path}`);
+        console.log('req.file', req.file);
+        const result = await enquiryItemService.itemSheetBySupplerUpload(req.auth, req.file.path);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/bulkupload/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+
+/**
+ * Route for uploading enquiry items in bulk.
+ */
+router.post('/addFinanceDetailsSuppler/:enquiryId/:supplierId', jwtVerify, validate(addFinanceDetailsSuppler), async (req, res) => {
+    try {
+        const result = await enquiryItemService.addFinanceDetailsSuppler(req.auth, req.params.enquiryId, req.params.supplierId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/bulkupload/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+
 
 module.exports = router;

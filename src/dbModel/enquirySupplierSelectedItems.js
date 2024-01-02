@@ -51,6 +51,107 @@ const EnquirySupplierSelectedItemSchema = new Schema(
         isDeleted: {
             type: Boolean,
             default: false
+        },
+        financeMeta: {
+            type: new Schema(
+                {
+                    paymentTermsId: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'PaymentTerms'
+                    },
+                    vatGroupId: {
+                        type: Schema.Types.ObjectId,
+                        // required: true,
+                        ref: 'vat'
+                    },
+                    vatStatus: {
+                        type: String,
+                        required: true
+                    },
+                    vatNumber: {
+                        type: Number
+                    },
+                    paymentOption: {
+                        type: String,
+                        required: true
+                    },
+                    comment: {
+                        type: String
+                        // required: true,
+                    },
+                    supplierTotal: {
+                        type: String,
+                        required: true
+                    },
+                    freight_charges: {
+                        type: String,
+                        default: '0'
+                    },
+                    packingCharges: {
+                        type: String,
+                        default: '0'
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+
+                },
+                { _id: false }
+            )
+        },
+        itemsSheet: {
+            type: String,
+            default: null
+        },
+        finalitemDetails: {
+            type: new Schema(
+                {
+                    partNumber: {
+                        type: String,
+                        required: true
+                    },
+                    partNumberCode: {
+                        type: String,
+                        required: true
+                    },
+                    partDesc: {
+                        type: String,
+                        required: true
+                    },
+                    unitPrice: {
+                        type: String,
+                        required: true
+                    },
+                    quantity: {
+                        type: String,
+                        required: true
+                    },
+                    delivery: {
+                        type: String,
+                        required: true
+                    },
+                    notes: {
+                        type: String,
+                        default: null
+                    },
+                    hscode: {
+                        type: String,
+                        required: true
+                    },
+                    total: {
+                        type: String,
+                        required: true
+                    }
+
+                },
+                { _id: false }
+            )
         }
     },
     {

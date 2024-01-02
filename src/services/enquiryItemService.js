@@ -532,7 +532,7 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
  * @param {string} enquiryId - Enquiry id
  * @returns {object} - An object with the results.
  */
-exports.getIteamsSpllierResponse = async (enquiryId) => {
+exports.getIteamsSupplierResponse = async (enquiryId) => {
     try {
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {
@@ -541,7 +541,7 @@ exports.getIteamsSpllierResponse = async (enquiryId) => {
                 message: 'This enquiry item is not associated with the any supplier and their item.'
             };
         }
-        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSpllierResponse(enquiryId));
+        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponse(enquiryId));
         if (IteamsSpllierResponse.length > 0) {
             return {
                 success: true,

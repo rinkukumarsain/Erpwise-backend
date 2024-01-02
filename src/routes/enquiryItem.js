@@ -183,9 +183,9 @@ router.post('/addFinanceDetailsSuppler/:enquiryId/:supplierId', jwtVerify, valid
 /**
  * Route for getting Items Data Of Supplier For Enquiry Supplier Selected Item
  */
-router.get('/getIteamsSpllierResponse/:id', jwtVerify, async (req, res) => {
+router.get('/getIteamsSupplierResponse/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.getIteamsSpllierResponse(req.params.id);
+        const result = await enquiryItemService.getIteamsSupplierResponse(req.params.id);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

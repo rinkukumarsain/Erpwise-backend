@@ -547,6 +547,38 @@ exports.getIteamsSupplierResponse = async (enquiryId) => {
     }
 };
 
+/**
+ * Get Compare Suppliers and Items as per Supplier’s quotes
+ *
+ * @param {string} enquiryId - Enquiry id
+ * @returns {object} - An object with the results.
+ */
+exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId) => {
+    try {
+        const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
+        if (findData.length == 0) {
+            return {
+                success: false,
+                message: 'This enquiry item is not associated with the any supplier and their item.'
+            };
+        }
+        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.CompareSuppliersAndItemsAsPerSuppliersQuotes(enquiryId));
+        if (IteamsSpllierResponse.length > 0) {
+            return {
+                success: true,
+                message: 'Supplier quotes fetched successfully.',
+                data: IteamsSpllierResponse
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error While Getting Suppliers quotes: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // exports.sendMailToSupplier = async () => {
 //     try {
 

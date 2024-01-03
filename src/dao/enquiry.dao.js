@@ -1302,3 +1302,116 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
+ */
+exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            let: {
+                supplierId: '$supplierId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$supplierId']
+                                },
+                                {
+                                    $eq: ['$level', 3]
+                                },
+                                {
+                                    $eq: ['$isActive', true]
+                                },
+                                {
+                                    $eq: ['$isApproved', true]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        supplierId: '$_id',
+                        companyName: 1,
+                        _id: 0,
+                        industryType: 1,
+                        currency: 1
+                    }
+                }
+            ],
+            as: 'supplier'
+        }
+    },
+    {
+        $unwind: {
+            path: '$supplier'
+        }
+    },
+    {
+        $addFields:
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        {
+            partNumber:
+                '$finalItemDetails.partNumber',
+            partNumberCode:
+                '$finalItemDetails.partNumberCode',
+            partDesc: '$finalItemDetails.partDesc',
+            unitPrice: '$finalItemDetails.unitPrice',
+            delivery: '$finalItemDetails.delivery',
+            notes: '$finalItemDetails.notes',
+            hscode: '$finalItemDetails.hscode',
+            total: '$finalItemDetails.total',
+            companyName: '$supplier.companyName',
+            industryType: '$supplier.industryType'
+        }
+    },
+    {
+        $group:
+        /**
+         * _id: The id of the group.
+         * fieldN: The first field name.
+         */
+        {
+            _id: '$enquiryItemId',
+            data: {
+                $push: '$$ROOT'
+            },
+            partNumber: {
+                $first: '$partNumber'
+            },
+            partDesc: {
+                $first: '$partDesc'
+            }
+        }
+    },
+    {
+        $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+            enquiryItemId: '$_id',
+            _id: 0,
+            data: 1,
+            partNumber: 1,
+            partDesc: 1
+        }
+    }
+];

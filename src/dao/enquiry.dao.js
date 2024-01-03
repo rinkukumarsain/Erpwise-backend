@@ -1179,5 +1179,15 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
             'items.supplierItemId': 0,
             'items.supplier': 0
         }
+    },
+    {
+        $addFields: {
+            itemsSheet: {
+                $concat: [
+                    process.env.BACKEND_URL,
+                    '$itemsSheet'
+                ]
+            }
+        }
     }
 ];

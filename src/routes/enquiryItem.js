@@ -212,5 +212,21 @@ router.get('/getSupplierQuoteForCompare/:id', jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for short listing the Items Data Of Supplier For Enquiry Supplier Selected Item
+ */
+router.post('/shortList/:enquiryId', jwtVerify, validate(addFinanceDetailsSuppler), async (req, res) => {
+    try {
+        const result = await enquiryItemService.shortListTheITemsOfEnquiry(req.auth, req.params.enquiryId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/bulkupload/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

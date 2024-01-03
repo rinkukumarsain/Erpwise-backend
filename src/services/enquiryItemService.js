@@ -579,6 +579,47 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId) => {
     }
 };
 
+/**
+ * Short list enquiry items 
+ *
+ * @param {object}  auth - req.auth
+ * @param {string} enquiryId - Enquiry id
+ * @param {object}  body - req.body
+ * @returns {object} - An object with the results.
+ */
+exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
+        if (findData.length == 0) {
+            return {
+                success: false,
+                message: 'This enquiry item is not associated with the any supplier and their item.'
+            };
+        }
+        const update = await enquirySupplierSelectedItemsModel.updateMany({ _id: { $in: body.ids } }, { $set: { isShortListed: true } });
+        if (update.modifiedCount == body.ids.length) {
+            let obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry items short listed by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, isItemShortListed: true, stageName: 'Create_Quote' });
+            updatedIdsInEnquiryItems(body.ids);
+            return {
+                success: true,
+                message: 'Enquiry Item short listed successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error While short listing items of enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // exports.sendMailToSupplier = async () => {
 //     try {
 
@@ -616,5 +657,24 @@ async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
         //     success: false,
         //     message: 'Something went wrong'
         // };
+    }
+}
+
+/**
+ * Updates enquiry items add shortlisted item ids.
+ *
+ * @param {Array} ids - An array of selected items.
+ * @returns {Promise<void>} - A Promise that resolves after the update operation.
+ */
+async function updatedIdsInEnquiryItems(ids) {
+    try {
+        for (let ele of ids) {
+            const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: ele, isShortListed: true });
+            if (find) {
+                await enquiryItemModel.updateOne({ _id: find.enquiryItemId }, { enquirySupplierSelectedItemId: ele });
+            }
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while Updates enquiry items add shortlisted item ids.: ${error}`);
     }
 }

@@ -906,6 +906,234 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
         }
     },
     {
+        $addFields: {
+            partNumber: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.partNumber',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.partNumber',
+                    else: '$supplieritemsdetail.partNumber'
+                }
+            },
+            partNumberCode: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.partNumberCode',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.partNumberCode',
+                    else: '$supplieritemsdetail.partNumberCode'
+                }
+            },
+            partDesc: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.partDesc',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.partDesc',
+                    else: '$supplieritemsdetail.partDesc'
+                }
+            },
+            unitPrice: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.unitPrice',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.unitPrice',
+                    else: '$supplieritemsdetail.unitPrice'
+                }
+            },
+            delivery: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.delivery',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.delivery',
+                    else: '$supplieritemsdetail.delivery'
+                }
+            },
+            notes: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.notes',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.notes',
+                    else: '$supplieritemsdetail.notes'
+                }
+            },
+            hscode: {
+                $cond: {
+                    if: {
+                        $and: [
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            },
+                            {
+                                $gt: [
+                                    {
+                                        $ifNull: [
+                                            '$finalItemDetails.hscode',
+                                            null
+                                        ]
+                                    },
+                                    null
+                                ]
+                            }
+                        ]
+                    },
+                    then: '$finalItemDetails.hscode',
+                    else: '$supplieritemsdetail.hscode'
+                }
+            }
+        }
+    },
+    {
         $group: {
             _id: '$supplierId',
             companyName: {

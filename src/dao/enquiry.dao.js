@@ -1382,6 +1382,17 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
         }
     },
     {
+        $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+            supplier: 0,
+            finalItemDetails: 0
+        }
+    },
+    {
         $group:
         /**
          * _id: The id of the group.
@@ -1394,6 +1405,9 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
             },
             partNumber: {
                 $first: '$partNumber'
+            },
+            partNumberCode: {
+                $first: '$partNumberCode'
             },
             partDesc: {
                 $first: '$partDesc'
@@ -1411,7 +1425,8 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
             _id: 0,
             data: 1,
             partNumber: 1,
-            partDesc: 1
+            partDesc: 1,
+            partNumberCode: 1
         }
     }
 ];

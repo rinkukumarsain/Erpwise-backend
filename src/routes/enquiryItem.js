@@ -215,7 +215,7 @@ router.get('/getSupplierQuoteForCompare/:id', jwtVerify, async (req, res) => {
 /**
  * Route for short listing the Items Data Of Supplier For Enquiry Supplier Selected Item
  */
-router.post('/shortList/:enquiryId', jwtVerify, validate(addFinanceDetailsSuppler), async (req, res) => {
+router.post('/shortList/:enquiryId', jwtVerify, async (req, res) => {
     try {
         const result = await enquiryItemService.shortListTheITemsOfEnquiry(req.auth, req.params.enquiryId, req.body);
         if (result.success) {

@@ -478,16 +478,16 @@ exports.itemSheetBySupplerUpload = async (auth, path) => {
  *
  * @param {object} auth - Data of logedin user.
  * @param {string} enquiryId - Enquiry id
- * @param {string} suppierId - Supplier id
+ * @param {string} supplierId - Supplier id
  * @param {object} body - Data of finance.
  * @returns {object} - An object with the results.
  */
-exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
+exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => {
     try {
         const { _id } = auth;
-        console.log('enquiryId, suppierId::::::::::', enquiryId, suppierId);
-        const find = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, suppierId });
-        console.log('finsd:::::::::::::', find.length);
+        // console.log('enquiryId, supplierId::::::::::', enquiryId, supplierId);
+        const find = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, supplierId });
+        // console.log('finsd:::::::::::::', find.length);
         if (find.length == 0) {
             return {
                 success: false,
@@ -496,10 +496,10 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
         }
         body.createdBy = _id;
         body.updatedBy = _id;
-        const updatedData = await enquirySupplierSelectedItemsModel.updateMany({ enquiryId, suppierId }, { financeMeta: body });
-        console.log('updatedData:::::::::::::::', updatedData);
+        const updatedData = await enquirySupplierSelectedItemsModel.updateMany({ enquiryId, supplierId }, { financeMeta: body });
+        // console.log('updatedData:::::::::::::::', updatedData);
         if (updatedData) {
-            body.suppierId = suppierId;
+            body.supplierId = supplierId;
             return {
                 success: true,
                 message: 'Finance details for enquiry supplier selected items added successfully',

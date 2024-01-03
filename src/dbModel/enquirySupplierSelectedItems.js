@@ -153,6 +153,10 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                 },
                 { _id: false }
             )
+        },
+        isShortListed: {
+            type: Boolean,
+            default: false
         }
     },
     {

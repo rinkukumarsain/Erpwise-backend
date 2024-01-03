@@ -1163,8 +1163,14 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
             vatGroupId: {
                 $first: '$financeMeta.vatGroupId'
             },
+            paymentOption: {
+                $first: '$financeMeta.paymentOption'
+            },
             delivery: {
                 $first: '$finalItemDetails.delivery'
+            },
+            financeMeta: {
+                $first: '$financeMeta'
             },
             items: {
                 $push: '$$ROOT'
@@ -1187,7 +1193,112 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
                     process.env.BACKEND_URL,
                     '$itemsSheet'
                 ]
+            },
+            supplierTotal: {
+                $toDouble: '$supplierTotal'
+            },
+            freightCharges: {
+                $toDouble: '$freightCharges'
+            },
+            packingCharges: {
+                $toDouble: '$packingCharges'
             }
+        }
+    },
+    {
+        $lookup: {
+            from: 'paymentterms',
+            localField: 'paymentTermsId',
+            foreignField: '_id',
+            as: 'paymentterms'
+        }
+    },
+    {
+        $unwind: {
+            path: '$paymentterms',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'vats',
+            localField: 'vatGroupId',
+            foreignField: '_id',
+            as: 'vats'
+        }
+    },
+    {
+        $unwind: {
+            path: '$vats',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            paymentTermNumOfDays: {
+                $cond: {
+                    if: {
+                        $gt: [
+                            {
+                                $ifNull: [
+                                    '$paymentterms',
+                                    null
+                                ]
+                            },
+                            null
+                        ]
+                    },
+                    then: '$paymentterms.noOfDays',
+                    else: null
+                }
+            },
+            vatGroup: '$vats.percentage',
+            temp: {
+                $add: [
+                    '$supplierTotal',
+                    '$freightCharges',
+                    '$packingCharges'
+                ]
+            },
+            dividedValue: {
+                $divide: ['$vats.percentage', 100]
+            }
+        }
+    },
+    {
+        $addFields: {
+            vatGroupValue: {
+                $round: [
+                    {
+                        $multiply: [
+                            '$temp',
+                            '$dividedValue'
+                        ]
+                    },
+                    // Calculate 8% of originalValue
+                    2 // Number of decimal places
+                ]
+            }
+        }
+    },
+    {
+        $addFields: {
+            supplierFinalTotal: {
+                $round: [
+                    {
+                        $sum: ['$temp', '$vatGroupValue']
+                    },
+                    2 // Number of decimal places
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            temp: 0,
+            dividedValue: 0,
+            vats: 0,
+            paymentterms: 0
         }
     }
 ];

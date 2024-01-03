@@ -486,7 +486,7 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
     try {
         const { _id } = auth;
         console.log('enquiryId, suppierId::::::::::', enquiryId, suppierId);
-        const find = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, suppierId });
+        const find = await query.find(enquirySupplierSelectedItemsModel, { $and: [{ enquiryId }, { suppierId }] });
         console.log('finsd:::::::::::::', find.length);
         if (find.length == 0) {
             return {
@@ -496,7 +496,7 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, suppierId, body) => {
         }
         body.createdBy = _id;
         body.updatedBy = _id;
-        const updatedData = await enquirySupplierSelectedItemsModel.updateMany({ enquiryId, suppierId }, { financeMeta: body });
+        const updatedData = await enquirySupplierSelectedItemsModel.updateMany( { $and: [{ enquiryId }, { suppierId }] }, { financeMeta: body });
         console.log('updatedData:::::::::::::::', updatedData);
         if (updatedData) {
             body.suppierId = suppierId;

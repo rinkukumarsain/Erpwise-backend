@@ -434,7 +434,7 @@ exports.sendOrSkipMailForEnquirySupplierSelectedItem = async (enquirySupplierSel
 exports.itemSheetBySupplerUpload = async (auth, path) => {
     try {
         const { _id } = auth;
-        const constData = ['_id', 'partNumber', 'partDesc', 'quantity', 'hscode', 'unitPrice', 'delivery'];
+        const constData = ['_id', 'partNumber', 'partDesc', 'quantity', 'hscode', 'unitPrice', 'delivery', 'notes'];
         const workbook = XLSX.readFile(path);
         const sheetNames = workbook.SheetNames;
         const worksheet = workbook.Sheets[sheetNames[0]];
@@ -459,20 +459,6 @@ exports.itemSheetBySupplerUpload = async (auth, path) => {
                 message: 'Supplier sheet uploaded successfully'
             };
         }
-        // let data = await enquiryItemModel.insertMany(documentsToSave);
-        // if (data.length > 0) {
-        //     let obj = {
-        //         performedBy: _id,
-        //         performedByEmail: email,
-        //         actionName: `Enquiry item (bulk upload item quantity :- ${data.length}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-        //     };
-        //     await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers', isItemAdded: true });
-        //     return {
-        //         success: true,
-        //         message: 'Enquiry iteam bulk upload',
-        //         data: data
-        //     };
-        // }
         return {
             success: false,
             message: 'Error while enquiry iteam bulk upload',
@@ -557,6 +543,18 @@ exports.getIteamsSupplierResponse = async (enquiryId) => {
         };
     }
 };
+
+// exports.sendMailToSupplier = async () => {
+//     try {
+
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error While sending mail to supplier: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
 
 /**
  * Updates data for selected items in the Enquiry Supplier.

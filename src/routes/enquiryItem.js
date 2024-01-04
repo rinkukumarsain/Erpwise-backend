@@ -12,7 +12,6 @@ const { enquiryItemValidators: {
     createEnquiryItem,
     updateEnquiryItemById,
     addEnquirySupplierSelectedItem,
-    sendOrSkipMailForEnquirySupplierSelectedItem,
     addFinanceDetailsSuppler
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
@@ -130,17 +129,33 @@ router.get('/deleteEnquirySupplierSelectedItem/:id', jwtVerify, async (req, res)
 });
 
 /**
- * Route sending of skipping mail for Enquiry Supplier Selected Item.
+ * Route of skipping mail for Enquiry Supplier Selected Item.
  */
-router.post('/enquirySupplierSelectedItem/sendOrSkipMail/:id', jwtVerify, validate(sendOrSkipMailForEnquirySupplierSelectedItem), async (req, res) => {
+router.post('/enquirySupplierSelectedItem/skipMail', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.sendOrSkipMailForEnquirySupplierSelectedItem(req.params.id, req.body);
+        const result = await enquiryItemService.SkipMailForEnquirySupplierSelectedItem(req.body);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/sendOrSkipMail/:id : ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/skipMail/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route of skipping mail for Enquiry Supplier Selected Item.
+ */
+router.post('/enquirySupplierSelectedItem/sendMail/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryItemService.sendMailForEnquirySupplierSelectedItem(req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/sendMail/:id : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

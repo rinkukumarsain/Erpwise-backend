@@ -379,44 +379,86 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
 };
 
 /**
- * Deleted Enquiry Supplier Selected Item
+ * Skip Mail For Enquiry Supplier Selected Item
  *
- * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
  * @param {object} updateData - Data of Enquiry Supplier Selected Item.
  * @returns {object} - An object with the results.
  */
-exports.sendOrSkipMailForEnquirySupplierSelectedItem = async (enquirySupplierSelectedItemId, updateData) => {
+exports.SkipMailForEnquirySupplierSelectedItem = async (updateData) => {
     try {
-        // const { email, _id, fname, lname } = auth;
 
-        const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: enquirySupplierSelectedItemId });
-        if (!find) {
+        const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
+        if (find.length !== updateData.ids.length) {
             return {
                 success: false,
                 message: `This enquiry item is not associated with the any supplier and their item.`
             };
         }
-        if (find.isMailSent || find.isSkipped) {
-            return {
-                success: false,
-                message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
-            };
-        }
-        const update = await enquirySupplierSelectedItemsModel.findByIdAndUpdate(enquirySupplierSelectedItemId, updateData, { new: true, runValidators: true });
+        // if (find.isMailSent || find.isSkipped) {
+        //     return {
+        //         success: false,
+        //         message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
+        //     };
+        // }
+        const update = await enquirySupplierSelectedItemsModel.updateMany({ _id: { $in: updateData.ids } }, { isSkipped: true }, { new: true, runValidators: true });
         if (update) {
             return {
                 success: true,
-                message: `Enquiry item mail ${update.isMailSent ? 'sent to supplier' : 'skipped'}.`,
+                message: `Enquiry item mail skipped.`,
                 data: update
             };
         }
         return {
             success: false,
-            message: `Error while ${updateData.isMailSent ? 'sending mail to supplier' : 'skipping mail'}.`,
+            message: `Error while skipping mail.`,
             data: update
         };
     } catch (error) {
-        logger.error(LOG_ID, `Error while sending Or Skiping Mail For Enquiry Supplier Selected Item: ${error}`);
+        logger.error(LOG_ID, `Error while skiping Mail For Enquiry Supplier Selected Item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Send Mail For Enquiry Supplier Selected Item
+ *
+ * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @returns {object} - An object with the results.
+ */
+exports.sendMailForEnquirySupplierSelectedItem = async (updateData) => {
+    try {
+
+        const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
+        if (find.length !== updateData.ids.length) {
+            return {
+                success: false,
+                message: `This enquiry item is not associated with the any supplier and their item.`
+            };
+        }
+        // if (find.isMailSent || find.isSkipped) {
+        //     return {
+        //         success: false,
+        //         message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
+        //     };
+        // }
+        const update = await enquirySupplierSelectedItemsModel.updateMany({ _id: { $in: updateData.ids } }, { isSkipped: true }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Enquiry item mail sent.`,
+                data: update
+            };
+        }
+        return {
+            success: false,
+            message: `Error while send mail.`,
+            data: update
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while send Mail For Enquiry Supplier Selected Item: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

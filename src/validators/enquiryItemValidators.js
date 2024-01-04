@@ -37,13 +37,6 @@ exports.addEnquirySupplierSelectedItem = {
     })
 };
 
-exports.sendOrSkipMailForEnquirySupplierSelectedItem = {
-    body: Joi.object({
-        isMailSent: Joi.boolean().optional(),
-        isSkipped: Joi.boolean().optional()
-    })
-};
-
 exports.addFinanceDetailsSuppler = {
     body: Joi.object({
         paymentTermsId: Joi.optional().optional(),

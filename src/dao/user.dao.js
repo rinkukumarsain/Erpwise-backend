@@ -44,17 +44,9 @@ exports.userProfilePipeline = (userId) => [
         }
     },
     {
-        $addFields: {
-            currencyName: '$baseCurrencyData.currencyName',
-            currencyShortForm: '$baseCurrencyData.currencyShortForm',
-            currencySymbol: '$baseCurrencyData.currencySymbol'
-        }
-    },
-    {
         $project: {
             password: 0, // Excluding the 'password' field from the result
-            token: 0,
-            baseCurrencyData: 0
+            token: 0
         }
     }
 ];

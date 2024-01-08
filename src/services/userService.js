@@ -53,11 +53,14 @@ exports.login = async (reqBody) => {
 
         await userModel.updateOne({ _id: findUser._id }, { token });
         // userData.menuList = roleAccess[userData.role];
+        let baseCurrencyData = userData.baseCurrencyData || {};
+        delete userData.baseCurrencyData;
         return {
             success: true,
             message: 'You have successfully logged in to your account',
             data: userData,
-            token
+            token,
+            baseCurrencyData
         };
     } catch (error) {
         console.log(error);
@@ -100,7 +103,6 @@ exports.uesrProfile = async ({ userId }) => {
                 message: 'User not found'
             };
         }
-
         return {
             success: true,
             message: `Profile of ${findUser[0].name} fetched successfully.`,

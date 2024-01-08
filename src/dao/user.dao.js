@@ -44,9 +44,17 @@ exports.userProfilePipeline = (userId) => [
         }
     },
     {
+        $addFields: {
+            currencyName: '$baseCurrencyData.currencyName',
+            currencyShortForm: '$baseCurrencyData.currencyShortForm',
+            currencySymbol: '$baseCurrencyData.currencySymbol'
+        }
+    },
+    {
         $project: {
             password: 0, // Excluding the 'password' field from the result
-            token: 0
+            token: 0,
+            baseCurrencyData: 0
         }
     }
 ];
@@ -100,7 +108,7 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
     if (sortBy && sortOrder) {
         delete arr[1]['$sort']['updatedAt'];
         arr[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
-    }else {
+    } else {
         // delete arr[1]['$sort'];
         arr.splice(1, 1);
     }

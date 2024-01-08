@@ -14,6 +14,36 @@ exports.userProfilePipeline = (userId) => [
         }
     },
     {
+        $lookup: {
+            from: 'currencies',
+            let: {
+                currencyId: '$baseCurrency'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$_id', '$$currencyId']
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        createdAt: 0,
+                        updatedAt: 0
+                    }
+                }
+            ],
+            as: 'baseCurrencyData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$baseCurrencyData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
         $project: {
             password: 0, // Excluding the 'password' field from the result
             token: 0

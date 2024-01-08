@@ -1,6 +1,7 @@
 const { organisationModel } = require('../dbModel'); // Assuming your model file is in the same directory
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { orgDao } = require('../dao');
 
 const LOG_ID = 'services/organisationService';
 
@@ -65,7 +66,7 @@ exports.createOrganisation = async (organisationData) => {
  */
 exports.getAllOrganisations = async () => {
     try {
-        const organisations = await query.find(organisationModel);
+        const organisations = await query.aggregation(organisationModel, orgDao.getAllOrgPipeline());
         if (!organisations.length) {
             return {
                 success: false,

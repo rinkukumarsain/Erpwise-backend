@@ -1,5 +1,6 @@
 const express = require('express');
 const compression = require('compression');
+const path = require('path');
 const app = express();
 const cors = require('cors');
 const { logger } = require('../utils/logger');
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, '/public')));
 
 connectDB();
 

@@ -115,9 +115,11 @@ router.post('/addEnquirySupplierSelectedItem', jwtVerify, validate(addEnquirySup
 /**
  * Route for deselecting Enquiry Supplier Selected Item.
  */
-router.get('/deleteEnquirySupplierSelectedItem/:id', jwtVerify, async (req, res) => {
+router.post('/deleteEnquirySupplierSelectedItem', jwtVerify, async (req, res) => {
+    // router.get('/deleteEnquirySupplierSelectedItem/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.deleteEnquirySupplierSelectedItem(req.auth, req.params.id);
+        const result = await enquiryItemService.deleteEnquirySupplierSelectedItem(req.auth, req.body.ids);
+        // const result = await enquiryItemService.deleteEnquirySupplierSelectedItem(req.auth, req.params.id);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

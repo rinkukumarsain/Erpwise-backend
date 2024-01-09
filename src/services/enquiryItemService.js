@@ -3,7 +3,14 @@ const XLSX = require('xlsx');
 
 // Local Import
 // const { leadDao } = require('../dao');
-const { enquiryModel, enquiryItemModel, supplierItemsModel, supplierModel, enquirySupplierSelectedItemsModel, supplierContactModel } = require('../dbModel');
+const {
+    enquiryModel,
+    enquiryItemModel,
+    supplierItemsModel,
+    supplierModel,
+    enquirySupplierSelectedItemsModel
+    // supplierContactModel 
+} = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { enquiryDao } = require('../dao');
 const { logger } = require('../utils/logger');
@@ -241,79 +248,123 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
  */
 exports.addEnquirySupplierSelectedItem = async (auth, body) => {
     try {
-        const { email, _id, fname, lname } = auth;
-
-        const findAlreadyExist = await query.findOne(enquirySupplierSelectedItemsModel, {
-            enquiryId: body.enquiryId,
-            enquiryItemId: body.enquiryItemId,
-            supplierId: body.supplierId,
-            supplierItemId: body.supplierItemId
-        });
-        if (findAlreadyExist) {
-            return {
-                success: false,
-                message: `This enquiry item has already been associated with the specified supplier and their item.`
-            };
+        const { _id } = auth;
+        // const { email, _id, fname, lname } = auth;
+        if (body.data.length > 0) {
+            const finalData = [];
+            const dataToSave = [];
+            for (let ele of body.data) {
+                const findAlreadyExist = await query.findOne(enquirySupplierSelectedItemsModel, {
+                    enquiryId: body.enquiryId,
+                    enquiryItemId: ele.enquiryItemId,
+                    supplierId: body.supplierId,
+                    supplierItemId: ele.supplierItemId
+                });
+                if (findAlreadyExist) {
+                    const data = await enquirySupplierSelectedItemsModel.updateOne(
+                        { _id: findAlreadyExist._id },
+                        { isSkipped: false, isMailSent: false },
+                        { new: true, runValidators: true }
+                    );
+                    finalData.push(data);
+                } else {
+                    const [findEnquiry, findEnquiryItem, findSupplier, findSupplierItem] = await Promise.all(
+                        query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false }),
+                        query.findOne(enquiryItemModel, { _id: ele.enquiryItemId, isDeleted: false }),
+                        query.findOne(supplierModel, { _id: body.supplierId, isActive: true, isApproved: true }),
+                        query.findOne(supplierItemsModel, { _id: ele.supplierItemId, isDeleted: false })
+                    );
+                    if (findEnquiry && findEnquiryItem && findSupplier && findSupplierItem) {
+                        if (+findEnquiryItem.quantity >= +body.quantity) {
+                            ele.createdBy = _id;
+                            ele.updatedBy = _id;
+                            ele.enquiryId = body.enquiryId;
+                            ele.supplierId = body.supplierId;
+                            dataToSave.push(ele);
+                        }
+                    }
+                }
+            }
+            const save = await enquirySupplierSelectedItemsModel.insertMany(dataToSave);
+            if (save.length == dataToSave.length) {
+                return {
+                    success: true,
+                    message: 'Enquiry supplier items selected successfully.',
+                    data: [...save, ...finalData]
+                };
+            }
         }
-        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false });
-        if (!findEnquiry) {
-            return {
-                success: false,
-                message: 'Enquiry not found.'
-            };
-        }
-        const findEnquiryItem = await query.findOne(enquiryItemModel, { _id: body.enquiryItemId, isDeleted: false });
-        if (!findEnquiryItem) {
-            return {
-                success: false,
-                message: 'Enquiry item not found.'
-            };
-        }
-        // console.log('body.quantity > findEnquiryItem.quantity', body.quantity, findEnquiryItem.quantity);
-        if (+body.quantity > +findEnquiryItem.quantity) {
-            return {
-                success: false,
-                message: `You can not select not item quantity more then  ${findEnquiryItem.quantity}`
-            };
-        }
-        const findSupplier = await query.findOne(supplierModel, { _id: body.supplierId, isActive: true });
-        if (!findSupplier) {
-            return {
-                success: false,
-                message: 'Suppleir not found.'
-            };
-        }
-        const findSupplierItem = await query.findOne(supplierItemsModel, { _id: body.supplierItemId, isDeleted: false });
-        if (!findSupplierItem) {
-            return {
-                success: false,
-                message: 'Supplier item not found.'
-            };
-        }
-        const findSupplierContact = await query.findOne(supplierContactModel, { _id: body.supplierContactId, isDeleted: false });
-        if (!findSupplierContact) {
-            return {
-                success: false,
-                message: 'Supplier contact not found'
-            };
-        }
-        body.createdBy = _id;
-        body.updatedBy = _id;
-        const save = await query.create(enquirySupplierSelectedItemsModel, body);
-        save._doc.isSelected = true;
-        if (save) {
-            let obj = {
-                performedBy: _id,
-                performedByEmail: email,
-                actionName: `Enquiry supplier item selected by ${fname} ${lname} | supplier - ${findSupplier.companyName} | suppler Item - ${findSupplierItem.partNumber} | enquiry Item - ${findEnquiryItem.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-            };
-            await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, stageName: 'Compare_Suppliers_Quote' });
-            return {
-                success: true,
-                message: 'Enquiry supplier item selected successfully.',
-                data: save
-            };
-        }
+        // const findAlreadyExist = await query.findOne(enquirySupplierSelectedItemsModel, {
+        //     enquiryId: body.enquiryId,
+        //     enquiryItemId: body.enquiryItemId,
+        //     supplierId: body.supplierId,
+        //     supplierItemId: body.supplierItemId
+        // });
+        // if (findAlreadyExist) {
+        //     return {
+        //         success: false,
+        //         message: `This enquiry item has already been associated with the specified supplier and their item.`
+        //     };
+        // }
+        // const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false });
+        // if (!findEnquiry) {
+        //     return {
+        //         success: false,
+        //         message: 'Enquiry not found.'
+        //     };
+        // }
+        // const findEnquiryItem = await query.findOne(enquiryItemModel, { _id: body.enquiryItemId, isDeleted: false });
+        // if (!findEnquiryItem) {
+        //     return {
+        //         success: false,
+        //         message: 'Enquiry item not found.'
+        //     };
+        // }
+        // // console.log('body.quantity > findEnquiryItem.quantity', body.quantity, findEnquiryItem.quantity);
+        // if (+body.quantity > +findEnquiryItem.quantity) {
+        //     return {
+        //         success: false,
+        //         message: `You can not select not item quantity more then  ${findEnquiryItem.quantity}`
+        //     };
+        // }
+        // const findSupplier = await query.findOne(supplierModel, { _id: body.supplierId, isActive: true });
+        // if (!findSupplier) {
+        //     return {
+        //         success: false,
+        //         message: 'Suppleir not found.'
+        //     };
+        // }
+        // const findSupplierItem = await query.findOne(supplierItemsModel, { _id: body.supplierItemId, isDeleted: false });
+        // if (!findSupplierItem) {
+        //     return {
+        //         success: false,
+        //         message: 'Supplier item not found.'
+        //     };
+        // }
+        // const findSupplierContact = await query.findOne(supplierContactModel, { _id: body.supplierContactId, isDeleted: false });
+        // if (!findSupplierContact) {
+        //     return {
+        //         success: false,
+        //         message: 'Supplier contact not found'
+        //     };
+        // }
+        // body.createdBy = _id;
+        // body.updatedBy = _id;
+        // const save = await query.create(enquirySupplierSelectedItemsModel, body);
+        // save._doc.isSelected = true;
+        // if (save) {
+        //     let obj = {
+        //         performedBy: _id,
+        //         performedByEmail: email,
+        //         actionName: `Enquiry supplier item selected by ${fname} ${lname} | supplier - ${findSupplier.companyName} | suppler Item - ${findSupplierItem.partNumber} | enquiry Item - ${findEnquiryItem.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        //     };
+        //     await enquiryModel.updateOne({ _id: body.enquiryId }, { $push: { Activity: obj }, stageName: 'Compare_Suppliers_Quote' });
+        //     return {
+        //         success: true,
+        //         message: 'Enquiry supplier item selected successfully.',
+        //         data: save
+        //     };
+        // }
         return {
             success: false,
             message: 'Error while selecting enquiry supplier item.'
@@ -331,43 +382,54 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
  * Deleted Enquiry Supplier Selected Item
  *
  * @param {object} auth - Data of logedin user.
- * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
+ * @param {array} enquirySupplierSelectedItemIds - Enquiry Supplier Selected Item ids
+//  * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
  * @returns {object} - An object with the results.
  */
-exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemId) => {
+exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemIds) => {
+    // exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemId) => {
     try {
-        const { email, _id, fname, lname } = auth;
-
-        const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: enquirySupplierSelectedItemId });
-        if (!find) {
-            return {
-                success: false,
-                message: `This enquiry item is not associated with the any supplier and their item.`
-            };
+        // const { email, _id, fname, lname } = auth;
+        if (enquirySupplierSelectedItemIds.length > 0) {
+            const deleteData = await enquirySupplierSelectedItemsModel.deleteMany({ _id: { $in: enquirySupplierSelectedItemIds } });
+            if (deleteData) {
+                return {
+                    success: true,
+                    message: 'Enquiry supplier items deselected successfully.',
+                    data: {}
+                };
+            }
         }
-        if (find.isMailSent || find.isSkipped) {
-            return {
-                success: false,
-                message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item. You can't deselect the enquiry supplier item now.`
-            };
-        }
-        const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id: enquirySupplierSelectedItemId });
-        if (deleteData) {
-            let obj = {
-                performedBy: _id,
-                performedByEmail: email,
-                actionName: `Enquiry supplier item deselected by ${fname} ${lname} | supplier - ${find.companyName} | suppler Item - ${find.partNumber} | enquiry Item - ${find.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-            };
-            await enquiryModel.updateOne({ _id: find.enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers' });
-            return {
-                success: true,
-                message: 'Enquiry supplier item deselected successfully.',
-                data: {}
-            };
-        }
+        // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: enquirySupplierSelectedItemId });
+        // if (!find) {
+        //     return {
+        //         success: false,
+        //         message: `This enquiry item is not associated with the any supplier and their item.`
+        //     };
+        // }
+        // if (find.isMailSent || find.isSkipped) {
+        //     return {
+        //         success: false,
+        //         message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item. You can't deselect the enquiry supplier item now.`
+        //     };
+        // }
+        // const deleteData = await enquirySupplierSelectedItemsModel.deleteOne({ _id: enquirySupplierSelectedItemId });
+        // if (deleteData) {
+        //     let obj = {
+        //         performedBy: _id,
+        //         performedByEmail: email,
+        //         actionName: `Enquiry supplier item deselected by ${fname} ${lname} | supplier - ${find.companyName} | suppler Item - ${find.partNumber} | enquiry Item - ${find.partNumber} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        //     };
+        //     await enquiryModel.updateOne({ _id: find.enquiryId }, { $push: { Activity: obj }, stageName: 'Find_Suppliers' });
+        //     return {
+        //         success: true,
+        //         message: 'Enquiry supplier item deselected successfully.',
+        //         data: {}
+        //     };
+        // }
         return {
             success: false,
-            message: 'Error while deselecting enquiry supplier item.'
+            message: 'Error while deselecting enquiry supplier items.'
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while deleting enquiry supplier selected item: ${error}`);

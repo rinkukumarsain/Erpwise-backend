@@ -8,12 +8,14 @@ const {
     enquiryItemModel,
     supplierItemsModel,
     supplierModel,
-    enquirySupplierSelectedItemsModel
-    // supplierContactModel 
+    enquirySupplierSelectedItemsModel,
+    supplierContactModel,
+    mailLogsModel
 } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { enquiryDao } = require('../dao');
 const { logger } = require('../utils/logger');
+const { sendMail } = require('../utils/sendMail');
 
 const LOG_ID = 'services/enquiryItemService';
 
@@ -261,21 +263,22 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                     supplierItemId: ele.supplierItemId
                 });
                 if (findAlreadyExist) {
-                    const data = await enquirySupplierSelectedItemsModel.updateOne(
+                    const data = await enquirySupplierSelectedItemsModel.findOneAndUpdate(
                         { _id: findAlreadyExist._id },
                         { isSkipped: false, isMailSent: false },
                         { new: true, runValidators: true }
                     );
                     finalData.push(data);
                 } else {
-                    const [findEnquiry, findEnquiryItem, findSupplier, findSupplierItem] = await Promise.all(
+                    const [findEnquiry, findEnquiryItem, findSupplier, findSupplierItem] = await Promise.all([
                         query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false }),
                         query.findOne(enquiryItemModel, { _id: ele.enquiryItemId, isDeleted: false }),
                         query.findOne(supplierModel, { _id: body.supplierId, isActive: true, isApproved: true }),
                         query.findOne(supplierItemsModel, { _id: ele.supplierItemId, isDeleted: false })
-                    );
+                    ]);
+
                     if (findEnquiry && findEnquiryItem && findSupplier && findSupplierItem) {
-                        if (+findEnquiryItem.quantity >= +body.quantity) {
+                        if (+findEnquiryItem.quantity >= +ele.quantity) {
                             ele.createdBy = _id;
                             ele.updatedBy = _id;
                             ele.enquiryId = body.enquiryId;
@@ -285,7 +288,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                     }
                 }
             }
-            const save = await enquirySupplierSelectedItemsModel.insertMany(dataToSave);
+            const save = dataToSave.length > 0 ? await enquirySupplierSelectedItemsModel.insertMany(dataToSave) : [];
             if (save.length == dataToSave.length) {
                 return {
                     success: true,
@@ -293,6 +296,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                     data: [...save, ...finalData]
                 };
             }
+
         }
         // const findAlreadyExist = await query.findOne(enquirySupplierSelectedItemsModel, {
         //     enquiryId: body.enquiryId,
@@ -370,6 +374,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
             message: 'Error while selecting enquiry supplier item.'
         };
     } catch (error) {
+        console.log(error);
         logger.error(LOG_ID, `Error while adding enquiry supplier selected item: ${error}`);
         return {
             success: false,
@@ -382,13 +387,14 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
  * Deleted Enquiry Supplier Selected Item
  *
  * @param {object} auth - Data of logedin user.
- * @param {array} enquirySupplierSelectedItemIds - Enquiry Supplier Selected Item ids
-//  * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
+ * @param {Array} enquirySupplierSelectedItemIds - Enquiry Supplier Selected Item ids
  * @returns {object} - An object with the results.
+ //  * @param {string} enquirySupplierSelectedItemId - Enquiry Supplier Selected Item id
  */
 exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemIds) => {
     // exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelectedItemId) => {
     try {
+        console.log(auth._id);
         // const { email, _id, fname, lname } = auth;
         if (enquirySupplierSelectedItemIds.length > 0) {
             const deleteData = await enquirySupplierSelectedItemsModel.deleteMany({ _id: { $in: enquirySupplierSelectedItemIds } });
@@ -444,16 +450,17 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
  * Skip Mail For Enquiry Supplier Selected Item
  *
  * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @param {string} supplierId - Supplier Id.
  * @returns {object} - An object with the results.
  */
-exports.SkipMailForEnquirySupplierSelectedItem = async (updateData) => {
+exports.SkipMailForEnquirySupplierSelectedItem = async (updateData, supplierId) => {
     try {
 
         const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
         if (find.length !== updateData.ids.length) {
             return {
                 success: false,
-                message: `This enquiry item is not associated with the any supplier and their item.`
+                message: `This enquiry items is not associated with the any supplier and their item.`
             };
         }
         // if (find.isMailSent || find.isSkipped) {
@@ -462,12 +469,23 @@ exports.SkipMailForEnquirySupplierSelectedItem = async (updateData) => {
         //         message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
         //     };
         // }
-        const update = await enquirySupplierSelectedItemsModel.updateMany({ _id: { $in: updateData.ids } }, { isSkipped: true }, { new: true, runValidators: true });
-        if (update) {
+        const findSupplierContact = await query.findOne(supplierContactModel, { supplierId, isDeleted: false });
+        if (!findSupplierContact) {
+            return {
+                success: false,
+                message: 'Supplier contact not found'
+            };
+        }
+        const update = await enquirySupplierSelectedItemsModel.updateMany(
+            { _id: { $in: updateData.ids } },
+            { isSkipped: true, isMailSent: false, supplierContactId: findSupplierContact._id },
+            { runValidators: true }
+        );
+        if (update.modifiedCount == updateData.ids.length) {
             return {
                 success: true,
-                message: `Enquiry item mail skipped.`,
-                data: update
+                message: `Enquiry items mail skipped.`,
+                data: updateData.ids
             };
         }
         return {
@@ -488,11 +506,12 @@ exports.SkipMailForEnquirySupplierSelectedItem = async (updateData) => {
  * Send Mail For Enquiry Supplier Selected Item
  *
  * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @param {object} file - Data of uploaded sheet of Enquiry Supplier Selected Items.
  * @returns {object} - An object with the results.
  */
-exports.sendMailForEnquirySupplierSelectedItem = async (updateData) => {
+exports.sendMailForEnquirySupplierSelectedItem = async (updateData, file) => {
     try {
-
+        updateData.ids = JSON.parse(updateData.ids);
         const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
         if (find.length !== updateData.ids.length) {
             return {
@@ -506,12 +525,26 @@ exports.sendMailForEnquirySupplierSelectedItem = async (updateData) => {
         //         message: `Mail is already ${find.isMailSent ? 'sent' : 'skipped'} for this enquiry item.`
         //     };
         // }
-        const update = await enquirySupplierSelectedItemsModel.updateMany({ _id: { $in: updateData.ids } }, { isSkipped: true }, { new: true, runValidators: true });
-        if (update) {
+        const update = await enquirySupplierSelectedItemsModel.updateMany(
+            { _id: { $in: updateData.ids } },
+            { isMailSent: true, isSkipped: false, supplierContactId: updateData.supplierContactId },
+            { runValidators: true }
+        );
+        if (update.modifiedCount == updateData.ids.length) {
+            sendMailForSupplierSelectedItemToSupplier(
+                updateData.to,
+                updateData.cc,
+                updateData.subject,
+                updateData.body,
+                file,
+                updateData.enquiryId,
+                updateData.supplierId
+            );
+            console.log('response sent::::::::::::::');
             return {
                 success: true,
-                message: `Enquiry item mail sent.`,
-                data: update
+                message: `Enquiry items mail sent.`,
+                data: updateData.ids
             };
         }
         return {
@@ -724,18 +757,6 @@ exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
     }
 };
 
-// exports.sendMailToSupplier = async () => {
-//     try {
-
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error While sending mail to supplier: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
-
 /**
  * Updates data for selected items in the Enquiry Supplier.
  *
@@ -780,5 +801,59 @@ async function updatedIdsInEnquiryItems(ids) {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error while Updates enquiry items add shortlisted item ids.: ${error}`);
+    }
+}
+
+/**
+ * Function to send mail of supplier selected item to supplirs.
+ *
+ * @param {string} to - Send email to.
+ * @param {string} cc - Send email cc.
+ * @param {string} subject - Send email subject.
+ * @param {string} body - email body.
+ * @param {object} file - email attachment.
+ * @param {string} enquiryId - email extra details.
+ * @param {string} supplierId - email extra details.
+ * @returns {Promise<void>} - A Promise that resolves after operation.
+ */
+async function sendMailForSupplierSelectedItemToSupplier(to, cc, subject, body, file, enquiryId, supplierId) {
+    try {
+        // console.log('file:::::::::::', file);
+        const temp = file.location.split('/');
+        const mailCred = {
+            email: process.env.EMAIL1,
+            password: process.env.PASS1,
+            host: process.env.HOST,
+            port: 465,
+            secure: true
+        };
+        const mailDetails = {
+            to,
+            cc,
+            subject,
+            body,
+            attachments: [{
+                filename: file?.originalname || temp[temp.length - 1],
+                path: file.location
+            }]
+        };
+        const nodemailerResponse = await sendMail(mailCred, mailDetails);
+        await query.create(mailLogsModel, {
+            to,
+            from: mailCred.email,
+            cc,
+            subject,
+            body,
+            documents: [
+                {
+                    fileName: file?.originalname || temp[temp.length - 1],
+                    fileUrl: file.location
+                }
+            ],
+            mailDetails: { enquiryId, supplierId },
+            nodemailerResponse
+        });
+    } catch (error) {
+        logger.error(LOG_ID, `Error while sending mail of supplier selected item to supplirs.: ${error}`);
     }
 }

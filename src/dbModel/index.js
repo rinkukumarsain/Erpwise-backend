@@ -15,3 +15,4 @@ exports.supplierItemsModel = require('./supplierItemsModel');
 exports.enquiryModel = require('./enquiryModel');
 exports.enquiryItemModel = require('./enquiryItemModel');
 exports.enquirySupplierSelectedItemsModel = require('./enquirySupplierSelectedItems');
+exports.mailLogsModel = require('./mailLogsModel');

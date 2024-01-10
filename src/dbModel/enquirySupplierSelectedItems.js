@@ -21,11 +21,13 @@ const EnquirySupplierSelectedItemSchema = new Schema(
         },
         supplierContactId: {
             type: mongoose.Types.ObjectId,
-            ref: 'SupplierContact'
+            ref: 'SupplierContact',
+            default: null
         },
         currency: {
             type: mongoose.Types.ObjectId,
-            ref: 'Currency'
+            ref: 'Currency',
+            default: null
         },
         quantity: {
             type: String,
@@ -100,7 +102,8 @@ const EnquirySupplierSelectedItemSchema = new Schema(
 
                 },
                 { _id: false }
-            )
+            ),
+            default: null
         },
         itemsSheet: {
             type: String,
@@ -152,7 +155,8 @@ const EnquirySupplierSelectedItemSchema = new Schema(
 
                 },
                 { _id: false }
-            )
+            ),
+            default: null
         },
         isShortListed: {
             type: Boolean,

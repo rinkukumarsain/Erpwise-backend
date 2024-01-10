@@ -4,7 +4,7 @@ const { validate } = require('express-validation');
 
 // Local imports
 const { logger } = require('../utils/logger');
-const { upload } = require('../utils/multer');
+const { upload, uploadS3 } = require('../utils/multer');
 const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { enquiryItemService } = require('../services');
@@ -133,9 +133,9 @@ router.post('/deleteEnquirySupplierSelectedItem', jwtVerify, async (req, res) =>
 /**
  * Route of skipping mail for Enquiry Supplier Selected Item.
  */
-router.post('/enquirySupplierSelectedItem/skipMail', jwtVerify, async (req, res) => {
+router.post('/enquirySupplierSelectedItem/skipMail/:supplierId', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.SkipMailForEnquirySupplierSelectedItem(req.body);
+        const result = await enquiryItemService.SkipMailForEnquirySupplierSelectedItem(req.body, req.params.supplierId);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -149,9 +149,9 @@ router.post('/enquirySupplierSelectedItem/skipMail', jwtVerify, async (req, res)
 /**
  * Route of skipping mail for Enquiry Supplier Selected Item.
  */
-router.post('/enquirySupplierSelectedItem/sendMail/:id', jwtVerify, async (req, res) => {
+router.post('/enquirySupplierSelectedItem/sendMail', jwtVerify, uploadS3.single('file'), async (req, res) => {
     try {
-        const result = await enquiryItemService.sendMailForEnquirySupplierSelectedItem(req.body);
+        const result = await enquiryItemService.sendMailForEnquirySupplierSelectedItem(req.body, req.file);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

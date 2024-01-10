@@ -148,7 +148,15 @@ const enquirySchema = new Schema(
             type: Boolean,
             default: true
         },
+        level: {
+            type: Number,
+            default: 1
+        },
         isDeleted: {
+            type: Boolean,
+            default: false
+        },
+        isItemShortListed: {
             type: Boolean,
             default: false
         }

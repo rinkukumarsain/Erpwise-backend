@@ -14,6 +14,36 @@ exports.userProfilePipeline = (userId) => [
         }
     },
     {
+        $lookup: {
+            from: 'currencies',
+            let: {
+                currencyId: '$baseCurrency'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$_id', '$$currencyId']
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        createdAt: 0,
+                        updatedAt: 0
+                    }
+                }
+            ],
+            as: 'baseCurrencyData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$baseCurrencyData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
         $project: {
             password: 0, // Excluding the 'password' field from the result
             token: 0
@@ -70,7 +100,7 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
     if (sortBy && sortOrder) {
         delete arr[1]['$sort']['updatedAt'];
         arr[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
-    }else {
+    } else {
         // delete arr[1]['$sort'];
         arr.splice(1, 1);
     }

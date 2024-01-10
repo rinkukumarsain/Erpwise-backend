@@ -39,14 +39,6 @@ const EnquiryItemSchema = new Schema(
             type: String,
             required: true
         },
-        // supplierId: {
-        //     type: mongoose.Types.ObjectId,
-        //     ref: 'Supplier'
-        // },
-        // supplierItemId: {
-        //     type: mongoose.Types.ObjectId,
-        //     ref: 'SupplierItem'
-        // },
         createdBy: {
             type: mongoose.Types.ObjectId,
             ref: 'User'
@@ -54,6 +46,11 @@ const EnquiryItemSchema = new Schema(
         updatedBy: {
             type: mongoose.Types.ObjectId,
             ref: 'User',
+            default: null
+        },
+        enquirySupplierSelectedItemId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'EnquirySupplierSelectedItem',
             default: null
         },
         isDeleted: {

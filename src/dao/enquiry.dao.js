@@ -1163,8 +1163,14 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
             vatGroupId: {
                 $first: '$financeMeta.vatGroupId'
             },
+            paymentOption: {
+                $first: '$financeMeta.paymentOption'
+            },
             delivery: {
                 $first: '$finalItemDetails.delivery'
+            },
+            financeMeta: {
+                $first: '$financeMeta'
             },
             items: {
                 $push: '$$ROOT'
@@ -1178,6 +1184,249 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
             'items.enquiryItemId': 0,
             'items.supplierItemId': 0,
             'items.supplier': 0
+        }
+    },
+    {
+        $addFields: {
+            itemsSheet: {
+                $concat: [
+                    process.env.BACKEND_URL,
+                    '$itemsSheet'
+                ]
+            },
+            supplierTotal: {
+                $toDouble: '$supplierTotal'
+            },
+            freightCharges: {
+                $toDouble: '$freightCharges'
+            },
+            packingCharges: {
+                $toDouble: '$packingCharges'
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'paymentterms',
+            localField: 'paymentTermsId',
+            foreignField: '_id',
+            as: 'paymentterms'
+        }
+    },
+    {
+        $unwind: {
+            path: '$paymentterms',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'vats',
+            localField: 'vatGroupId',
+            foreignField: '_id',
+            as: 'vats'
+        }
+    },
+    {
+        $unwind: {
+            path: '$vats',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            paymentTermNumOfDays: {
+                $cond: {
+                    if: {
+                        $gt: [
+                            {
+                                $ifNull: [
+                                    '$paymentterms',
+                                    null
+                                ]
+                            },
+                            null
+                        ]
+                    },
+                    then: '$paymentterms.noOfDays',
+                    else: null
+                }
+            },
+            vatGroup: '$vats.percentage',
+            temp: {
+                $add: [
+                    '$supplierTotal',
+                    '$freightCharges',
+                    '$packingCharges'
+                ]
+            },
+            dividedValue: {
+                $divide: ['$vats.percentage', 100]
+            }
+        }
+    },
+    {
+        $addFields: {
+            vatGroupValue: {
+                $round: [
+                    {
+                        $multiply: [
+                            '$temp',
+                            '$dividedValue'
+                        ]
+                    },
+                    // Calculate 8% of originalValue
+                    2 // Number of decimal places
+                ]
+            }
+        }
+    },
+    {
+        $addFields: {
+            supplierFinalTotal: {
+                $round: [
+                    {
+                        $sum: ['$temp', '$vatGroupValue']
+                    },
+                    2 // Number of decimal places
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            temp: 0,
+            dividedValue: 0,
+            vats: 0,
+            paymentterms: 0
+        }
+    }
+];
+
+/**
+ * Generates an aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
+ */
+exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            let: {
+                supplierId: '$supplierId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$supplierId']
+                                },
+                                {
+                                    $eq: ['$level', 3]
+                                },
+                                {
+                                    $eq: ['$isActive', true]
+                                },
+                                {
+                                    $eq: ['$isApproved', true]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        supplierId: '$_id',
+                        companyName: 1,
+                        _id: 0,
+                        industryType: 1,
+                        currency: 1
+                    }
+                }
+            ],
+            as: 'supplier'
+        }
+    },
+    {
+        $unwind: {
+            path: '$supplier'
+        }
+    },
+    {
+        $addFields:
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        {
+            partNumber:
+                '$finalItemDetails.partNumber',
+            partNumberCode:
+                '$finalItemDetails.partNumberCode',
+            partDesc: '$finalItemDetails.partDesc',
+            unitPrice: '$finalItemDetails.unitPrice',
+            delivery: '$finalItemDetails.delivery',
+            notes: '$finalItemDetails.notes',
+            hscode: '$finalItemDetails.hscode',
+            total: '$finalItemDetails.total',
+            companyName: '$supplier.companyName',
+            industryType: '$supplier.industryType'
+        }
+    },
+    {
+        $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+            supplier: 0,
+            finalItemDetails: 0
+        }
+    },
+    {
+        $group:
+        /**
+         * _id: The id of the group.
+         * fieldN: The first field name.
+         */
+        {
+            _id: '$enquiryItemId',
+            data: {
+                $push: '$$ROOT'
+            },
+            partNumber: {
+                $first: '$partNumber'
+            },
+            partNumberCode: {
+                $first: '$partNumberCode'
+            },
+            partDesc: {
+                $first: '$partDesc'
+            }
+        }
+    },
+    {
+        $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+            enquiryItemId: '$_id',
+            _id: 0,
+            data: 1,
+            partNumber: 1,
+            partDesc: 1,
+            partNumberCode: 1
         }
     }
 ];

@@ -74,6 +74,10 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         type: String
                         // required: true,
                     },
+                    deliveryTerm: {
+                        type: String,
+                        default: null
+                    },
                     supplierTotal: {
                         type: String,
                         required: true

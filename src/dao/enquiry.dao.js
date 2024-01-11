@@ -1318,7 +1318,8 @@ exports.getIteamsSupplierResponse = (enquiryId) => [
 exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
     {
         $match: {
-            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+            enquiryId: new mongoose.Types.ObjectId(enquiryId),
+            financeMeta: { $ne: null }
         }
     },
     {

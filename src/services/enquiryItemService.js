@@ -265,7 +265,7 @@ exports.addEnquirySupplierSelectedItem = async (auth, body) => {
                 if (findAlreadyExist) {
                     const data = await enquirySupplierSelectedItemsModel.findOneAndUpdate(
                         { _id: findAlreadyExist._id },
-                        { isSkipped: false, isMailSent: false },
+                        { isSkipped: false, isMailSent: false, quantity: ele.quantity },
                         { new: true, runValidators: true }
                     );
                     finalData.push(data);

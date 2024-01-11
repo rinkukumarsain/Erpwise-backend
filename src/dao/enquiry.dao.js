@@ -1473,5 +1473,10 @@ exports.EnquirySupplierSelectedItemMailLogs = (enquiryId, supplierId) => [
             subject: 0,
             body: 0
         }
+    },
+    {
+        $sort: {
+            createdAt: -1
+        }
     }
 ];

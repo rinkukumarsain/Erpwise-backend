@@ -769,7 +769,7 @@ exports.enquirySupplierSelectedItemMailLogs = async (enquiryId, supplierId) => {
         const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.EnquirySupplierSelectedItemMailLogs(enquiryId, supplierId));
         return {
             success: true,
-            message: 'Previous mial logs fetched successfully.',
+            message: 'Previous mail logs fetched successfully.',
             data: mailLogs
         };
     } catch (error) {

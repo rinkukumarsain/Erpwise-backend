@@ -850,7 +850,7 @@ async function sendMailForSupplierSelectedItemToSupplier(to, cc, subject, body, 
                     fileUrl: file.location
                 }
             ],
-            mailDetails: { enquiryId, supplierId },
+            mailDetails: { enquiryId, supplierId, type: 'enquirySupplierSelectedItem' },
             nodemailerResponse
         });
     } catch (error) {

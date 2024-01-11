@@ -1431,3 +1431,47 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve Mail Logs of enquiry selected items (in respect of supplier)
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} supplierId - The supplier's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve Mail logs
+ */
+exports.EnquirySupplierSelectedItemMailLogs = (enquiryId, supplierId) => [
+    {
+        $match: {
+            $expr: {
+                $and: [
+                    {
+                        $eq: [
+                            '$mailDetails.enquiryId',
+                            enquiryId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.supplierId',
+                            supplierId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.type',
+                            'enquirySupplierSelectedItem'
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            nodemailerResponse: 0,
+            documents: 0,
+            subject: 0,
+            body: 0
+        }
+    }
+];

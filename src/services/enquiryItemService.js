@@ -540,7 +540,7 @@ exports.sendMailForEnquirySupplierSelectedItem = async (updateData, file) => {
                 updateData.enquiryId,
                 updateData.supplierId
             );
-            console.log('response sent::::::::::::::');
+            // console.log('response sent::::::::::::::');
             return {
                 success: true,
                 message: `Enquiry items mail sent.`,

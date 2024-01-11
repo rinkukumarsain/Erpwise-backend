@@ -425,38 +425,35 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                     $unwind: {
                         path: '$supplier'
                     }
-                },
-                {
-                    $lookup: {
-                        from: 'suppliercontacts',
-                        let: {
-                            suppierId: '$supplierId'
-                        },
-                        pipeline: [
-                            {
-                                $match: {
-                                    $expr: {
-                                        $and: [
-                                            {
-                                                $eq: [
-                                                    '$supplierId',
-                                                    '$$suppierId'
-                                                ]
-                                            },
-                                            {
-                                                $eq: [
-                                                    '$isDeleted',
-                                                    false
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        ],
-                        as: 'supplierContacts'
-                    }
                 }
+                // {
+                //   $lookup: {
+                //     from: "suppliercontacts",
+                //     let: {
+                //       suppierId: "$supplierId",
+                //     },
+                //     pipeline: [
+                //       {
+                //         $match: {
+                //           $expr: {
+                //             $and: [
+                //               {
+                //                 $eq: [
+                //                   "$supplierId",
+                //                   "$$suppierId",
+                //                 ],
+                //               },
+                //               {
+                //                 $eq: ["$isDeleted", false],
+                //               },
+                //             ],
+                //           },
+                //         },
+                //       },
+                //     ],
+                //     as: "supplierContacts",
+                //   },
+                // },
             ],
             as: 'result'
         }
@@ -484,8 +481,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             sidelivery: '$result.delivery',
             sinotes: '$result.notes',
             siunitPrice: '$result.unitPrice',
-            supplierContacts:
-                '$result.supplierContacts',
+            // supplierContacts: "$result.supplierContacts",
             _id: 0
         }
     },
@@ -733,9 +729,9 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             currency: {
                 $first: '$sCurrency'
             },
-            supplierContacts: {
-                $first: '$supplierContacts'
-            },
+            // supplierContacts: {
+            //   $first: "$supplierContacts",
+            // },
             companyName: {
                 $first: '$sCompanyName'
             },
@@ -749,7 +745,7 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
     },
     {
         $project: {
-            'items.supplierContacts': 0,
+            // "items.supplierContacts": 0,
             'items.sCurrency': 0,
             'items.sCompanyName': 0,
             'items.sIndustryType': 0,
@@ -757,33 +753,34 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
             'items.supplierId': 0,
             'items.enquirysupplierselecteditems': 0
         }
-    },
-    {
-        $lookup: {
-            from: 'currencies',
-            localField: 'currency',
-            foreignField: '_id',
-            as: 'currencyName'
-        }
-    },
-    {
-        $unwind: {
-            path: '$currencyName',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $addFields: {
-            currencyName: {
-                $concat: [
-                    '$currencyName.currencyShortForm',
-                    '(',
-                    '$currencyName.currencySymbol',
-                    ')'
-                ]
-            }
-        }
     }
+    // ,
+    // {
+    //     $lookup: {
+    //         from: 'currencies',
+    //         localField: 'currency',
+    //         foreignField: '_id',
+    //         as: 'currencyName'
+    //     }
+    // },
+    // {
+    //     $unwind: {
+    //         path: '$currencyName',
+    //         preserveNullAndEmptyArrays: true
+    //     }
+    // },
+    // {
+    //     $addFields: {
+    //         currencyName: {
+    //             $concat: [
+    //                 '$currencyName.currencyShortForm',
+    //                 '(',
+    //                 '$currencyName.currencySymbol',
+    //                 ')'
+    //             ]
+    //         }
+    //     }
+    // }
 ];
 
 /**

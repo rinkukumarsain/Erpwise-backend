@@ -784,6 +784,11 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
                 ]
             }
         }
+    },
+    {
+        $sort: {
+            companyName: 1
+        }
     }
 ];
 

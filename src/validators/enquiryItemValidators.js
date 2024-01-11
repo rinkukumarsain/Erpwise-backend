@@ -28,12 +28,14 @@ exports.updateEnquiryItemById = {
 exports.addEnquirySupplierSelectedItem = {
     body: Joi.object({
         enquiryId: Joi.string().required(),
-        enquiryItemId: Joi.string().required(),
         supplierId: Joi.string().required(),
-        supplierItemId: Joi.string().required(),
-        supplierContactId: Joi.string().required(),
-        currency: Joi.string().required(),
-        quantity: Joi.string().required()
+        data: Joi.array().items(
+            Joi.object({
+                enquiryItemId: Joi.string().required(),
+                supplierItemId: Joi.string().required(),
+                quantity: Joi.string().required()
+            }).required()
+        ).required()
     })
 };
 

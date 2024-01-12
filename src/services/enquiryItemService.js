@@ -842,7 +842,7 @@ async function updatedIdsInEnquiryItems(ids) {
  */
 async function sendMailForSupplierSelectedItemToSupplier(to, cc, subject, body, file, enquiryId, supplierId) {
     try {
-        // console.log('file:::::::::::', file);
+        // console.log('body:::::::::::', body);
         const temp = file.location.split('/');
         const mailCred = {
             email: process.env.EMAIL1,

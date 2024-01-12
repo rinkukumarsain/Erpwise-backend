@@ -68,7 +68,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
 exports.updateEnquiryById = async (auth, enquiryId, enquiryData, orgId) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const findEnquiry = await query.findOne({ _id: enquiryId, organisationId: orgId, isDeleted: false });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, organisationId: orgId, isDeleted: false });
         if (!findEnquiry) {
             return {
                 success: false,
@@ -194,6 +194,7 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
  */
 exports.getRecommendedSupplierWithItems = async (enquiryId, orgId) => {
     try {
+        console.log(JSON.stringify(enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId)));
         // const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipelineForSendMail(orgId, enquiryId));
         const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
         const recommendedSupplierWithCount = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId));

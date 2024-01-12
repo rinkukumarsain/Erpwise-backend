@@ -194,14 +194,14 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
  */
 exports.getRecommendedSupplierWithItems = async (enquiryId, orgId) => {
     try {
-        const findEnquiry = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipeline(orgId, enquiryId));
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipelineForSendMail(orgId, enquiryId));
         const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
         if (recommendedSupplierWithItems.length > 0) {
             return {
                 success: true,
                 message: 'Recommended supplier with items fetched successfully.',
                 data: recommendedSupplierWithItems,
-                enquiry: findEnquiry
+                enquiry: enquiryData[0]
             };
         }
     } catch (error) {

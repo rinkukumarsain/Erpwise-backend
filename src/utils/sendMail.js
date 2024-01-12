@@ -27,7 +27,7 @@ exports.sendMail = async (userData, mailData) => {
             to: mailData.to,
             subject: mailData.subject,
             text: mailData.text,
-            html: mailData.html,
+            html: mailData.body,
             cc: mailData.cc,
             attachments: mailData.attachments
         };

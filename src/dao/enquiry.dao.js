@@ -1486,3 +1486,28 @@ exports.EnquirySupplierSelectedItemMailLogs = (enquiryId, supplierId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry by id for send mail.
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a enquiry by id.
+ */
+exports.getEnquiryByIdPipelineForSendMail = (orgId, enquiryId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            isDeleted: false
+        }
+    },
+    {
+        $project: {
+            _id: 1,
+            Id: 1,
+            companyName: 1,
+            dueDate: 1
+        }
+    }
+];

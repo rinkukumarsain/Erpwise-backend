@@ -793,6 +793,172 @@ exports.getRecommendedSupplierWithItems = (enquiryId) => [
 ];
 
 /**
+ * Generates an aggregation pipeline to retrieve Recommended Supplier With Items count.
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
+ */
+exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+        }
+    },
+    {
+        $facet: {
+            selectedItems: [
+                {
+                    $group: {
+                        _id: '$enquiryItemId',
+                        data: {
+                            $push: '$$ROOT'
+                        }
+                    }
+                }
+            ],
+            emailSendItems: [
+                {
+                    $match: {
+                        isMailSent: true
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$enquiryItemId'
+                    }
+                }
+            ],
+            totalItems: [
+                {
+                    $project: {
+                        enquiryId: 1
+                    }
+                }
+            ]
+        }
+    },
+    {
+        $addFields: {
+            enquiryId: {
+                $arrayElemAt: [
+                    '$totalItems.enquiryId',
+                    0
+                ]
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryitems',
+            let: {
+                enquiryId: '$enquiryId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$enquiryId',
+                                        '$$enquiryId'
+                                    ]
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'totalItems'
+        }
+    },
+    {
+        $addFields: {
+            selectedItems: {
+                $size: '$selectedItems'
+            },
+            emailSendItems: {
+                $size: '$emailSendItems'
+            },
+            totalItems: {
+                $size: '$totalItems'
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiries',
+            let: {
+                enquiryId: '$enquiryId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: ['$_id', '$$enquiryId']
+                                },
+                                {
+                                    $eq: [
+                                        '$organisationId',
+                                        new mongoose.Types.ObjectId(orgId)
+                                    ]
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        Id: 1,
+                        companyName: 1,
+                        dueDate: 1,
+                        isItemShortListed: 1
+                    }
+                }
+            ],
+            as: 'result'
+        }
+    },
+    {
+        $addFields: {
+            Id: {
+                $arrayElemAt: ['$result.Id', 0]
+            },
+            companyName: {
+                $arrayElemAt: [
+                    '$result.companyName',
+                    0
+                ]
+            },
+            dueDate: {
+                $arrayElemAt: ['$result.dueDate', 0]
+            },
+            isItemShortListed: {
+                $arrayElemAt: [
+                    '$result.isItemShortListed',
+                    0
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            result: 0
+        }
+    }
+];
+
+/**
  * Generates an aggregation pipeline to retrieve Recommended Supplier With Items.
  *
  * @param {string} enquiryId - The enquiry's unique identifier.

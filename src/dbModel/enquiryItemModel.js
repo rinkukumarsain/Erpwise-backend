@@ -50,8 +50,7 @@ const EnquiryItemSchema = new Schema(
         },
         enquirySupplierSelectedItemId: {
             type: mongoose.Types.ObjectId,
-            ref: 'EnquirySupplierSelectedItem',
-            default: null
+            ref: 'EnquirySupplierSelectedItem'
         },
         isDeleted: {
             type: Boolean,

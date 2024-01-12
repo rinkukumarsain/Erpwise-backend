@@ -1507,7 +1507,8 @@ exports.getEnquiryByIdPipelineForSendMail = (orgId, enquiryId) => [
             _id: 1,
             Id: 1,
             companyName: 1,
-            dueDate: 1
+            dueDate: 1,
+            isItemShortListed: 1
         }
     }
 ];

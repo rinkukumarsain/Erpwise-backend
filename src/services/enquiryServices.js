@@ -189,16 +189,19 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
  * Get Recommended Supplier With Items
  *
  * @param {string} enquiryId - Id of enquiry.
+ * @param {string} orgId - Id of org.
  * @returns {object} - An object with the results, including enquiry.
  */
-exports.getRecommendedSupplierWithItems = async (enquiryId) => {
+exports.getRecommendedSupplierWithItems = async (enquiryId, orgId) => {
     try {
+        const findEnquiry = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipeline(orgId, enquiryId));
         const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
         if (recommendedSupplierWithItems.length > 0) {
             return {
                 success: true,
                 message: 'Recommended supplier with items fetched successfully.',
-                data: recommendedSupplierWithItems
+                data: recommendedSupplierWithItems,
+                enquiry: findEnquiry
             };
         }
     } catch (error) {

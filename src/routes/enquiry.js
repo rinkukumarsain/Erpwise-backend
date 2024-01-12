@@ -88,7 +88,7 @@ router.get('/get/:id', jwtVerify, async (req, res) => {
  */
 router.get('/getRecommendedSupplier/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryServices.getRecommendedSupplierWithItems(req.params.id);
+        const result = await enquiryServices.getRecommendedSupplierWithItems(req.params.id, req.header['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

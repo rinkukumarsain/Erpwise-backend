@@ -11,7 +11,7 @@ exports.createEnquiry = {
         isActive: Joi.boolean().optional(),
         currency: Joi.string().required(),
         totalOrderValue: Joi.string().required(),
-        note: Joi.string().optional(),
+        note: Joi.string().allow(null),
         leadId: Joi.string().required(),
         leadContactId: Joi.string().required()
     })

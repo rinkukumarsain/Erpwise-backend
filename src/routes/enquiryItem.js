@@ -218,7 +218,7 @@ router.post('/addFinanceDetailsSuppler/:enquiryId/:supplierId', jwtVerify, valid
  */
 router.get('/getIteamsSupplierResponse/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.getIteamsSupplierResponse(req.params.id);
+        const result = await enquiryItemService.getIteamsSupplierResponse(req.params.id, req.query.isShortListed);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

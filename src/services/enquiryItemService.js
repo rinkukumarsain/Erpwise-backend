@@ -656,9 +656,10 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => 
  * Get Items Data Of Supplier For Enquiry Supplier Selected Item
  *
  * @param {string} enquiryId - Enquiry id
+ * @param {string} isShortListed - true/false
  * @returns {object} - An object with the results.
  */
-exports.getIteamsSupplierResponse = async (enquiryId) => {
+exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
     try {
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {
@@ -667,7 +668,7 @@ exports.getIteamsSupplierResponse = async (enquiryId) => {
                 message: 'This enquiry item is not associated with the any supplier and their item.'
             };
         }
-        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponse(enquiryId));
+        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponse(enquiryId, isShortListed));
         if (IteamsSpllierResponse.length > 0) {
             return {
                 success: true,

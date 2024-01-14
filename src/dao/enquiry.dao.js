@@ -962,518 +962,527 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
  * Generates an aggregation pipeline to retrieve Recommended Supplier With Items.
  *
  * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} isShortListed - true/false.
  * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items.
  */
-exports.getIteamsSupplierResponse = (enquiryId) => [
-    {
-        $match: {
-            enquiryId: new mongoose.Types.ObjectId(enquiryId)
-        }
-    },
-    {
-        $lookup: {
-            from: 'enquiryitems',
-            let: {
-                id: '$enquiryItemId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
-                                    $eq: ['$_id', '$$id']
-                                },
-                                {
-                                    $eq: ['$isDeleted', false]
-                                }
-                            ]
+exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
+    let data = [
+        {
+            $match: {
+                enquiryId: new mongoose.Types.ObjectId(enquiryId)
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquiryitems',
+                let: {
+                    id: '$enquiryItemId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ['$_id', '$$id']
+                                    },
+                                    {
+                                        $eq: ['$isDeleted', false]
+                                    }
+                                ]
+                            }
                         }
                     }
-                }
-            ],
-            as: 'enquiryitemsdetail'
-        }
-    },
-    {
-        $unwind: {
-            path: '$enquiryitemsdetail',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'supplieritems',
-            let: {
-                id: '$supplierItemId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
-                                    $eq: ['$_id', '$$id']
-                                },
-                                {
-                                    $eq: ['$isDeleted', false]
-                                }
-                            ]
+                ],
+                as: 'enquiryitemsdetail'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryitemsdetail',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'supplieritems',
+                let: {
+                    id: '$supplierItemId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ['$_id', '$$id']
+                                    },
+                                    {
+                                        $eq: ['$isDeleted', false]
+                                    }
+                                ]
+                            }
                         }
                     }
-                }
-            ],
-            as: 'supplieritemsdetail'
-        }
-    },
-    {
-        $unwind: {
-            path: '$supplieritemsdetail',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'suppliers',
-            let: {
-                supplierId: '$supplierId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
+                ],
+                as: 'supplieritemsdetail'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supplieritemsdetail',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                let: {
+                    supplierId: '$supplierId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ['$_id', '$$supplierId']
+                                    },
+                                    {
+                                        $eq: ['$level', 3]
+                                    },
+                                    {
+                                        $eq: ['$isActive', true]
+                                    },
+                                    {
+                                        $eq: ['$isApproved', true]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            supplierId: '$_id',
+                            companyName: 1,
+                            _id: 0,
+                            industryType: 1,
+                            currency: 1
+                        }
+                    }
+                ],
+                as: 'supplier'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supplier'
+            }
+        },
+        {
+            $addFields: {
+                partNumber: {
+                    $cond: {
+                        if: {
                             $and: [
                                 {
-                                    $eq: ['$_id', '$$supplierId']
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
                                 },
                                 {
-                                    $eq: ['$level', 3]
-                                },
-                                {
-                                    $eq: ['$isActive', true]
-                                },
-                                {
-                                    $eq: ['$isApproved', true]
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.partNumber',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
                                 }
                             ]
-                        }
+                        },
+                        then: '$finalItemDetails.partNumber',
+                        else: '$supplieritemsdetail.partNumber'
                     }
                 },
-                {
-                    $project: {
-                        supplierId: '$_id',
-                        companyName: 1,
-                        _id: 0,
-                        industryType: 1,
-                        currency: 1
+                partNumberCode: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.partNumberCode',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.partNumberCode',
+                        else: '$supplieritemsdetail.partNumberCode'
+                    }
+                },
+                partDesc: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.partDesc',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.partDesc',
+                        else: '$supplieritemsdetail.partDesc'
+                    }
+                },
+                unitPrice: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.unitPrice',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.unitPrice',
+                        else: '$supplieritemsdetail.unitPrice'
+                    }
+                },
+                delivery: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.delivery',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.delivery',
+                        else: '$supplieritemsdetail.delivery'
+                    }
+                },
+                notes: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.notes',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.notes',
+                        else: '$supplieritemsdetail.notes'
+                    }
+                },
+                hscode: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                },
+                                {
+                                    $gt: [
+                                        {
+                                            $ifNull: [
+                                                '$finalItemDetails.hscode',
+                                                null
+                                            ]
+                                        },
+                                        null
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$finalItemDetails.hscode',
+                        else: '$supplieritemsdetail.hscode'
                     }
                 }
-            ],
-            as: 'supplier'
-        }
-    },
-    {
-        $unwind: {
-            path: '$supplier'
-        }
-    },
-    {
-        $addFields: {
-            partNumber: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.partNumber',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.partNumber',
-                    else: '$supplieritemsdetail.partNumber'
-                }
-            },
-            partNumberCode: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.partNumberCode',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.partNumberCode',
-                    else: '$supplieritemsdetail.partNumberCode'
-                }
-            },
-            partDesc: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.partDesc',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.partDesc',
-                    else: '$supplieritemsdetail.partDesc'
-                }
-            },
-            unitPrice: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.unitPrice',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.unitPrice',
-                    else: '$supplieritemsdetail.unitPrice'
-                }
-            },
-            delivery: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.delivery',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.delivery',
-                    else: '$supplieritemsdetail.delivery'
-                }
-            },
-            notes: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.notes',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.notes',
-                    else: '$supplieritemsdetail.notes'
-                }
-            },
-            hscode: {
-                $cond: {
-                    if: {
-                        $and: [
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            },
-                            {
-                                $gt: [
-                                    {
-                                        $ifNull: [
-                                            '$finalItemDetails.hscode',
-                                            null
-                                        ]
-                                    },
-                                    null
-                                ]
-                            }
-                        ]
-                    },
-                    then: '$finalItemDetails.hscode',
-                    else: '$supplieritemsdetail.hscode'
+            }
+        },
+        {
+            $group: {
+                _id: '$supplierId',
+                companyName: {
+                    $first: '$supplier.companyName'
+                },
+                industryType: {
+                    $first: '$supplier.industryType'
+                },
+                enquiryId: {
+                    $first: '$enquiryId'
+                },
+                itemsSheet: {
+                    $first: '$itemsSheet'
+                },
+                paymentTermsId: {
+                    $first: '$financeMeta.paymentTermsId'
+                },
+                supplierTotal: {
+                    $first: '$financeMeta.supplierTotal'
+                },
+                freightCharges: {
+                    $first: '$financeMeta.freightCharges'
+                },
+                packingCharges: {
+                    $first: '$financeMeta.packingCharges'
+                },
+                vatGroupId: {
+                    $first: '$financeMeta.vatGroupId'
+                },
+                paymentOption: {
+                    $first: '$financeMeta.paymentOption'
+                },
+                delivery: {
+                    $first: '$finalItemDetails.delivery'
+                },
+                financeMeta: {
+                    $first: '$financeMeta'
+                },
+                items: {
+                    $push: '$$ROOT'
                 }
             }
-        }
-    },
-    {
-        $group: {
-            _id: '$supplierId',
-            companyName: {
-                $first: '$supplier.companyName'
-            },
-            industryType: {
-                $first: '$supplier.industryType'
-            },
-            enquiryId: {
-                $first: '$enquiryId'
-            },
-            itemsSheet: {
-                $first: '$itemsSheet'
-            },
-            paymentTermsId: {
-                $first: '$financeMeta.paymentTermsId'
-            },
-            supplierTotal: {
-                $first: '$financeMeta.supplierTotal'
-            },
-            freightCharges: {
-                $first: '$financeMeta.freightCharges'
-            },
-            packingCharges: {
-                $first: '$financeMeta.packingCharges'
-            },
-            vatGroupId: {
-                $first: '$financeMeta.vatGroupId'
-            },
-            paymentOption: {
-                $first: '$financeMeta.paymentOption'
-            },
-            delivery: {
-                $first: '$finalItemDetails.delivery'
-            },
-            financeMeta: {
-                $first: '$financeMeta'
-            },
-            items: {
-                $push: '$$ROOT'
+        },
+        {
+            $project: {
+                'items.enquiryId': 0,
+                'items.supplierId': 0,
+                'items.enquiryItemId': 0,
+                'items.supplierItemId': 0,
+                'items.supplier': 0
             }
-        }
-    },
-    {
-        $project: {
-            'items.enquiryId': 0,
-            'items.supplierId': 0,
-            'items.enquiryItemId': 0,
-            'items.supplierItemId': 0,
-            'items.supplier': 0
-        }
-    },
-    {
-        $addFields: {
-            itemsSheet: {
-                $concat: [
-                    process.env.BACKEND_URL,
-                    '$itemsSheet'
-                ]
-            },
-            supplierTotal: {
-                $toDouble: '$supplierTotal'
-            },
-            freightCharges: {
-                $toDouble: '$freightCharges'
-            },
-            packingCharges: {
-                $toDouble: '$packingCharges'
-            }
-        }
-    },
-    {
-        $lookup: {
-            from: 'paymentterms',
-            localField: 'paymentTermsId',
-            foreignField: '_id',
-            as: 'paymentterms'
-        }
-    },
-    {
-        $unwind: {
-            path: '$paymentterms',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'vats',
-            localField: 'vatGroupId',
-            foreignField: '_id',
-            as: 'vats'
-        }
-    },
-    {
-        $unwind: {
-            path: '$vats',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $addFields: {
-            paymentTermNumOfDays: {
-                $cond: {
-                    if: {
-                        $gt: [
-                            {
-                                $ifNull: [
-                                    '$paymentterms',
-                                    null
-                                ]
-                            },
-                            null
-                        ]
-                    },
-                    then: '$paymentterms.noOfDays',
-                    else: null
+        },
+        {
+            $addFields: {
+                itemsSheet: {
+                    $concat: [
+                        process.env.BACKEND_URL,
+                        '$itemsSheet'
+                    ]
+                },
+                supplierTotal: {
+                    $toDouble: '$supplierTotal'
+                },
+                freightCharges: {
+                    $toDouble: '$freightCharges'
+                },
+                packingCharges: {
+                    $toDouble: '$packingCharges'
                 }
-            },
-            vatGroup: '$vats.percentage',
-            temp: {
-                $add: [
-                    '$supplierTotal',
-                    '$freightCharges',
-                    '$packingCharges'
-                ]
-            },
-            dividedValue: {
-                $divide: ['$vats.percentage', 100]
+            }
+        },
+        {
+            $lookup: {
+                from: 'paymentterms',
+                localField: 'paymentTermsId',
+                foreignField: '_id',
+                as: 'paymentterms'
+            }
+        },
+        {
+            $unwind: {
+                path: '$paymentterms',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'vats',
+                localField: 'vatGroupId',
+                foreignField: '_id',
+                as: 'vats'
+            }
+        },
+        {
+            $unwind: {
+                path: '$vats',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                paymentTermNumOfDays: {
+                    $cond: {
+                        if: {
+                            $gt: [
+                                {
+                                    $ifNull: [
+                                        '$paymentterms',
+                                        null
+                                    ]
+                                },
+                                null
+                            ]
+                        },
+                        then: '$paymentterms.noOfDays',
+                        else: null
+                    }
+                },
+                vatGroup: '$vats.percentage',
+                temp: {
+                    $add: [
+                        '$supplierTotal',
+                        '$freightCharges',
+                        '$packingCharges'
+                    ]
+                },
+                dividedValue: {
+                    $divide: ['$vats.percentage', 100]
+                }
+            }
+        },
+        {
+            $addFields: {
+                vatGroupValue: {
+                    $round: [
+                        {
+                            $multiply: [
+                                '$temp',
+                                '$dividedValue'
+                            ]
+                        },
+                        // Calculate 8% of originalValue
+                        2 // Number of decimal places
+                    ]
+                }
+            }
+        },
+        {
+            $addFields: {
+                supplierFinalTotal: {
+                    $round: [
+                        {
+                            $sum: ['$temp', '$vatGroupValue']
+                        },
+                        2 // Number of decimal places
+                    ]
+                }
+            }
+        },
+        {
+            $project: {
+                temp: 0,
+                dividedValue: 0,
+                vats: 0,
+                paymentterms: 0
             }
         }
-    },
-    {
-        $addFields: {
-            vatGroupValue: {
-                $round: [
-                    {
-                        $multiply: [
-                            '$temp',
-                            '$dividedValue'
-                        ]
-                    },
-                    // Calculate 8% of originalValue
-                    2 // Number of decimal places
-                ]
-            }
-        }
-    },
-    {
-        $addFields: {
-            supplierFinalTotal: {
-                $round: [
-                    {
-                        $sum: ['$temp', '$vatGroupValue']
-                    },
-                    2 // Number of decimal places
-                ]
-            }
-        }
-    },
-    {
-        $project: {
-            temp: 0,
-            dividedValue: 0,
-            vats: 0,
-            paymentterms: 0
-        }
+    ];
+    if (isShortListed) {
+        if (isShortListed == 'true') data[0]['$match']['isShortListed'] = true;
+        else data[0]['$match']['isShortListed'] = false;
     }
-];
+    // console.log(`data[0]['$match']`, data[0]['$match']);
+    return data;
+};
 
 /**
  * Generates an aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.

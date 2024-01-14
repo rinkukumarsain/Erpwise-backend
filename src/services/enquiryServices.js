@@ -194,7 +194,6 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
  */
 exports.getRecommendedSupplierWithItems = async (enquiryId, orgId) => {
     try {
-        console.log(JSON.stringify(enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId)));
         // const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipelineForSendMail(orgId, enquiryId));
         const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
         const recommendedSupplierWithCount = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId));

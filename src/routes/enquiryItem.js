@@ -234,7 +234,7 @@ router.get('/getIteamsSupplierResponse/:id', jwtVerify, async (req, res) => {
  */
 router.get('/getSupplierQuoteForCompare/:id', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryItemService.CompareSuppliersAndItemsAsPerSuppliersQuotes(req.params.id);
+        const result = await enquiryItemService.CompareSuppliersAndItemsAsPerSuppliersQuotes(req.params.id, req.query);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

@@ -34,7 +34,7 @@ router.post('/create', jwtVerify, validate(createAgent), async (req, res) => {
 /**
  * Route for getting all agent.
  */
-router.post('/getAll', jwtVerify, async (req, res) => {
+router.get('/getAll', jwtVerify, async (req, res) => {
     try {
         const result = await agentServices.getAllAgent(req.headers['x-org-type']);
         if (result.success) {

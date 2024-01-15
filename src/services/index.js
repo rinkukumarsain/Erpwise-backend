@@ -14,3 +14,4 @@ exports.supplierAddressServices = require('./supplierAddressServices');
 exports.supplierItemService = require('./supplierItemService');
 exports.enquiryServices = require('./enquiryServices');
 exports.enquiryItemService = require('./enquiryItemService');
+exports.agentServices = require('./agentServices');

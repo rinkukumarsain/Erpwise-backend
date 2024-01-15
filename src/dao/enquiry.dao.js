@@ -1488,130 +1488,173 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
  * Generates an aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
  *
  * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {object} query - req.query
  * @returns {Array} - An aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
  */
-exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId) => [
-    {
-        $match: {
-            enquiryId: new mongoose.Types.ObjectId(enquiryId),
-            financeMeta: { $ne: null }
-        }
-    },
-    {
-        $lookup: {
-            from: 'suppliers',
-            let: {
-                supplierId: '$supplierId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
-                                    $eq: ['$_id', '$$supplierId']
-                                },
-                                {
-                                    $eq: ['$level', 3]
-                                },
-                                {
-                                    $eq: ['$isActive', true]
-                                },
-                                {
-                                    $eq: ['$isApproved', true]
-                                }
-                            ]
+exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId, query) => {
+    const { paymentTermsId, paymentOption, deliveryTerm } = query;
+    let arr = [
+        {
+            $match: {
+                enquiryId: new mongoose.Types.ObjectId(enquiryId),
+                financeMeta: { $ne: null }
+            }
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                let: {
+                    supplierId: '$supplierId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: ['$_id', '$$supplierId']
+                                    },
+                                    {
+                                        $eq: ['$level', 3]
+                                    },
+                                    {
+                                        $eq: ['$isActive', true]
+                                    },
+                                    {
+                                        $eq: ['$isApproved', true]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            supplierId: '$_id',
+                            companyName: 1,
+                            _id: 0,
+                            industryType: 1,
+                            currency: 1
                         }
                     }
+                ],
+                as: 'supplier'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supplier'
+            }
+        },
+        {
+            $addFields:
+            /**
+             * newField: The new field name.
+             * expression: The new field expression.
+             */
+            {
+                partNumber:
+                    '$finalItemDetails.partNumber',
+                partNumberCode:
+                    '$finalItemDetails.partNumberCode',
+                partDesc: '$finalItemDetails.partDesc',
+                unitPrice: '$finalItemDetails.unitPrice',
+                delivery: '$finalItemDetails.delivery',
+                notes: '$finalItemDetails.notes',
+                hscode: '$finalItemDetails.hscode',
+                total: '$finalItemDetails.total',
+                companyName: '$supplier.companyName',
+                industryType: '$supplier.industryType'
+            }
+        },
+        {
+            $project:
+            /**
+             * specifications: The fields to
+             *   include or exclude.
+             */
+            {
+                supplier: 0,
+                finalItemDetails: 0
+            }
+        },
+        {
+            $group:
+            /**
+             * _id: The id of the group.
+             * fieldN: The first field name.
+             */
+            {
+                _id: '$enquiryItemId',
+                data: {
+                    $push: '$$ROOT'
                 },
-                {
-                    $project: {
-                        supplierId: '$_id',
-                        companyName: 1,
-                        _id: 0,
-                        industryType: 1,
-                        currency: 1
-                    }
+                partNumber: {
+                    $first: '$partNumber'
+                },
+                partNumberCode: {
+                    $first: '$partNumberCode'
+                },
+                partDesc: {
+                    $first: '$partDesc'
                 }
-            ],
-            as: 'supplier'
-        }
-    },
-    {
-        $unwind: {
-            path: '$supplier'
-        }
-    },
-    {
-        $addFields:
-        /**
-         * newField: The new field name.
-         * expression: The new field expression.
-         */
+            }
+        },
         {
-            partNumber:
-                '$finalItemDetails.partNumber',
-            partNumberCode:
-                '$finalItemDetails.partNumberCode',
-            partDesc: '$finalItemDetails.partDesc',
-            unitPrice: '$finalItemDetails.unitPrice',
-            delivery: '$finalItemDetails.delivery',
-            notes: '$finalItemDetails.notes',
-            hscode: '$finalItemDetails.hscode',
-            total: '$finalItemDetails.total',
-            companyName: '$supplier.companyName',
-            industryType: '$supplier.industryType'
-        }
-    },
-    {
-        $project:
-        /**
-         * specifications: The fields to
-         *   include or exclude.
-         */
-        {
-            supplier: 0,
-            finalItemDetails: 0
-        }
-    },
-    {
-        $group:
-        /**
-         * _id: The id of the group.
-         * fieldN: The first field name.
-         */
-        {
-            _id: '$enquiryItemId',
-            data: {
-                $push: '$$ROOT'
-            },
-            partNumber: {
-                $first: '$partNumber'
-            },
-            partNumberCode: {
-                $first: '$partNumberCode'
-            },
-            partDesc: {
-                $first: '$partDesc'
+            $project:
+            /**
+             * specifications: The fields to
+             *   include or exclude.
+             */
+            {
+                enquiryItemId: '$_id',
+                _id: 0,
+                data: 1,
+                partNumber: 1,
+                partDesc: 1,
+                partNumberCode: 1
             }
         }
-    },
-    {
-        $project:
-        /**
-         * specifications: The fields to
-         *   include or exclude.
-         */
-        {
-            enquiryItemId: '$_id',
-            _id: 0,
-            data: 1,
-            partNumber: 1,
-            partDesc: 1,
-            partNumberCode: 1
-        }
+    ];
+    if (paymentOption && paymentOption == 'Deferred Payment' && deliveryTerm && paymentTermsId) {
+        let elementTOAdd = {
+            $addFields: {
+                color: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                { $eq: ['$financeMeta.paymentTermsId', new mongoose.Types.ObjectId(paymentTermsId)] },
+                                { $eq: ['$financeMeta.paymentOption', paymentOption] },
+                                { $eq: ['$financeMeta.deliveryTerm', deliveryTerm] }
+                            ]
+                        },
+                        then: '#05ae05',
+                        else: '#ff0101'
+                    }
+                }
+            }
+        };
+        arr.splice(1, 0, elementTOAdd);
+    } else if (paymentOption && deliveryTerm) {
+        let elementTOAdd = {
+            $addFields: {
+                color: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                { $eq: ['$financeMeta.paymentOption', paymentOption] },
+                                { $eq: ['$financeMeta.deliveryTerm', deliveryTerm] }
+                            ]
+                        },
+                        then: '#05ae05',
+                        else: '#ff0101'
+                    }
+                }
+            }
+        };
+        arr.splice(1, 0, elementTOAdd);
     }
-];
+    return arr;
+};
 
 /**
  * Generates an aggregation pipeline to retrieve Mail Logs of enquiry selected items (in respect of supplier)

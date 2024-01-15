@@ -689,9 +689,10 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
  * Get Compare Suppliers and Items as per Supplier’s quotes
  *
  * @param {string} enquiryId - Enquiry id
+ * @param {object} queryObj - req.query
  * @returns {object} - An object with the results.
  */
-exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId) => {
+exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryObj) => {
     try {
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {
@@ -700,7 +701,7 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId) => {
                 message: 'This enquiry item is not associated with the any supplier and their item.'
             };
         }
-        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.CompareSuppliersAndItemsAsPerSuppliersQuotes(enquiryId));
+        const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.CompareSuppliersAndItemsAsPerSuppliersQuotes(enquiryId, queryObj));
         if (IteamsSpllierResponse.length > 0) {
             return {
                 success: true,

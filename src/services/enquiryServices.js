@@ -361,6 +361,25 @@ exports.createQuote = async (auth, body, orgId) => {
         };
     }
 };
+
+exports.deleteQuote = async (id, auth) => {
+    try {
+        const findQuote = await query.findOne(enquiryQuoteModel, { _id: id, isDeleted: false });
+        if (!findQuote) {
+            return {
+                success: false,
+                message: 'Quote not found.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deliting quote by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 /**
  * Get Data For Quote Creation.
  *

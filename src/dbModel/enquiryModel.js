@@ -136,36 +136,189 @@ const enquirySchema = new Schema(
             type: mongoose.Types.ObjectId,
             ref: 'User'
         },
-        Activity: [userActionSchema],
-        documents: {
-            type: Array
-        },
-        isItemAdded: {
-            type: Boolean,
-            default: false
-        },
-        isActive: {
-            type: Boolean,
-            default: true
-        },
-        level: {
-            type: Number,
-            default: 1
-        },
         quoteId: {
             type: mongoose.Types.ObjectId,
             ref: 'enquiryQuote',
             default: null
         },
-        isQuoteCreated: {
+        Activity: [userActionSchema],
+        documents: {
+            type: Array
+        },
+        isActive: {
             type: Boolean,
-            default: false
+            default: true
         },
         isDeleted: {
             type: Boolean,
             default: false
         },
+        level: {
+            type: Number,
+            default: 1
+        },
+        proformaInvoices: {
+            type: new Schema(
+                {
+                    quoteId: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'enquiryQuote',
+                        default: null
+                    },
+                    customerRefNo: {
+                        type: String,
+                        required: true
+                    },
+                    invoiceDate: {
+                        type: Date,
+                        required: true
+                    },
+                    invoiceDueDate: {
+                        type: Date,
+                        required: true
+                    },
+                    buyerBillingAddress: {
+                        type: mongoose.Types.ObjectId,
+                        ref: '',
+                        required: true
+                    },
+                    buyerShippingAddress: {
+                        type: mongoose.Types.ObjectId,
+                        ref: '',
+                        required: true
+                    },
+                    countryOrigin: {
+                        type: String,
+                        required: true
+                    },
+                    countryDestination: {
+                        type: String,
+                        required: true
+                    },
+                    shippingDesciption: {
+                        type: String,
+                        required: true
+                    },
+                    shippingTrackingId: {
+                        type: String,
+                        required: true
+                    },
+                    totalNetWt: {
+                        type: String,
+                        required: true
+                    },
+                    expenditures: {
+                        type: String,
+                        required: true
+                    },
+                    notes: {
+                        type: String,
+                        default: null
+                    },
+                    signatoryName: {
+                        type: String,
+                        required: true
+                    },
+                    place: {
+                        type: String,
+                        required: true
+                    },
+                    issueDate: {
+                        type: Date,
+                        required: true
+                    },
+                    signature: {
+                        type: String,
+                        required: true
+                    },
+                    role: {
+                        type: String,
+                        required: true
+                    },
+                    createXero: {
+                        type: Boolean,
+                        default: false
+                    },
+                    piNo: {
+                        type: String,
+                        required: true
+                    },
+                    additional: {
+                        type: String,
+                        required: true
+                    },
+                    xeroInvoice: {
+                        type: String,
+                        default: null
+                    },
+                    xeroInvNumber: {
+                        type: String,
+                        default: null
+                    },
+                    paymentStatus: {
+                        type: String, 
+                        default: 'pending'
+                    },
+                    outstanding: {
+                        type: Number,
+                        default: 0
+                    },
+                    partialDelivery: {
+                        type: Boolean,
+                        default: false
+                    },
+                    totalAmount: {
+                        type: Number,
+                        default: 0
+                    },
+                    totalVatPi: {
+                        type: Number,
+                        required: true,
+                        default: 0
+                    },
+                    xeroPayment: [{ type: Object }],
+                    currencyExchangeRate: {
+                        type: Number,
+                        required: true,
+                        default: 0
+                    },
+                    totalConvertedAmount: {
+                        type: Number,
+                        required: true,
+                        default: 0
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    currency: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'Currency'
+                    }
+
+                },
+                { _id: false }
+            ),
+            default: null
+        },
+        isItemAdded: {
+            type: Boolean,
+            default: false
+        },
         isItemShortListed: {
+            type: Boolean,
+            default: false
+        },
+        isQuoteCreated: {
+            type: Boolean,
+            default: false
+        },
+        isPiCreated: {
             type: Boolean,
             default: false
         }

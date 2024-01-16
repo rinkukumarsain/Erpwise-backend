@@ -114,6 +114,14 @@ const enquiryQuoteSchema = new Schema(
             type: Number,
             default: 0
         },
+        totalQuote: {
+            type: Number,
+            default: 0
+        },
+        finalQuote: {
+            type: Number,
+            default: 0
+        },
         currencyExchangeRate: {
             type: Number,
             default: null

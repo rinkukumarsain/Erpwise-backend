@@ -57,3 +57,35 @@ exports.deleteEnquiryDocument = {
         imageUrl: Joi.string().required()
     })
 };
+
+exports.createQuote = {
+    body: Joi.object({
+        html: Joi.string().allow(null),
+        note: Joi.string().allow(null),
+        enquiryId: Joi.string().required(),
+        vatGroupId: Joi.string().required(),
+        vatGroup: Joi.number().required(),
+        margin: Joi.number().required(),
+        freightCharges: Joi.number().required(),
+        packingCharges: Joi.number().required(),
+        miscCharges: Joi.number().required(),
+        discount: Joi.number().required(),
+        agentTotalCommission: Joi.number().required(),
+        duedate: Joi.string().required(),
+        currency: Joi.string().allow(null),
+        addedFreightCharges: Joi.number().required(),
+        addedSupplierTotal: Joi.number().required(),
+        addedPackingCharges: Joi.number().required(),
+        addedSupplierFinalTotal: Joi.number().required(),
+        addedVatGroupValue: Joi.number().required(),
+        vatGroupValue: Joi.number().required(),
+        discountValue: Joi.number().required(),
+        marginValue: Joi.number().required(),
+        freightChargesValue: Joi.number().required(),
+        packingChargesValue: Joi.number().required(),
+        miscChargesValue: Joi.number().required(),
+        agentTotalCommissionValue: Joi.number().required(),
+        subTotal: Joi.number().required(),
+        currencyExchangeRate: Joi.number().allow(null)
+    })
+};

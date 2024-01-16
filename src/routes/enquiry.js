@@ -11,7 +11,9 @@ const { enquiryValidators: {
     createEnquiry,
     getAllEnquiry,
     deleteEnquiryDocument,
-    updateEnquiryById
+    updateEnquiryById,
+    // ==Quote== //
+    createQuote
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -127,6 +129,25 @@ router.post('/deleteDocument/:id', jwtVerify, validate(deleteEnquiryDocument), a
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiry/deleteDocument/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+// ========================= QUOTE ============================= //
+
+let preFix = '/quote';
+/**
+ * Route for creating enquiry quote.
+ */
+router.post(`${preFix}/create`, jwtVerify, validate(createQuote), async (req, res) => {
+    try {
+        const result = await enquiryServices.createQuote(req.auth, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { enquiryModel, leadModel, enquiryItemModel, enquirySupplierSelectedItemsModel } = require('../dbModel');
+const { enquiryModel, leadModel, enquiryItemModel, enquirySupplierSelectedItemsModel, enquiryQuoteModel } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -297,6 +297,70 @@ exports.deleteEnquiryDocument = async (enquiryId, imageUrl, auth) => {
     }
 };
 
+
+// ========================= QUOTE ============================= //
+
+/**
+ * add enquiry Quote.
+ *
+ * @param {object} auth - req auth.
+ * @param {object} body - req body.
+ * @param {string} orgId - The ID of the organization.
+ * @returns {object} - An object with the results, including enquiry details.
+ */
+exports.createQuote = async (auth, body, orgId) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findFinalItems = await query.find(enquirySupplierSelectedItemsModel, { enquiryId: body.enquiryId, isShortListed: true, isDeleted: false }, { _id: 1 });
+        if (findFinalItems.length == 0) {
+            return {
+                success: false,
+                message: 'No item found'
+            };
+        }
+        const findTotalQuotes = await query.find(enquiryQuoteModel, { enquiryId: body.enquiryId, isDeleted: false }, { _id: 1 });
+        if (findTotalQuotes.length == 3) {
+            return {
+                success: false,
+                message: 'Three quotes are already created.'
+            };
+        }
+
+        body.enquiryFinalItemId = findFinalItems.map(e => e._id);
+        body.organisationId = orgId;
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.Id = `Q-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        const saveQuote = await query.create(enquiryQuoteModel, body);
+        if (saveQuote) {
+            if (findTotalQuotes.length > 0) {
+                const ids = findTotalQuotes.map(e => e._id);
+                await enquiryQuoteModel.updateMany({ _id: { $in: ids }, isActive: true }, { $set: { isActive: false } });
+            }
+            const obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry quote creation by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await enquiryModel.findByIdAndUpdate(
+                body.enquiryId,
+                { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote', quoteId: saveQuote._id },
+                { new: true, runValidators: true }
+            );
+            return {
+                success: true,
+                message: 'Enquiry quote created successfully.',
+                data: saveQuote
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
 /**
  * Get Data For Quote Creation.
  *

@@ -7,6 +7,14 @@ const enquiryQuoteSchema = new Schema(
             type: String,
             required: true
         },
+        html: {
+            type: String,
+            default: null
+        },
+        note: {
+            type: String,
+            default: null
+        },
         enquiryId: {
             type: Schema.Types.ObjectId,
             required: true,
@@ -18,11 +26,6 @@ const enquiryQuoteSchema = new Schema(
                 ref: 'EnquiryItem'
             }
         ],
-        paymentTermsId: {
-            type: Schema.Types.ObjectId,
-            required: true,
-            ref: 'PaymentTerms'
-        },
         vatGroupId: {
             type: Schema.Types.ObjectId,
             required: true,
@@ -32,7 +35,7 @@ const enquiryQuoteSchema = new Schema(
             type: Number,
             default: 0
         },
-        ourMargin: {
+        margin: {
             type: Number,
             default: 0
         },
@@ -52,6 +55,10 @@ const enquiryQuoteSchema = new Schema(
             type: Number,
             default: 0
         },
+        agentTotalCommission: {
+            type: Number,
+            default: 0
+        },
         duedate: {
             type: Date,
             required: true
@@ -63,12 +70,65 @@ const enquiryQuoteSchema = new Schema(
         },
         currency: {
             type: mongoose.Types.ObjectId,
-            required: true,
+            // required: true,
+            default: null,
             ref: 'Currency'
+        },
+        addedFreightCharges: {
+            type: Number,
+            default: 0
+        },
+        addedSupplierTotal: {
+            type: Number,
+            default: 0
+        },
+        addedPackingCharges: {
+            type: Number,
+            default: 0
+        },
+        addedSupplierFinalTotal: {
+            type: Number,
+            default: 0
+        },
+        addedVatGroupValue: {
+            type: Number,
+            default: 0
+        },
+        subTotal: {
+            type: Number,
+            default: 0
+        },
+        vatGroupValue: {
+            type: Number,
+            default: 0
+        },
+        discountValue: {
+            type: Number,
+            default: 0
+        },
+        marginValue: {
+            type: Number,
+            default: 0
+        },
+        freightChargesValue: {
+            type: Number,
+            default: 0
+        },
+        packingChargesValue: {
+            type: Number,
+            default: 0
+        },
+        miscChargesValue: {
+            type: Number,
+            default: 0
+        },
+        agentTotalCommissionValue: {
+            type: Number,
+            default: 0
         },
         currencyExchangeRate: {
             type: Number,
-            default: 0
+            default: null
         },
         createdBy: {
             type: mongoose.Types.ObjectId

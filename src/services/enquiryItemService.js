@@ -772,7 +772,7 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
             };
         }
         const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponse(enquiryId, isShortListed));
-        const calculation = isShortListed ? await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponseCalculation(enquiryId)) : [{}];
+        const calculation = isShortListed == 'true' ? await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponseCalculation(enquiryId)) : [{}];
         if (IteamsSpllierResponse.length > 0) {
             return {
                 success: true,

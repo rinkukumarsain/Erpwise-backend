@@ -20,6 +20,16 @@ const enquiryQuoteSchema = new Schema(
             required: true,
             ref: 'Enquiry'
         },
+        leadId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Lead',
+            required: true
+        },
+        leadContactId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'LeadContact',
+            required: true
+        },
         enquiryFinalItemId: [
             {
                 type: Schema.Types.ObjectId,

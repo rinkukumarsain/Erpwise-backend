@@ -17,3 +17,4 @@ exports.enquiryItemModel = require('./enquiryItemModel');
 exports.enquirySupplierSelectedItemsModel = require('./enquirySupplierSelectedItems');
 exports.mailLogsModel = require('./mailLogsModel');
 exports.agentModel = require('./agentModel');
+exports.enquiryQuoteModel = require('./enquiryQuoteModel');

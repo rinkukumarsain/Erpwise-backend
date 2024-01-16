@@ -157,7 +157,7 @@ const enquirySchema = new Schema(
             ref: 'enquiryQuote',
             default: null
         },
-        isFinalQuoteCreated: {
+        isQuoteCreated: {
             type: Boolean,
             default: false
         },

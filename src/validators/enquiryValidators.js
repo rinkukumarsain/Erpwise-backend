@@ -81,9 +81,6 @@ exports.createQuote = {
         vatGroupValue: Joi.number().required(),
         discountValue: Joi.number().required(),
         marginValue: Joi.number().required(),
-        freightChargesValue: Joi.number().required(),
-        packingChargesValue: Joi.number().required(),
-        miscChargesValue: Joi.number().required(),
         agentTotalCommissionValue: Joi.number().required(),
         subTotal: Joi.number().required(),
         currencyExchangeRate: Joi.number().allow(null)

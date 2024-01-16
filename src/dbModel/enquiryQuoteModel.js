@@ -110,18 +110,6 @@ const enquiryQuoteSchema = new Schema(
             type: Number,
             default: 0
         },
-        freightChargesValue: {
-            type: Number,
-            default: 0
-        },
-        packingChargesValue: {
-            type: Number,
-            default: 0
-        },
-        miscChargesValue: {
-            type: Number,
-            default: 0
-        },
         agentTotalCommissionValue: {
             type: Number,
             default: 0

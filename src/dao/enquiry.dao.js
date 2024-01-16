@@ -1627,6 +1627,9 @@ exports.getIteamsSupplierResponseCalculation = (enquiryId) => [
                     '$addedFreightCharges',
                     '$addedPackingCharges'
                 ]
+            },
+            addedVatGroupValue:{
+                $round:['$addedVatGroupValue', 2]
             }
         }
     }

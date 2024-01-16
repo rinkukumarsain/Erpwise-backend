@@ -311,6 +311,13 @@ exports.deleteEnquiryDocument = async (enquiryId, imageUrl, auth) => {
 exports.createQuote = async (auth, body, orgId) => {
     try {
         const { email, _id, fname, lname } = auth;
+        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, organisationId: orgId, isDeleted: false, isItemShortListed: true });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
         const findFinalItems = await query.find(enquirySupplierSelectedItemsModel, { enquiryId: body.enquiryId, isShortListed: true, isDeleted: false }, { _id: 1 });
         if (findFinalItems.length == 0) {
             return {
@@ -330,6 +337,8 @@ exports.createQuote = async (auth, body, orgId) => {
         body.organisationId = orgId;
         body.createdBy = _id;
         body.updatedBy = _id;
+        body.leadId = findEnquiry.leadId;
+        body.leadContactId = findEnquiry.leadContactId;
         body.Id = `Q-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
         const saveQuote = await query.create(enquiryQuoteModel, body);
         if (saveQuote) {

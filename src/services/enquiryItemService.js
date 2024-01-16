@@ -779,6 +779,8 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
                 message: 'Items data of supplier for enquiry supplier selected item fetched successfully.',
                 data: IteamsSpllierResponse,
                 isItemShortListed: findenquiry.isItemShortListed,
+                isQuoteCreated: findenquiry.isQuoteCreated,
+                quoteId: findenquiry.quoteId,
                 calculation: calculation[0]
             };
         }

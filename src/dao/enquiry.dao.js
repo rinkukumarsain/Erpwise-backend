@@ -922,7 +922,9 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
                         Id: 1,
                         companyName: 1,
                         dueDate: 1,
-                        isItemShortListed: 1
+                        isItemShortListed: 1,
+                        isQuoteCreated: 1,
+                        quoteId: 1
                     }
                 }
             ],

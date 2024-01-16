@@ -710,10 +710,10 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => 
             };
         }
 
-        if (findenquiry.isItemShortListed) {
+        if (findenquiry.level == 2) {
             return {
                 success: false,
-                message: 'Enquiry Items are already short listed you can not add or edit items.'
+                message: 'Enquiry quote is already created.'
             };
         }
         const { _id } = auth;
@@ -772,12 +772,14 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
             };
         }
         const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponse(enquiryId, isShortListed));
+        const calculation = isShortListed ? await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getIteamsSupplierResponseCalculation(enquiryId)) : [{}];
         if (IteamsSpllierResponse.length > 0) {
             return {
                 success: true,
                 message: 'Items data of supplier for enquiry supplier selected item fetched successfully.',
                 data: IteamsSpllierResponse,
-                isItemShortListed: findenquiry.isItemShortListed
+                isItemShortListed: findenquiry.isItemShortListed,
+                calculation: calculation[0]
             };
         }
     } catch (error) {

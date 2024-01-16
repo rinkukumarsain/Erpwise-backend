@@ -1485,6 +1485,157 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
 };
 
 /**
+ * Generates an aggregation pipeline to retrieve Recommended Supplier With Items Calculation.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a Recommended Supplier With Items Calculation.
+ */
+exports.getIteamsSupplierResponseCalculation = (enquiryId) => {
+    let data = [
+        {
+            $match: {
+                enquiryId: new mongoose.Schema.ObjectId(enquiryId),
+                isShortListed: true
+            }
+        },
+        {
+            $group: {
+                _id: '$supplierId',
+                // data: {
+                //   $push: '$$ROOT'
+                // },
+                financeMeta: {
+                    $first: '$financeMeta'
+                },
+                enquiryId: {
+                    $first: '$enquiryId'
+                }
+            }
+        },
+        {
+            $addFields:{
+                supplierTotal: {
+                    $toDouble: '$financeMeta.supplierTotal'
+                },
+                freightCharges: {
+                    $toDouble:
+                        '$financeMeta.freightCharges'
+                },
+                packingCharges: {
+                    $toDouble:
+                        '$financeMeta.packingCharges'
+                }
+            }
+        },
+        // {
+        //     $lookup:{
+        //         from: 'paymentterms',
+        //         localField: 'financeMeta.paymentTermsId',
+        //         foreignField: '_id',
+        //         as: 'paymentterms'
+        //     }
+        // },
+        // {
+        //     $unwind: {
+        //         path: '$paymentterms',
+        //         preserveNullAndEmptyArrays: true
+        //     }
+        // },
+        {
+            $lookup: {
+                from: 'vats',
+                localField: 'financeMeta.vatGroupId',
+                foreignField: '_id',
+                as: 'vats'
+            }
+        },
+        {
+            $unwind: {
+                path: '$vats',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                temp: {
+                    $add: [
+                        '$supplierTotal',
+                        '$freightCharges',
+                        '$packingCharges'
+                    ]
+                },
+                dividedValue: {
+                    $divide: ['$vats.percentage', 100]
+                }
+            }
+        },
+        {
+            $addFields:{
+                vatGroupValue: {
+                    $round: [
+                        {
+                            $multiply: [
+                                '$temp',
+                                '$dividedValue'
+                            ]
+                        },
+                        // Calculate 8% of originalValue
+                        2 // Number of decimal places
+                    ]
+                }
+            }
+        },
+        {
+            $addFields:{
+                supplierFinalTotal: {
+                    $round: [
+                        {
+                            $sum: ['$temp', '$vatGroupValue']
+                        },
+                        2 // Number of decimal places
+                    ]
+                }
+            }
+        },
+        {
+            $group: {
+                _id: '$enquiryId',
+                // data: {
+                //   $push: '$data'
+                // },
+                addedFreightCharges: {
+                    $sum: '$freightCharges'
+                },
+                addedSupplierTotal: {
+                    $sum: '$supplierTotal'
+                },
+                addedPackingCharges: {
+                    $sum: '$packingCharges'
+                },
+                addedSupplierFinalTotal: {
+                    $sum: '$supplierFinalTotal'
+                },
+                addedVatGroupValue: {
+                    $sum: '$vatGroupValue'
+                }
+            }
+        },
+        {
+            $addFields: {
+                addedSubTotal: {
+                    $add: [
+                        '$addedSupplierTotal',
+                        '$addedFreightCharges',
+                        '$addedPackingCharges'
+                    ]
+                }
+            }
+        }
+    ];
+    return data;
+};
+
+/**
  * Generates an aggregation pipeline to retrieve Compare Suppliers and Items as per Supplier’s quotes.
  *
  * @param {string} enquiryId - The enquiry's unique identifier.

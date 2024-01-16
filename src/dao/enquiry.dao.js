@@ -1939,6 +1939,57 @@ exports.getQuotePipeline = (enquiryId, id) => {
             }
         },
         {
+            $lookup: {
+                from: 'organisations',
+                localField: 'organisationId',
+                foreignField: '_id',
+                as: 'orgData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$orgData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'organisationaddresses',
+                let: {
+                    organisationId: '$organisationId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            '$organisationId',
+                                            '$$organisationId'
+                                        ]
+                                    },
+                                    {
+                                        $eq: [
+                                            '$addresstype',
+                                            'Billing'
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: 'organisationAddress'
+            }
+        },
+        {
+            $unwind: {
+                path: '$organisationAddress',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
             $sort: {
                 isActive: -1
             }

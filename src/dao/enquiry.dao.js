@@ -1628,8 +1628,8 @@ exports.getIteamsSupplierResponseCalculation = (enquiryId) => [
                     '$addedPackingCharges'
                 ]
             },
-            addedVatGroupValue:{
-                $round:['$addedVatGroupValue', 2]
+            addedVatGroupValue: {
+                $round: ['$addedVatGroupValue', 2]
             }
         }
     }
@@ -1881,3 +1881,41 @@ exports.getEnquiryByIdPipelineForSendMail = (orgId, enquiryId) => [
         }
     }
 ];
+
+
+// ========================= QUOTE ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry quote.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} id - The enquiry quote's unique identifier.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getQuotePipeline = (enquiryId, id) => {
+    let data = [
+        {
+            $match: {
+                enquiryId: new mongoose.Types.ObjectId(enquiryId),
+                isDeleted: false
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierselecteditems',
+                localField: 'enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquiryFinalItem'
+            }
+        },
+        {
+            $sort: {
+                isActive: -1
+            }
+        }
+    ];
+    if (id) {
+        data[0]['$match']['_id'] = new mongoose.Types.ObjectId(id);
+    }
+    return data;
+};

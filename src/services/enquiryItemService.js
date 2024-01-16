@@ -39,6 +39,13 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
             };
         }
 
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
+
         const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: enquiryItemData.partNumber, enquiryId: enquiryItemData.enquiryId, isDeleted: false });
         if (findUniqueName) {
             return {
@@ -95,6 +102,13 @@ exports.updateEnquiryItemById = async (auth, _id, body) => {
             return {
                 success: false,
                 message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
             };
         }
         if (body.partNumber) {
@@ -158,6 +172,13 @@ exports.delete = async (auth, _id) => {
                 message: 'Enquiry not found.'
             };
         }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not delete items.'
+            };
+        }
         const data = await enquiryItemModel.findByIdAndUpdate(_id, { isDeleted: true });
         if (!data) {
             return {
@@ -196,6 +217,21 @@ exports.delete = async (auth, _id) => {
 exports.itemBulkUpload = async (auth, enquiryId, path) => {
     try {
         const { email, _id, fname, lname } = auth;
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
         const constData = ['partNumber', 'partDesc', 'hscode', 'unitPrice', 'quantity', 'delivery', 'notes'];
         const workbook = XLSX.readFile(path);
         const sheetNames = workbook.SheetNames;
@@ -251,6 +287,21 @@ exports.itemBulkUpload = async (auth, enquiryId, path) => {
 exports.addEnquirySupplierSelectedItem = async (auth, body) => {
     try {
         const { _id } = auth;
+        const findenquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
         // const { email, _id, fname, lname } = auth;
         if (body.data.length > 0) {
             const finalData = [];
@@ -397,7 +448,7 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
         console.log(auth._id);
         // const { email, _id, fname, lname } = auth;
         if (enquirySupplierSelectedItemIds.length > 0) {
-            const deleteData = await enquirySupplierSelectedItemsModel.deleteMany({ _id: { $in: enquirySupplierSelectedItemIds } });
+            const deleteData = await enquirySupplierSelectedItemsModel.deleteMany({ _id: { $in: enquirySupplierSelectedItemIds }, isShortListed: false });
             if (deleteData) {
                 return {
                     success: true,
@@ -455,12 +506,26 @@ exports.deleteEnquirySupplierSelectedItem = async (auth, enquirySupplierSelected
  */
 exports.SkipMailForEnquirySupplierSelectedItem = async (updateData, supplierId) => {
     try {
-
         const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
         if (find.length !== updateData.ids.length) {
             return {
                 success: false,
                 message: `This enquiry items is not associated with the any supplier and their item.`
+            };
+        }
+        const findenquiry = await query.findOne(enquiryModel, { _id: find[0].enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
             };
         }
         // if (find.isMailSent || find.isSkipped) {
@@ -511,6 +576,21 @@ exports.SkipMailForEnquirySupplierSelectedItem = async (updateData, supplierId) 
  */
 exports.sendMailForEnquirySupplierSelectedItem = async (updateData, file) => {
     try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: updateData.enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
         updateData.ids = JSON.parse(updateData.ids);
         const find = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: updateData.ids } });
         if (find.length !== updateData.ids.length) {
@@ -621,6 +701,21 @@ exports.itemSheetBySupplerUpload = async (auth, path) => {
  */
 exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => {
     try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
         const { _id } = auth;
         // console.log('enquiryId, supplierId::::::::::', enquiryId, supplierId);
         const find = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, supplierId });
@@ -661,6 +756,14 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => 
  */
 exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
     try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {
             return {
@@ -673,7 +776,8 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
             return {
                 success: true,
                 message: 'Items data of supplier for enquiry supplier selected item fetched successfully.',
-                data: IteamsSpllierResponse
+                data: IteamsSpllierResponse,
+                isItemShortListed: findenquiry.isItemShortListed
             };
         }
     } catch (error) {
@@ -694,6 +798,14 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
  */
 exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryObj) => {
     try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {
             return {
@@ -706,7 +818,8 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
             return {
                 success: true,
                 message: 'Supplier quotes fetched successfully.',
-                data: IteamsSpllierResponse
+                data: IteamsSpllierResponse,
+                isItemShortListed: findenquiry.isItemShortListed
             };
         }
     } catch (error) {
@@ -728,6 +841,21 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
  */
 exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
     try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isActive: true, isDeleted: false });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit items.'
+            };
+        }
         const { email, _id, fname, lname } = auth;
         const findData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId });
         if (findData.length == 0) {

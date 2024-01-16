@@ -152,6 +152,15 @@ const enquirySchema = new Schema(
             type: Number,
             default: 1
         },
+        quoteId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'enquiryQuote',
+            default: null
+        },
+        isFinalQuoteCreated: {
+            type: Boolean,
+            default: false
+        },
         isDeleted: {
             type: Boolean,
             default: false

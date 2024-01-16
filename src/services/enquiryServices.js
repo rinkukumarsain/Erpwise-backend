@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { enquiryModel, leadModel, enquiryItemModel } = require('../dbModel');
+const { enquiryModel, leadModel, enquiryItemModel, enquirySupplierSelectedItemsModel } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
@@ -73,6 +73,12 @@ exports.updateEnquiryById = async (auth, enquiryId, enquiryData, orgId) => {
             return {
                 success: false,
                 message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Enquiry Items are already short listed you can not add or edit enquiry.'
             };
         }
         enquiryData.updatedBy = _id;
@@ -284,6 +290,43 @@ exports.deleteEnquiryDocument = async (enquiryId, imageUrl, auth) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during fetching deleting enquiry document (deleteEnquiryDocument): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Get Data For Quote Creation.
+ *
+ * @param {string} enquiryId - The ID of the enquiry.
+ * @returns {object} - An object with the results
+ */
+exports.getDataForQuoteCreation = async (enquiryId) => {
+    try {
+        const findItems = await query.find(enquiryItemModel, { enquiryId, isDeleted: false }, { _id: 1 });
+        if (findItems.length == 0) {
+            return {
+                success: false,
+                message: 'No item found'
+            };
+        }
+        const findFinalItems = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, isShortListed: true, isDeleted: false }, { _id: 1 });
+        if (findFinalItems.length == 0) {
+            return {
+                success: false,
+                message: 'No item found'
+            };
+        }
+        if (findFinalItems.length !== findItems.length) {
+            return {
+                success: false,
+                message: 'Items are not short listed yet.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during fetching Data For Quote Creation: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -362,13 +362,49 @@ exports.createQuote = async (auth, body, orgId) => {
     }
 };
 
+/**
+ * delete enquiry Quote.
+ *
+ * @param {string} id - id of quote.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including enquiry details.
+ */
 exports.deleteQuote = async (id, auth) => {
     try {
+        const { email, _id, fname, lname } = auth;
         const findQuote = await query.findOne(enquiryQuoteModel, { _id: id, isDeleted: false });
         if (!findQuote) {
             return {
                 success: false,
                 message: 'Quote not found.'
+            };
+        }
+
+        let quoteId = null;
+        if (findQuote.isActive) {
+            const findQuoteData = await enquiryQuoteModel.find({ isDeleted: false, isActive: false }).sort({ createdAt: -1 }).limit(1);
+            quoteId = findQuoteData[0]._id;
+            await enquiryQuoteModel.findByIdAndUpdate(quoteId, { isActive: true }, { new: true, runValidators: true });
+        }
+        const deleteQuote = await enquiryQuoteModel.findByIdAndUpdate(id, { isDeleted: false, isActive: false }, { new: true, runValidators: true });
+        if (deleteQuote) {
+            if (findQuote.isActive) {
+                const obj = {
+                    performedBy: _id,
+                    performedByEmail: email,
+                    actionName: `Enquiry quote deleted (id: ${id}) by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+                };
+                let update = { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote' };
+                if (quoteId) update['quoteId'] = quoteId;
+                await enquiryModel.findByIdAndUpdate(
+                    findQuote.enquiryId,
+                    update,
+                    { new: true, runValidators: true }
+                );
+            }
+            return {
+                success: true,
+                message: 'Quote deleted successfully.'
             };
         }
     } catch (error) {

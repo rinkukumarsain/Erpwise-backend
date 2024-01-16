@@ -18,7 +18,7 @@ const LOG_ID = 'routes/organisationAddress';
  */
 router.get('/getAll', validate(getAllOrganisationAddresses), jwtVerify, async (req, res) => {
     try {
-        const result = await organisationAddressService.getAllOrganisationAddresses(req.query);
+        const result = await organisationAddressService.getAllOrganisationAddresses(req.query, req.headers['x-org-type']);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

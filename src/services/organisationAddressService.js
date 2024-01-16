@@ -32,15 +32,19 @@ exports.createOrganisationAddress = async (organisationAddressData) => {
     }
 };
 
-// Read operation - Get all organisation addresses
 /**
+ * Get all organisation addresses
  *
- * @param {object} queryParam - check
+ * @param {object} queryParam - req query.
+ * @param {string} orgId - id of organisation.
+ * @returns {object} - An object with the results.
  */
-exports.getAllOrganisationAddresses = async (queryParam) => {
+exports.getAllOrganisationAddresses = async (queryParam, orgId) => {
     try {
         const { addresstype, isDefault, isActive } = queryParam;
-        let obj = {};
+        let obj = {
+            organisationId: orgId
+        };
         if (addresstype) obj['addresstype'] = addresstype;
         if (isDefault) obj['isDefault'] = isDefault === 'true' ? true : false;
         if (isDefault) obj['isActive'] = isActive === 'true' ? true : false;

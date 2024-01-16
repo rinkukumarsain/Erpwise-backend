@@ -301,8 +301,7 @@ const enquirySchema = new Schema(
                         ref: 'Currency'
                     }
 
-                },
-                { _id: false }
+                }
             ),
             default: null
         },

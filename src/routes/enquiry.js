@@ -168,4 +168,37 @@ router.get(`${preFix}/delete/:id`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for creating enquiry quote.
+ */
+router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
+    try {
+        const result = await enquiryServices.updateQuote(req.params.id, req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all/one enquiry quote's
+ */
+router.get(`${preFix}/getAll/:enquiryId/:id?`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getQuote(req.params.enquiryId, req.params.id);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting enquiry quote's: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+
 module.exports = router;

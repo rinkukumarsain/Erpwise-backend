@@ -157,9 +157,13 @@ const enquirySchema = new Schema(
             type: Number,
             default: 1
         },
-        proformaInvoices: {
+        proformaInvoice: {
             type: new Schema(
                 {
+                    Id: {
+                        type: String,
+                        required: true
+                    },
                     quoteId: {
                         type: mongoose.Types.ObjectId,
                         ref: 'enquiryQuote',
@@ -177,15 +181,27 @@ const enquirySchema = new Schema(
                         type: Date,
                         required: true
                     },
-                    buyerBillingAddress: {
+                    buyerBillingAddressId: {
                         type: mongoose.Types.ObjectId,
-                        ref: '',
+                        ref: 'OrganisationAddress',
+                        required: true
+                    },
+                    buyerBillingAddress: {
+                        type: String,
+                        required: true
+                    },
+                    buyerShippingAddressId: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'OrganisationAddress',
                         required: true
                     },
                     buyerShippingAddress: {
-                        type: mongoose.Types.ObjectId,
-                        ref: '',
+                        type: String,
                         required: true
+                    },
+                    partialDelivery: {
+                        type: Boolean,
+                        default: false
                     },
                     countryOrigin: {
                         type: String,
@@ -195,23 +211,77 @@ const enquirySchema = new Schema(
                         type: String,
                         required: true
                     },
+                    transactionCurrency: {
+                        type: mongoose.Types.ObjectId,
+                        required: true,
+                        ref: 'Currency'
+                    },
+                    paymentOption: {
+                        type: String,
+                        default: null
+                    },
+                    deliveryTerm: {
+                        type: String,
+                        default: null
+                    },
+                    vatGroupId: {
+                        type: Schema.Types.ObjectId,
+                        required: true,
+                        ref: 'vat'
+                    },
+                    vatGroup: {
+                        type: Number,
+                        required: true
+                    },
                     shippingDesciption: {
                         type: String,
                         required: true
                     },
-                    shippingTrackingId: {
-                        type: String,
+                    totalItems: {
+                        type: Number,
+                        required: true
+                    },
+                    totalQuantity: {
+                        type: Number,
                         required: true
                     },
                     totalNetWt: {
-                        type: String,
+                        type: Number,
+                        default: 0
+                    },
+                    addedSupplierTotal: {
+                        type: Number,
                         required: true
                     },
-                    expenditures: {
-                        type: String,
-                        required: true
+                    discount: {
+                        type: Number,
+                        default: 0
+                    },
+                    discountValue: {
+                        type: Number,
+                        default: 0
+                    },
+                    freightCharges: {
+                        type: Number,
+                        default: 0
+                    },
+                    packingCharges: {
+                        type: Number,
+                        default: 0
+                    },
+                    vatGroupValue: {
+                        type: Number,
+                        default: 0
+                    },
+                    addedSupplierFinalTotal:{
+                        type: Number,
+                        default: 0
                     },
                     notes: {
+                        type: String,
+                        default: null
+                    },
+                    additionalNotes: {
                         type: String,
                         default: null
                     },
@@ -239,14 +309,6 @@ const enquirySchema = new Schema(
                         type: Boolean,
                         default: false
                     },
-                    piNo: {
-                        type: String,
-                        required: true
-                    },
-                    additional: {
-                        type: String,
-                        required: true
-                    },
                     xeroInvoice: {
                         type: String,
                         default: null
@@ -256,33 +318,11 @@ const enquirySchema = new Schema(
                         default: null
                     },
                     paymentStatus: {
-                        type: String, 
+                        type: String,
                         default: 'pending'
-                    },
-                    outstanding: {
-                        type: Number,
-                        default: 0
-                    },
-                    partialDelivery: {
-                        type: Boolean,
-                        default: false
-                    },
-                    totalAmount: {
-                        type: Number,
-                        default: 0
-                    },
-                    totalVatPi: {
-                        type: Number,
-                        required: true,
-                        default: 0
                     },
                     xeroPayment: [{ type: Object }],
                     currencyExchangeRate: {
-                        type: Number,
-                        required: true,
-                        default: 0
-                    },
-                    totalConvertedAmount: {
                         type: Number,
                         required: true,
                         default: 0
@@ -295,10 +335,6 @@ const enquirySchema = new Schema(
                         type: mongoose.Types.ObjectId,
                         ref: 'User',
                         default: null
-                    },
-                    currency: {
-                        type: mongoose.Types.ObjectId,
-                        ref: 'Currency'
                     }
 
                 }

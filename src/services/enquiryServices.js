@@ -506,7 +506,7 @@ exports.updateQuote = async (id, auth, body) => {
  */
 exports.getQuote = async (enquiryId, id) => {
     try {
-        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, level: 2 });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
         if (!findEnquiry) {
             return {
                 success: false,
@@ -553,7 +553,7 @@ exports.createPI = async (enquiryId, auth, body) => {
                 message: 'Enquiry not found'
             };
         }
-        if(findEnquiry.isPiCreated){
+        if (findEnquiry.isPiCreated) {
             return {
                 success: false,
                 message: 'Enquiry porforma invoice already created.'

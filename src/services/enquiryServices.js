@@ -360,7 +360,7 @@ exports.createQuote = async (auth, body, orgId) => {
             };
             await enquiryModel.findByIdAndUpdate(
                 body.enquiryId,
-                { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote', quoteId: saveQuote._id },
+                { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'Create_PI', quoteId: saveQuote._id },
                 { new: true, runValidators: true }
             );
             return {

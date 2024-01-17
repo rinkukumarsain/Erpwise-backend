@@ -2133,7 +2133,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 enquirysupplierselecteditems: 1,
                 companyName: 1,
                 contactPerson: 1,
-                stageName: 1
+                stageName: 1,
+                isQuoteCreated: 1
 
             }
         }

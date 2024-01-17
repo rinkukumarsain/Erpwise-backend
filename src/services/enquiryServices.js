@@ -553,6 +553,12 @@ exports.createPI = async (enquiryId, auth, body) => {
                 message: 'Enquiry not found'
             };
         }
+        if(findEnquiry.isPiCreated){
+            return {
+                success: false,
+                message: 'Enquiry porforma invoice already created.'
+            };
+        }
         const findQuote = await query.findOne(enquiryQuoteModel, { _id: body.quoteId, enquiryId, isDeleted: false });
         if (!findQuote) {
             return {

@@ -2001,3 +2001,162 @@ exports.getQuotePipeline = (enquiryId, id) => {
     }
     return data;
 };
+
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry All quote for dashboard.
+ *
+ * @param {string} orgId - The enquiry's unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                level: 2,
+                isQuoteCreated: true,
+                isDeleted: false,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $sort: {
+                // 'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: 'enquiryquotes',
+                localField: 'quoteId',
+                foreignField: '_id',
+                as: 'quoteData'
+            }
+        },
+        {
+            $unwind:
+            /**
+             * path: Path to the array field.
+             * includeArrayIndex: Optional name for index.
+             * preserveNullAndEmptyArrays: Optional
+             *   toggle to unwind null and empty values.
+             */
+            {
+                path: '$quoteData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: 'enquirysupplierselecteditems',
+                localField:
+                    'quoteData.enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $addFields:
+            /**
+             * newField: The new field name.
+             * expression: The new field expression.
+             */
+            {
+                totalQuote: {
+                    $round: ['$quoteData.totalQuote', 2]
+                },
+                margin: '$quoteData.margin',
+                totalItemQuantity: {
+                    $reduce: {
+                        input:
+                            '$enquirysupplierselecteditems',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                {
+                                    $toDouble:
+                                        '$$this.finalItemDetails.quantity'
+                                }
+                            ]
+                        }
+                    }
+                },
+                duedate: '$quoteData.duedate',
+                agentTotalCommission:
+                    '$quoteData.agentTotalCommission',
+                addedSupplierFinalTotal:
+                    '$quoteData.addedSupplierFinalTotal',
+                quote_ID: '$quoteData.Id'
+            }
+        },
+        {
+            $project:
+            /**
+             * specifications: The fields to
+             *   include or exclude.
+             */
+            {
+                _id: 1,
+                quoteId: 1,
+                quote_ID: 1,
+                addedSupplierFinalTotal: 1,
+                agentTotalCommission: 1,
+                duedate: 1,
+                totalItemQuantity: 1,
+                margin: 1,
+                totalQuote: 1,
+                enquirysupplierselecteditems: 1,
+                companyName: 1,
+                contactPerson: 1,
+                stageName: 1
+
+            }
+        }
+    ];
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            // { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+            // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+            // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        ];
+    }
+
+    if (sortBy && sortOrder) {
+        pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
+    } else {
+        pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+    return pipeline;
+};

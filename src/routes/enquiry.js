@@ -238,6 +238,23 @@ router.post(`${piPreFix}/create/:enquiryId`, jwtVerify, validate(createPI), asyn
     }
 });
 
+/**
+ * Route for getting all enquiry quote.
+ */
+router.get(`${piPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getPiById(req.params.enquiryId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiry pi: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+
 
 
 module.exports = router;

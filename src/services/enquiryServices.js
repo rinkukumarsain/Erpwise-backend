@@ -651,6 +651,36 @@ exports.createPI = async (enquiryId, auth, body) => {
     }
 };
 
+/**
+ * get enquiry Porforma Invoice by enquiry id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @returns {object} - An object with the results.
+ */
+exports.getPiById = async (enquiryId) => {
+    try {
+        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getPiByIdPipeline(enquiryId));
+        if (findPiData) {
+            return {
+                success: true,
+                message: 'Enquiry performa invoice data.',
+                data: findPiData[0]
+            };
+        }
+        return {
+            success: false,
+            message: 'Enquiry performa invoice data not found.',
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during getting PI by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // /**
 //  * Add enquiry Porforma Invoice.
 //  *

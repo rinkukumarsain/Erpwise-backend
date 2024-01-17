@@ -2161,3 +2161,35 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
     }
     return pipeline;
 };
+
+// ========================= PI ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry ppi by id.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getPiByIdPipeline = (enquiryId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            level: 3,
+            isDeleted: false
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryquotes',
+            localField: 'quoteId',
+            foreignField: '_id',
+            as: 'quoteData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData',
+            preserveNullAndEmptyArrays: true
+        }
+    }
+];

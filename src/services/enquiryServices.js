@@ -569,7 +569,14 @@ exports.createPI = async (enquiryId, auth, body) => {
             actionName: `Enquiry porforma invoice creation by ${fname} ${lname} from quote Id : ${body.quoteId} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         const createPI = await enquiryModel.findByIdAndUpdate(enquiryId,
-            { proformaInvoice: body, quoteId: body.quoteId, $push: { Activity: obj }, isPiCreated: true, stageName: 'Create_Sales_Order' },
+            {
+                proformaInvoice: body,
+                quoteId: body.quoteId,
+                $push: { Activity: obj },
+                level: 3,
+                isPiCreated: true,
+                stageName: 'Create_Sales_Order'
+            },
             { new: true, runValidators: true });
         if (createPI) {
             if (!findQuote.isActive) {
@@ -591,3 +598,51 @@ exports.createPI = async (enquiryId, auth, body) => {
         };
     }
 };
+
+// /**
+//  * Add enquiry Porforma Invoice.
+//  *
+//  * @param {string} id - PI id.
+//  * @param {object} auth - req auth.
+//  * @param {object} body - req body.
+//  * @returns {object} - An object with the results.
+//  */
+// exports.editPI = async (id, auth, body) => {
+//     try {
+//         const { email, _id, fname, lname } = auth;
+//         const findEnquiry = await query.findOne(enquiryModel, { 'proformaInvoice._id': id, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, level: 3 });
+//         if (!findEnquiry) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry not found'
+//             };
+//         }
+//         body.Id = `PI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+//         const obj = {
+//             performedBy: _id,
+//             performedByEmail: email,
+//             actionName: `Enquiry porforma invoice creation by ${fname} ${lname} from quote Id : ${body.quoteId} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+//         };
+//         const createPI = await enquiryModel.findByIdAndUpdate(enquiryId,
+//             { proformaInvoice: body, quoteId: body.quoteId, $push: { Activity: obj }, isPiCreated: true, stageName: 'Create_Sales_Order' },
+//             { new: true, runValidators: true });
+//         if (createPI) {
+//             if (!findQuote.isActive) {
+//                 await enquiryQuoteModel.updateMany({ _id: { $ne: body.quoteId } }, { $set: { isActive: false } });
+//                 await enquiryQuoteModel.updateOne({ _id: body.quoteId }, { $set: { isActive: true } });
+//             }
+//             return {
+//                 success: true,
+//                 message: 'Enquiry porforma invoice created successfully.',
+//                 data: createPI
+//             };
+//         }
+
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error occurred during adding PI: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };

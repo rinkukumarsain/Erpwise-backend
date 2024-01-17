@@ -27,7 +27,8 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
-                isDeleted: false
+                isDeleted: false,
+                level: 1
             }
         },
         {

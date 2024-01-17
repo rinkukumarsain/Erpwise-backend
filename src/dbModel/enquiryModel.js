@@ -213,7 +213,7 @@ const enquirySchema = new Schema(
                     },
                     transactionCurrency: {
                         type: mongoose.Types.ObjectId,
-                        required: true,
+                        // required: true,
                         ref: 'Currency'
                     },
                     paymentOption: {
@@ -324,7 +324,7 @@ const enquirySchema = new Schema(
                     xeroPayment: [{ type: Object }],
                     currencyExchangeRate: {
                         type: Number,
-                        required: true,
+                        // required: true,s
                         default: 0
                     },
                     createdBy: {

@@ -88,3 +88,44 @@ exports.createQuote = {
         currencyExchangeRate: Joi.number().allow(null)
     })
 };
+
+exports.createPI = {
+    body: Joi.object({
+        // Id: Joi.string().required(),
+        quoteId: Joi.string().required(),
+        customerRefNo: Joi.string().required(),
+        invoiceDate: Joi.string().required(),
+        invoiceDueDate: Joi.string().required(),
+        buyerBillingAddressId: Joi.string().required(),
+        buyerBillingAddress: Joi.string().required(),
+        buyerShippingAddressId: Joi.string().required(),
+        buyerShippingAddress: Joi.string().required(),
+        partialDelivery: Joi.boolean().required(),
+        countryOrigin: Joi.string().required(),
+        countryDestination: Joi.string().required(),
+        transactionCurrency: Joi.string().allow(null),
+        paymentOption: Joi.string().allow(null),
+        deliveryTerm: Joi.string().allow(null),
+        vatGroupId: Joi.string().required(),
+        vatGroup: Joi.number().required(),
+        shippingDesciption: Joi.string().required(),
+        totalItems: Joi.number().required(),
+        totalQuantity: Joi.number().required(),
+        totalNetWt: Joi.number().allow(null),
+        addedSupplierTotal: Joi.number().required(),
+        discount: Joi.number().required(),
+        discountValue: Joi.number().required(),
+        freightCharges: Joi.number().required(),
+        packingCharges: Joi.number().required(),
+        vatGroupValue: Joi.number().required(),
+        addedSupplierFinalTotal: Joi.number().required(),
+        notes: Joi.string().allow(null),
+        additionalNotes: Joi.string().allow(null),
+        signatoryName: Joi.string().required(),
+        place: Joi.string().required(),
+        issueDate: Joi.string().required(),
+        signature: Joi.string().required(),
+        role: Joi.string().required(),
+        currencyExchangeRate: Joi.number().allow(null)
+    })
+};

@@ -202,7 +202,7 @@ exports.getRecommendedSupplierWithItems = async (enquiryId, orgId) => {
     try {
         // const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getEnquiryByIdPipelineForSendMail(orgId, enquiryId));
         const recommendedSupplierWithItems = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItems(enquiryId));
-        const recommendedSupplierWithCount = await query.aggregation(enquiryItemModel, enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId));
+        const recommendedSupplierWithCount = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.getRecommendedSupplierWithItemsCount(orgId, enquiryId));
         if (recommendedSupplierWithItems.length > 0) {
             return {
                 success: true,

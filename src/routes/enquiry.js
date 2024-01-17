@@ -13,7 +13,9 @@ const { enquiryValidators: {
     deleteEnquiryDocument,
     updateEnquiryById,
     // ==Quote== //
-    createQuote
+    createQuote,
+    // ==PI== //
+    createPI
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -199,6 +201,27 @@ router.get(`${preFix}/getAll/:enquiryId/:id?`, jwtVerify, async (req, res) => {
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
+
+// ========================= PI ============================= //
+
+let piPreFix = '/pi';
+
+/**
+ * Route for creating enquiry pi.
+ */
+router.post(`${piPreFix}/create/:enquiryId`, jwtVerify, validate(createPI), async (req, res) => {
+    try {
+        const result = await enquiryServices.createPI(req.params.enquiryId, req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry pi: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 module.exports = router;

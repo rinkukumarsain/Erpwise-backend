@@ -1855,7 +1855,7 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId, query) => {
 exports.getMailLogsPipeline = (type) => [
     {
         $match: {
-            '$mailDetails.type': type
+            'mailDetails.type': type
         }
     },
     {

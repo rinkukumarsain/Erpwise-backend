@@ -154,9 +154,9 @@ router.post('/deleteDocument/:id', jwtVerify, validate(deleteEnquiryDocument), a
 /**
  * Route of getting mail logs
  */
-router.get('/maillogs/:type', jwtVerify, async (req, res) => {
+router.get('/maillogs/:type/:enquiryId', jwtVerify, async (req, res) => {
     try {
-        const result = await enquiryServices.getMailLogs(req.params.type);
+        const result = await enquiryServices.getMailLogs(req.params.type, req.params.enquiryId);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

@@ -147,7 +147,7 @@ router.post('/enquirySupplierSelectedItem/skipMail/:supplierId', jwtVerify, asyn
 });
 
 /**
- * Route of sending mail for Enquiry Supplier Selected Item.
+ * Route of skipping mail for Enquiry Supplier Selected Item.
  */
 router.post('/enquirySupplierSelectedItem/sendMail', jwtVerify, uploadS3.single('file'), async (req, res) => {
     try {
@@ -158,6 +158,22 @@ router.post('/enquirySupplierSelectedItem/sendMail', jwtVerify, uploadS3.single(
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/sendMail/:id : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route of getting mail logs of enquiry's selected items (in respect of supplier)
+ */
+router.get('/enquirySupplierSelectedItem/maillogs/:enquiryId/:supplierId', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryItemService.enquirySupplierSelectedItemMailLogs(req.params.enquiryId, req.params.supplierId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/maillogs/:enquiryId/:supplierId : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

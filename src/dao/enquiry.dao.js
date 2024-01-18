@@ -1,35 +1,6 @@
 const mongoose = require('mongoose');
 // const moment = require('moment');
 
-
-/**
- * Generates an aggregation pipeline to retrieve count for sales dashboard
- *
- * @param {string} orgId - The organization's unique identifier.
- * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of enquiry.
- */
-exports.getSalesDashboardCount = (orgId) => [
-    {
-        $match: {
-            organisationId: new mongoose.Types.ObjectId(orgId),
-            isDeleted: false
-        }
-    },
-    {
-        $group: {
-            _id: '$level',
-            count: {
-                $sum: 1
-            }
-        }
-    },
-    {
-        $sort: {
-            _id: 1
-        }
-    }
-];
-
 /**
  * Options for customizing the lead retrieval.
  *
@@ -1850,12 +1821,77 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId, query) => {
  * Generates an aggregation pipeline to retrieve Mail Logs
  *
  * @param {string} type - The enquiry's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
  * @returns {Array} - An aggregation pipeline to retrieve Mail logs
  */
-exports.getMailLogsPipeline = (type) => [
+exports.getMailLogsPipeline = (type, enquiryId) => [
     {
         $match: {
-            'mailDetails.type': type
+            $expr: {
+                $and: [
+                    {
+                        $eq: [
+                            '$mailDetails.enquiryId',
+                            enquiryId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.type',
+                            type
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            nodemailerResponse: 0,
+            documents: 0,
+            subject: 0,
+            body: 0
+        }
+    },
+    {
+        $sort: {
+            createdAt: -1
+        }
+    }
+];
+
+/**
+ * Generates an aggregation pipeline to retrieve Mail Logs of enquiry selected items (in respect of supplier)
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} supplierId - The supplier's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve Mail logs
+ */
+exports.EnquirySupplierSelectedItemMailLogs = (enquiryId, supplierId) => [
+    {
+        $match: {
+            $expr: {
+                $and: [
+                    {
+                        $eq: [
+                            '$mailDetails.enquiryId',
+                            enquiryId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.supplierId',
+                            supplierId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.type',
+                            'enquirySupplierSelectedItem'
+                        ]
+                    }
+                ]
+            }
         }
     },
     {
@@ -1990,20 +2026,20 @@ exports.getQuotePipeline = (enquiryId, id) => {
                 preserveNullAndEmptyArrays: true
             }
         },
-        // {
-        //     $lookup: {
-        //         from: 'organisations',
-        //         localField: 'organisationId',
-        //         foreignField: '_id',
-        //         as: 'orgData'
-        //     }
-        // },
-        // {
-        //     $unwind: {
-        //         path: '$orgData',
-        //         preserveNullAndEmptyArrays: true
-        //     }
-        // },
+        {
+            $lookup: {
+                from: 'organisations',
+                localField: 'organisationId',
+                foreignField: '_id',
+                as: 'orgData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$orgData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
         {
             $lookup: {
                 from: 'organisationaddresses',

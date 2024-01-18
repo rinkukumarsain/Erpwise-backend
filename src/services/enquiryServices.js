@@ -892,11 +892,12 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
  * Get mail logs
  *
  * @param {string} type - The supplier's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
  * @returns {object} - An object with the results.
  */
-exports.getMailLogs = async (type) => {
+exports.getMailLogs = async (type, enquiryId) => {
     try {
-        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.getMailLogsPipeline(type));
+        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.getMailLogsPipeline(type, enquiryId));
         return {
             success: true,
             message: 'Previous mail logs fetched successfully.',

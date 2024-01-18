@@ -2171,7 +2171,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 companyName: 1,
                 contactPerson: 1,
                 stageName: 1,
-                isQuoteCreated: 1
+                isQuoteCreated: 1,
+                Activity: 1
 
             }
         }

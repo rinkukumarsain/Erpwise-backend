@@ -901,7 +901,7 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
  */
 async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
     try {
-        console.log('file:::::::::::', file);
+        // console.log('file:::::::::::', file);
         // const temp = file.location.split('/');
         const mailCred = {
             email: process.env.EMAIL1,

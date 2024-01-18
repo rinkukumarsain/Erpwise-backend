@@ -147,7 +147,7 @@ router.post('/enquirySupplierSelectedItem/skipMail/:supplierId', jwtVerify, asyn
 });
 
 /**
- * Route of skipping mail for Enquiry Supplier Selected Item.
+ * Route of sending mail for Enquiry Supplier Selected Item.
  */
 router.post('/enquirySupplierSelectedItem/sendMail', jwtVerify, uploadS3.single('file'), async (req, res) => {
     try {

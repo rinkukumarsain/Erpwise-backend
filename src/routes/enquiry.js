@@ -234,6 +234,22 @@ router.get(`${preFix}/getAllData`, jwtVerify, validate(getAllEnquiry), async (re
     }
 });
 
+/**
+ * Route of sending mail for enquiry quote.
+ */
+router.post(`${preFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        const result = await enquiryServices.sendMailForEnquiryQuote(req.body, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= PI ============================= //
 
 let piPreFix = '/pi';

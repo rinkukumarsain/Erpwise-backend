@@ -1,9 +1,18 @@
 const moment = require('moment');
+
 // Local Import
-const { enquiryModel, leadModel, enquiryItemModel, enquirySupplierSelectedItemsModel, enquiryQuoteModel } = require('../dbModel');
+const {
+    enquiryModel,
+    leadModel,
+    enquiryItemModel,
+    enquirySupplierSelectedItemsModel,
+    enquiryQuoteModel,
+    mailLogsModel
+} = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { sendMail } = require('../utils/sendMail');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -819,3 +828,115 @@ exports.getAllPorformaInvoice = async (orgId, queryObj) => {
 //         };
 //     }
 // };
+
+/**
+ * Send Mail For Enquiry Supplier Selected Item
+ *
+ * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @param {object} file - Data of uploaded sheet of Enquiry Supplier Selected Items.
+ * @returns {object} - An object with the results.
+ */
+exports.sendMailForEnquiryQuote = async (updateData, file) => {
+    try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: updateData.enquiryId, isActive: true, isDeleted: false, isQuoteCreated: true });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isPiCreated) {
+            return {
+                success: false,
+                message: 'Enquiry porforma invoice already created.'
+            };
+        }
+        const find = await query.findOne(enquiryQuoteModel, { _id: updateData.quoteId, isDeleted: false });
+        if (!find) {
+            return {
+                success: false,
+                message: `Enquiry quote not found.`
+            };
+        }
+        const mailDetails = {
+            enquiryId: updateData.enquiryId,
+            quoteId: updateData.quoteId,
+            type: 'enquiryQuote'
+        };
+        sendMailFun(
+            updateData.to,
+            updateData.cc,
+            updateData.subject,
+            updateData.body,
+            file,
+            mailDetails
+        );
+        return {
+            success: true,
+            message: `Enquiry quote mail sent.`,
+            data: updateData.quoteId
+        };
+        // }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while send Mail For Enquiry Supplier Selected Item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Function to send mail.
+ *
+ * @param {string} to - Send email to.
+ * @param {string} cc - Send email cc.
+ * @param {string} subject - Send email subject.
+ * @param {string} body - email body.
+ * @param {object} file - email attachment.
+ * @param {object} mailDetailData - email extra details.
+ * @returns {Promise<void>} - A Promise that resolves after operation.
+ */
+async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
+    try {
+        console.log('file:::::::::::', file);
+        // const temp = file.location.split('/');
+        const mailCred = {
+            email: process.env.EMAIL1,
+            password: process.env.PASS1,
+            host: process.env.HOST,
+            port: 465,
+            secure: true
+        };
+        const mailDetails = {
+            to,
+            cc,
+            subject,
+            body,
+            attachments: [{
+                filename: file?.originalname,
+                path: file.location
+            }]
+        };
+        const nodemailerResponse = await sendMail(mailCred, mailDetails);
+        await query.create(mailLogsModel, {
+            to,
+            from: mailCred.email,
+            cc,
+            subject,
+            body,
+            documents: [
+                {
+                    fileName: file?.originalname,
+                    fileUrl: file.location
+                }
+            ],
+            mailDetails: mailDetailData,
+            nodemailerResponse
+        });
+    } catch (error) {
+        logger.error(LOG_ID, `Error while sending mail TYPE:- (${mailDetailData.type}) : ${error}`);
+    }
+}

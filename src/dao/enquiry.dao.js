@@ -2012,20 +2012,20 @@ exports.getQuotePipeline = (enquiryId, id) => {
                 preserveNullAndEmptyArrays: true
             }
         },
-        {
-            $lookup: {
-                from: 'organisations',
-                localField: 'organisationId',
-                foreignField: '_id',
-                as: 'orgData'
-            }
-        },
-        {
-            $unwind: {
-                path: '$orgData',
-                preserveNullAndEmptyArrays: true
-            }
-        },
+        // {
+        //     $lookup: {
+        //         from: 'organisations',
+        //         localField: 'organisationId',
+        //         foreignField: '_id',
+        //         as: 'orgData'
+        //     }
+        // },
+        // {
+        //     $unwind: {
+        //         path: '$orgData',
+        //         preserveNullAndEmptyArrays: true
+        //     }
+        // },
         {
             $lookup: {
                 from: 'organisationaddresses',

@@ -8,6 +8,41 @@ const { logger } = require('../utils/logger');
 const LOG_ID = 'services/enquiryService';
 
 /**
+ * Get Sales Dashboard Count.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including the new enquiry.
+ */
+exports.enquiryDashboardCount = async (orgId) => {
+    try {
+        const findCount = await query.aggregation(enquiryModel, enquiryDao.getSalesDashboardCount(orgId));
+        let obj = {
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0,
+            5: 0,
+            6: 0,
+            7: 0
+        };
+        if (findCount.length > 0) for (let ele of findCount) obj[ele._id] = ele.count;
+
+        return {
+            success: true,
+            message: 'Sales dashboard count.',
+            data: obj
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error creating enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+
+/**
  * Creates a new Enquiry.
  *
  * @param {object} auth - Data of logedin user.

@@ -24,6 +24,22 @@ const router = express.Router();
 const LOG_ID = 'routes/enquiry';
 
 /**
+ * Route for getting enquiry dashboard count.
+ */
+router.get('/dashboardcount', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.enquiryDashboardCount(req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting  enquiry dashboard count: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
  * Route for creating enquiry.
  */
 router.post('/create', jwtVerify, validate(createEnquiry), async (req, res) => {

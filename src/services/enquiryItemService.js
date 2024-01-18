@@ -52,7 +52,7 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
         if (totalPrice > findenquiry.totalOrderValue) {
             return {
                 success: false,
-                message: `The total price of items can't exceed the total order value(${enquiryModel.totalOrderValue}) of the enquiry.`
+                message: `The total price of items can't exceed the total order value(${findenquiry.totalOrderValue}) of the enquiry.`
             };
         }
 

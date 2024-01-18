@@ -528,6 +528,7 @@ exports.getQuote = async (enquiryId, id) => {
                 success: true,
                 message: 'Enquiry quote fetched successfully.',
                 data: id ? getQuote[0] : getQuote,
+                stageName: findEnquiry?.stageName,
                 isPiCreated: findEnquiry?.isPiCreated,
                 pi_id: findEnquiry?.proformaInvoice?._id
             };

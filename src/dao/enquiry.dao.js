@@ -925,7 +925,8 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
                         dueDate: 1,
                         isItemShortListed: 1,
                         isQuoteCreated: 1,
-                        quoteId: 1
+                        quoteId: 1,
+                        stageName: 1
                     }
                 }
             ],
@@ -949,6 +950,12 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
             isItemShortListed: {
                 $arrayElemAt: [
                     '$result.isItemShortListed',
+                    0
+                ]
+            },
+            stageName: {
+                $arrayElemAt: [
+                    '$result.stageName',
                     0
                 ]
             }

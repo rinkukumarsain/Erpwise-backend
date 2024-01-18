@@ -790,6 +790,7 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
                 data: IteamsSpllierResponse,
                 isItemShortListed: findenquiry.isItemShortListed,
                 isQuoteCreated: findenquiry.isQuoteCreated,
+                stageName: findenquiry.stageName,
                 quoteId: findenquiry.quoteId,
                 calculation: calculation[0]
             };
@@ -833,7 +834,9 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
                 success: true,
                 message: 'Supplier quotes fetched successfully.',
                 data: IteamsSpllierResponse,
-                isItemShortListed: findenquiry.isItemShortListed
+                isItemShortListed: findenquiry.isItemShortListed,
+                stageName: findenquiry.stageName
+
             };
         }
     } catch (error) {

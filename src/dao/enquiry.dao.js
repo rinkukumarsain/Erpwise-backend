@@ -2107,19 +2107,37 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
         },
         {
             $lookup:
-            /**
-             * from: The target collection.
-             * localField: The local join field.
-             * foreignField: The target join field.
-             * as: The name for the results.
-             * pipeline: Optional pipeline to run on the foreign collection.
-             * let: Optional variables to use in the pipeline field stages.
-             */
             {
                 from: 'enquirysupplierselecteditems',
-                localField:
-                    'quoteData.enquiryFinalItemId',
+                localField: 'quoteData.enquiryFinalItemId',
                 foreignField: '_id',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'suppliers',
+                            localField:
+                                'supplierId',
+                            foreignField: '_id',
+                            as: 'supplierData'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supplierData',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $addFields: {
+                            supplierCompanyName: '$supplierData.companyName'
+                        }
+                    },
+                    {
+                        $project: {
+                            supplierData: 0
+                        }
+                    }
+                ],
                 as: 'enquirysupplierselecteditems'
             }
         },
@@ -2147,6 +2165,17 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                                         '$$this.finalItemDetails.quantity'
                                 }
                             ]
+                        }
+                    }
+                },
+                totalSuppliers: {
+                    $size: {
+                        $setUnion: {
+                            $map: {
+                                input: '$enquirysupplierselecteditems',
+                                as: 'item',
+                                in: '$$item.supplierId'
+                            }
                         }
                     }
                 },

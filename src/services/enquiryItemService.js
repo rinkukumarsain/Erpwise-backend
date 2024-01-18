@@ -46,6 +46,16 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
             };
         }
 
+        const findTotalAmount = await query.aggregation(enquiryItemModel, enquiryDao.getEnquiryItemTotalForCheckToTotalOrderValue(enquiryItemData.enquiryId));
+        let totalPrice = +enquiryItemData.unitPrice * +enquiryItemData.quantity;
+        totalPrice += findTotalAmount[0].totalPrice;
+        if (totalPrice > enquiryModel.totalOrderValue) {
+            return {
+                success: false,
+                message: `The total price of items can't exceed the total order value(${enquiryModel.totalOrderValue}) of the enquiry.`
+            };
+        }
+
         const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: enquiryItemData.partNumber, enquiryId: enquiryItemData.enquiryId, isDeleted: false });
         if (findUniqueName) {
             return {

@@ -1885,6 +1885,43 @@ exports.getEnquiryByIdPipelineForSendMail = (orgId, enquiryId) => [
     }
 ];
 
+/**
+ * Generates an aggregation pipeline to retrieve total price of all enquiry item (unitprice * quantity)
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve data
+ */
+exports.getEnquiryItemTotalForCheckToTotalOrderValue = (enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId),
+            isDeleted: false
+        }
+    },
+    {
+        $addFields: {
+            totalPrice: {
+                $multiply: [
+                    {
+                        $toDouble: '$unitPrice'
+                    },
+                    {
+                        $toDouble: '$quantity'
+                    }
+                ]
+            }
+        }
+    },
+    {
+        $group: {
+            _id: '$enquiryId',
+            totalPrice: {
+                $sum: '$totalPrice'
+            }
+        }
+    }
+];
+
 
 // ========================= QUOTE ============================= //
 

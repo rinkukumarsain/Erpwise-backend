@@ -889,6 +889,29 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
 };
 
 /**
+ * Get mail logs
+ *
+ * @param {string} type - The supplier's unique identifier.
+ * @returns {object} - An object with the results.
+ */
+exports.getMailLogs = async (type) => {
+    try {
+        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.getMailLogsPipeline(type));
+        return {
+            success: true,
+            message: 'Previous mail logs fetched successfully.',
+            data: mailLogs
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error While fetching mail logs: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

@@ -905,30 +905,6 @@ exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
 };
 
 /**
- * Get mail logs of enquiry selected items (in respect of supplier)
- *
- * @param {string} enquiryId - The enquiry's unique identifier.
- * @param {string} supplierId - The supplier's unique identifier.
- * @returns {object} - An object with the results.
- */
-exports.enquirySupplierSelectedItemMailLogs = async (enquiryId, supplierId) => {
-    try {
-        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.EnquirySupplierSelectedItemMailLogs(enquiryId, supplierId));
-        return {
-            success: true,
-            message: 'Previous mail logs fetched successfully.',
-            data: mailLogs
-        };
-    } catch (error) {
-        logger.error(LOG_ID, `Error While short listing items of enquiry: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
-
-/**
  * Updates data for selected items in the Enquiry Supplier.
  *
  * @param {Array} data - An array of items to be updated.

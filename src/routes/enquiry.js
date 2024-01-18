@@ -151,6 +151,22 @@ router.post('/deleteDocument/:id', jwtVerify, validate(deleteEnquiryDocument), a
     }
 });
 
+/**
+ * Route of getting mail logs
+ */
+router.get('/maillogs/:type', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getMailLogs(req.params.type);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/maillogs : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= QUOTE ============================= //
 
 let preFix = '/quote';

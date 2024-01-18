@@ -163,22 +163,6 @@ router.post('/enquirySupplierSelectedItem/sendMail', jwtVerify, uploadS3.single(
 });
 
 /**
- * Route of getting mail logs of enquiry's selected items (in respect of supplier)
- */
-router.get('/enquirySupplierSelectedItem/maillogs/:enquiryId/:supplierId', jwtVerify, async (req, res) => {
-    try {
-        const result = await enquiryItemService.enquirySupplierSelectedItemMailLogs(req.params.enquiryId, req.params.supplierId);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred during enquiryItem/enquirySupplierSelectedItem/maillogs/:enquiryId/:supplierId : ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
-
-/**
  * Route for uploading enquiry items in bulk.
  */
 router.post('/itemsSheetBySupplerUpload/:id?', jwtVerify, upload.single('file'), async (req, res) => {

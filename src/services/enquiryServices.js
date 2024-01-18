@@ -83,7 +83,7 @@ exports.updateEnquiryById = async (auth, enquiryId, enquiryData, orgId) => {
         }
         if (enquiryData.totalOrderValue) {
             const findTotalAmount = await query.aggregation(enquiryItemModel, enquiryDao.getEnquiryItemTotalForCheckToTotalOrderValue(enquiryId));
-            if (findTotalAmount[0].totalPrice > +enquiryData.totalOrderValue) {
+            if ((findTotalAmount[0]?.totalPrice || 0) > +enquiryData.totalOrderValue) {
                 return {
                     success: false,
                     message: `The total order value of the enquiry cannot be less than the total price(${findTotalAmount[0].totalPrice}) of the current items.`

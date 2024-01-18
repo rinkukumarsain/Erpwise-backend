@@ -48,6 +48,8 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
 
         const findTotalAmount = await query.aggregation(enquiryItemModel, enquiryDao.getEnquiryItemTotalForCheckToTotalOrderValue(enquiryItemData.enquiryId));
         let totalPrice = +enquiryItemData.unitPrice * +enquiryItemData.quantity;
+        console.log('totalPrice',totalPrice);
+        console.log('findTotalAmount[0]',findTotalAmount[0]);
         totalPrice += findTotalAmount[0].totalPrice;
         if (totalPrice > enquiryModel.totalOrderValue) {
             return {

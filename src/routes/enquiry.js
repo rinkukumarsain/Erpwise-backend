@@ -239,7 +239,7 @@ router.post(`${piPreFix}/create/:enquiryId`, jwtVerify, validate(createPI), asyn
 });
 
 /**
- * Route for getting all enquiry quote.
+ * Route for getting enquiry porforma invoice by enquiry id.
  */
 router.get(`${piPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
     try {
@@ -249,7 +249,23 @@ router.get(`${piPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), asy
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred while getting all enquiry pi: ${err.message}`);
+        logger.error(LOG_ID, `Error occurred while getting enquiry pi by enquiry id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all enquiry porforma invoice.
+ */
+router.get(`${piPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllPorformaInvoice(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiry porforma invoice: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

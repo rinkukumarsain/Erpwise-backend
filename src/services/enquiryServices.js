@@ -13,6 +13,7 @@ const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
+const { CRMlevelEnum } = require('../../config/default.json');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -1065,6 +1066,11 @@ exports.createSO = async (enquiryId, auth, body) => {
             },
             { new: true, runValidators: true });
         if (createSO) {
+            await leadModel.findByIdAndUpdate(
+                findEnquiry.leadId,
+                { isMovedToSalesOrder: true, level: CRMlevelEnum['SALESORDER'] },
+                { runValidators: true }
+            );
             return {
                 success: true,
                 message: 'Enquiry sales order created successfully.',

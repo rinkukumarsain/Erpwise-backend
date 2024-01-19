@@ -361,7 +361,7 @@ router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (r
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during enquiry${piPreFix}/sendMail : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

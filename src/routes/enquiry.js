@@ -350,6 +350,22 @@ router.get(`${piPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route of sending mail for enquiry porforma invoice.
+ */
+router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        const result = await enquiryServices.sendMailForEnquiryPI(req.body, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 

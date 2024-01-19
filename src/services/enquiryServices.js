@@ -350,6 +350,30 @@ exports.deleteEnquiryDocument = async (enquiryId, imageUrl, auth) => {
     }
 };
 
+/**
+ * Get mail logs
+ *
+ * @param {string} type - The supplier's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {object} - An object with the results.
+ */
+exports.getMailLogs = async (type, enquiryId) => {
+    try {
+        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.getMailLogsPipeline(type, enquiryId));
+        return {
+            success: true,
+            message: 'Previous mail logs fetched successfully.',
+            data: mailLogs
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error While fetching mail logs: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 
 // ========================= QUOTE ============================= //
 
@@ -643,6 +667,58 @@ exports.getAllQuote = async (orgId, queryObj) => {
     }
 };
 
+/**
+ * Send Mail For Enquiry quote
+ *
+ * @param {object} updateData - Data of Enquiry Supplier Selected Item.
+ * @param {object} file - Data of uploaded sheet of Enquiry Supplier Selected Items.
+ * @returns {object} - An object with the results.
+ */
+exports.sendMailForEnquiryQuote = async (updateData, file) => {
+    try {
+        const findenquiry = await query.findOne(enquiryModel, { _id: updateData.enquiryId, isActive: true, isDeleted: false, isQuoteCreated: true });
+        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+
+        if (findenquiry.isPiCreated) {
+            return {
+                success: false,
+                message: 'Enquiry porforma invoice already created.'
+            };
+        }
+        const mailDetails = {
+            enquiryId: updateData.enquiryId,
+            quoteId: updateData.quoteId,
+            type: 'enquiryQuote'
+        };
+        sendMailFun(
+            updateData.to,
+            updateData.cc,
+            updateData.subject,
+            updateData.body,
+            file,
+            mailDetails
+        );
+        return {
+            success: true,
+            message: `Enquiry quote mail sent.`,
+            data: updateData.quoteId
+        };
+        // }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while send Mail For Enquiry Supplier Selected Item: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= PI ============================= //
 
 
@@ -893,18 +969,16 @@ exports.deletePI = async (enquiryId, auth) => {
     }
 };
 
-
 /**
- * Send Mail For Enquiry Supplier Selected Item
+ * Send Mail For Enquiry Porforma Invoice
  *
- * @param {object} updateData - Data of Enquiry Supplier Selected Item.
- * @param {object} file - Data of uploaded sheet of Enquiry Supplier Selected Items.
+ * @param {object} updateData - Data of Enquiry Porforma Invoice.
+ * @param {object} file - Data of uploaded sheet of Enquiry Porforma Invoice.
  * @returns {object} - An object with the results.
  */
-exports.sendMailForEnquiryQuote = async (updateData, file) => {
+exports.sendMailForEnquiryPI = async (updateData, file) => {
     try {
-        const findenquiry = await query.findOne(enquiryModel, { _id: updateData.enquiryId, isActive: true, isDeleted: false, isQuoteCreated: true });
-        // console.log('findenquiry>>>>>>>>>>>>>', findenquiry);
+        const findenquiry = await query.findOne(enquiryModel, { _id: updateData.enquiryId, isActive: true, isDeleted: false, isQuoteCreated: true, isPiCreated: true });
         if (!findenquiry) {
             return {
                 success: false,
@@ -912,23 +986,16 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
             };
         }
 
-        if (findenquiry.isPiCreated) {
+        if (findenquiry.isSalesOrderCreated) {
             return {
                 success: false,
-                message: 'Enquiry porforma invoice already created.'
-            };
-        }
-        const find = await query.findOne(enquiryQuoteModel, { _id: updateData.quoteId, isDeleted: false });
-        if (!find) {
-            return {
-                success: false,
-                message: `Enquiry quote not found.`
+                message: 'Enquiry sales order is already created.'
             };
         }
         const mailDetails = {
             enquiryId: updateData.enquiryId,
-            quoteId: updateData.quoteId,
-            type: 'enquiryQuote'
+            porformaInvoceId: findenquiry.proformaInvoice._id,
+            type: 'enquiryPorformaInvoice'
         };
         sendMailFun(
             updateData.to,
@@ -940,36 +1007,11 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
         );
         return {
             success: true,
-            message: `Enquiry quote mail sent.`,
-            data: updateData.quoteId
-        };
-        // }
-    } catch (error) {
-        logger.error(LOG_ID, `Error while send Mail For Enquiry Supplier Selected Item: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
-
-/**
- * Get mail logs
- *
- * @param {string} type - The supplier's unique identifier.
- * @param {string} enquiryId - The enquiry's unique identifier.
- * @returns {object} - An object with the results.
- */
-exports.getMailLogs = async (type, enquiryId) => {
-    try {
-        const mailLogs = await query.aggregation(mailLogsModel, enquiryDao.getMailLogsPipeline(type, enquiryId));
-        return {
-            success: true,
-            message: 'Previous mail logs fetched successfully.',
-            data: mailLogs
+            message: `Enquiry porforma invoice mail sent.`,
+            data: updateData.enquiryId
         };
     } catch (error) {
-        logger.error(LOG_ID, `Error While fetching mail logs: ${error}`);
+        logger.error(LOG_ID, `Error while send Mail For Enquiry Porforma Invoice: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

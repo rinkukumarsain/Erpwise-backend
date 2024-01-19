@@ -461,14 +461,19 @@ exports.deleteQuote = async (id, auth) => {
                 message: 'Enquiry porforma invoice is already created.'
             };
         }
+        let chekUpdate = false;
+        const findActiveQuote = await query.find(enquiryQuoteModel, { enquiryId: findQuote.enquiryId, _id: { $ne: id }, isDeleted: false });
+        if (findActiveQuote.length == 0) {
+            chekUpdate = true;
+        }
 
         let quoteId = null;
-        if (findQuote.isActive) {
+        if (!chekUpdate && findQuote.isActive) {
             const findQuoteData = await enquiryQuoteModel.find({ isDeleted: false, isActive: false }).sort({ createdAt: -1 }).limit(1);
             quoteId = findQuoteData[0]._id;
             await enquiryQuoteModel.findByIdAndUpdate(quoteId, { isActive: true }, { new: true, runValidators: true });
         }
-        const deleteQuote = await enquiryQuoteModel.findByIdAndUpdate(id, { isDeleted: false, isActive: false }, { new: true, runValidators: true });
+        const deleteQuote = await enquiryQuoteModel.findByIdAndUpdate(id, { isDeleted: true, isActive: false }, { new: true, runValidators: true });
         if (deleteQuote) {
             if (findQuote.isActive) {
                 const obj = {
@@ -478,6 +483,12 @@ exports.deleteQuote = async (id, auth) => {
                 };
                 let update = { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote' };
                 if (quoteId) update['quoteId'] = quoteId;
+                if (chekUpdate) {
+                    update['stageName'] = 'Create_Quote';
+                    update['isQuoteCreated'] = false;
+                    update['quoteId'] = null;
+                    update['level'] = 1;
+                }
                 await enquiryModel.findByIdAndUpdate(
                     findQuote.enquiryId,
                     update,
@@ -827,6 +838,61 @@ exports.updatePI = async (enquiryId, auth, body) => {
         };
     }
 };
+
+/**
+ * delete enquiry Porforma Invoice.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including enquiry Porforma Invoice details.
+ */
+exports.deletePI = async (enquiryId, auth) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isSalesOrderCreated) {
+            return {
+                success: false,
+                message: 'Enquiry sales order is already created.'
+            };
+        }
+        const { email, _id, fname, lname } = auth;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry porforma invoice(id: ${findEnquiry.proformaInvoice._id}) deleted by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const editQuote = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            {
+                proformaInvoice: null,
+                $push: { Activity: obj },
+                level: 2,
+                isPiCreated: false,
+                stageName: 'Create_PI'
+            },
+            { new: true, runValidators: true }
+        );
+        if (editQuote) {
+            return {
+                success: true,
+                message: 'Enquiry porforma invoice deleted successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting porforma invoice: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 
 /**
  * Send Mail For Enquiry Supplier Selected Item

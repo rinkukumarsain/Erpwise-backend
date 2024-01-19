@@ -334,6 +334,22 @@ router.post(`${piPreFix}/update/:enquiryId`, jwtVerify, validate(createPI), asyn
     }
 });
 
+/**
+ * Route for deleting enquiry porforma invoice.
+ */
+router.get(`${piPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deletePI(req.params.enquiryId, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry porforma invoice: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 

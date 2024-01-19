@@ -2478,3 +2478,129 @@ exports.getPiByIdSOPipeline = (enquiryId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry All sales order for dashboard.
+ *
+ * @param {string} orgId - The enquiry's unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllSalesOrderPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                level: 4,
+                isQuoteCreated: true,
+                isDeleted: false
+            }
+        },
+        {
+            $sort: {
+                // 'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiryquotes',
+                localField: 'quoteId',
+                foreignField: '_id',
+                as: 'quoteData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$quoteData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierselecteditems',
+                localField: 'quoteData.enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                Id: 1,
+                quote_Id: '$quoteId',
+                quoteId: '$quoteData.Id',
+                pi_Id: '$proformaInvoice._id',
+                piId: '$proformaInvoice.Id',
+                so_Id: '$salesOrder._id',
+                soId: '$salesOrder.Id',
+                customerPORefNo:
+                    '$salesOrder.customerPORefNo',
+                margin: '$quoteData.margin',
+                companyName: 1,
+                contactPerson: 1,
+                invoiceDueDate:
+                    '$proformaInvoice.invoiceDueDate',
+                enquirysupplierselecteditems: 1,
+                totalItemQuantity: {
+                    $reduce: {
+                        input: '$enquirysupplierselecteditems',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                {
+                                    $toDouble:
+                                        '$$this.finalItemDetails.quantity'
+                                }
+                            ]
+                        }
+                    }
+                },
+                addedSupplierFinalTotal:
+                    '$proformaInvoice.addedSupplierFinalTotal',
+                createXero: '$proformaInvoice.createXero',
+                paymentStatus:
+                    '$proformaInvoice.paymentStatus',
+                stageName: 1,
+                Activity: 1,
+                totalSuppliers: {
+                    $size: {
+                        $setUnion: {
+                            $map: {
+                                input:
+                                    '$enquirysupplierselecteditems',
+                                as: 'item',
+                                in: '$$item.supplierId'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ];
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { 'salesOrder.Id': { $regex: `${search}.*`, $options: 'i' } },
+            { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+        ];
+    }
+
+    if (sortBy && sortOrder) {
+        pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
+    } else {
+        pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+    return pipeline;
+};

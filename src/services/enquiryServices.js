@@ -1117,51 +1117,51 @@ exports.getSOById = async (enquiryId) => {
     }
 };
 
-// /**
-//  * Gets all enquiry Porforma Invoice for dashboard of sales.
-//  *
-//  * @param {string} orgId - Id of logedin user organisation.
-//  * @param {object} queryObj - filters for getting all Enquiry.
-//  * @returns {object} - An object with the results, including all Enquiry.
-//  */
-// exports.getAllSalesOrder = async (orgId, queryObj) => {
-//     try {
-//         if (!orgId) {
-//             return {
-//                 success: false,
-//                 message: 'Organisation not found.'
-//             };
-//         }
-//         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-//         let obj = {
-//             organisationId: orgId,
-//             isDeleted: false
-//         };
-//         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-//         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
-//         const totalPages = Math.ceil(enquiryListCount.length / perPage);
-//         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllPorformaInvoicePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-//         return {
-//             success: true,
-//             message: `Enquiry porforma invoice fetched successfully.`,
-//             data: {
-//                 enquiryData,
-//                 pagination: {
-//                     page,
-//                     perPage,
-//                     totalChildrenCount: enquiryListCount.length,
-//                     totalPages
-//                 }
-//             }
-//         };
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error fetching enquiry porforma invoice for dashboard of sales: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
+/**
+ * Gets all enquiry sales order for dashboard of sales.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all Enquiry.
+ */
+exports.getAllSalesOrder = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        let obj = {
+            organisationId: orgId,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSalesOrderPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        return {
+            success: true,
+            message: `Enquiry sales order fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryListCount.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching enquiry sales order for dashboard of sales: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
 
 /**
  * edit enquiry Sales Order.

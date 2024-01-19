@@ -48,6 +48,13 @@ exports.addFinanceDetailsSuppler = {
         supplierTotal: Joi.string().required(),
         freightCharges: Joi.string().required(),
         packingCharges: Joi.string().required(),
-        currency: Joi.string().required()
+        currency: Joi.string().required(),
+        vatGroupValue: Joi.string().required(),
+        vatGroupValueConverted: Joi.string().required(),
+        supplierTotalConverted: Joi.string().required(),
+        freightChargesConverted: Joi.string().required(),
+        packingChargesConverted: Joi.string().required(),
+        convertedToCurrency: Joi.string().required(),
+        currencyExchangeRate: Joi.string().required()
     })
 };

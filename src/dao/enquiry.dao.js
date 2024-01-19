@@ -2,6 +2,35 @@ const mongoose = require('mongoose');
 // const moment = require('moment');
 
 /**
+ * Generates an aggregation pipeline to sales dashboard count
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of enquiry.
+ */
+exports.getSalesDashboardCount = (orgId) => [
+    {
+        $match: {
+            isDeleted: false,
+            organisationId: new mongoose.Types.ObjectId(orgId)
+
+        }
+    },
+    {
+        $group: {
+            _id: '$level',
+            count: {
+                $sum: 1
+            }
+        }
+    },
+    {
+        $sort: {
+            _id: 1
+        }
+    }
+];
+
+/**
  * Options for customizing the lead retrieval.
  *
  * @typedef {object} GetAllLeadOptions

@@ -203,7 +203,7 @@ router.get(`${preFix}/delete/:id`, jwtVerify, async (req, res) => {
 });
 
 /**
- * Route for creating enquiry quote.
+ * Route for editing enquiry quote.
  */
 router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
     try {
@@ -314,6 +314,22 @@ router.get(`${piPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req,
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while getting all enquiry porforma invoice: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry porforma invoice.
+ */
+router.post(`${piPreFix}/update/:enquiryId`, jwtVerify, validate(createPI), async (req, res) => {
+    try {
+        const result = await enquiryServices.updatePI(req.params.enquiryId, req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry porforma invoice: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

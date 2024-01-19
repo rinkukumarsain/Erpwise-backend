@@ -781,53 +781,52 @@ exports.getAllPorformaInvoice = async (orgId, queryObj) => {
     }
 };
 
-// /**
-//  * Add enquiry Porforma Invoice.
-//  *
-//  * @param {string} id - PI id.
-//  * @param {object} auth - req auth.
-//  * @param {object} body - req body.
-//  * @returns {object} - An object with the results.
-//  */
-// exports.editPI = async (id, auth, body) => {
-//     try {
-//         const { email, _id, fname, lname } = auth;
-//         const findEnquiry = await query.findOne(enquiryModel, { 'proformaInvoice._id': id, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, level: 3 });
-//         if (!findEnquiry) {
-//             return {
-//                 success: false,
-//                 message: 'Enquiry not found'
-//             };
-//         }
-//         body.Id = `PI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
-//         const obj = {
-//             performedBy: _id,
-//             performedByEmail: email,
-//             actionName: `Enquiry porforma invoice creation by ${fname} ${lname} from quote Id : ${body.quoteId} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-//         };
-//         const createPI = await enquiryModel.findByIdAndUpdate(enquiryId,
-//             { proformaInvoice: body, quoteId: body.quoteId, $push: { Activity: obj }, isPiCreated: true, stageName: 'Create_Sales_Order' },
-//             { new: true, runValidators: true });
-//         if (createPI) {
-//             if (!findQuote.isActive) {
-//                 await enquiryQuoteModel.updateMany({ _id: { $ne: body.quoteId } }, { $set: { isActive: false } });
-//                 await enquiryQuoteModel.updateOne({ _id: body.quoteId }, { $set: { isActive: true } });
-//             }
-//             return {
-//                 success: true,
-//                 message: 'Enquiry porforma invoice created successfully.',
-//                 data: createPI
-//             };
-//         }
-
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error occurred during adding PI: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
+/**
+ * edit enquiry Porforma Invoice.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {object} auth - req auth.
+ * @param {object} body - req body.
+ * @returns {object} - An object with the results, including enquiry Porforma Invoice details.
+ */
+exports.updatePI = async (enquiryId, auth, body) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isSalesOrderCreated) {
+            return {
+                success: false,
+                message: 'Enquiry sales order is already created.'
+            };
+        }
+        const { email, _id, fname, lname } = auth;
+        body.updatedBy = _id;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry porforma invoice(id: ${findEnquiry.proformaInvoice._id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const editQuote = await enquiryModel.findByIdAndUpdate(enquiryId, { proformaInvoice: body, $push: { Activity: obj } }, { new: true, runValidators: true });
+        if (editQuote) {
+            return {
+                success: true,
+                message: 'Enquiry porforma invoice edited successfully.',
+                data: editQuote
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
 
 /**
  * Send Mail For Enquiry Supplier Selected Item

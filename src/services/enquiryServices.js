@@ -1033,7 +1033,7 @@ exports.sendMailForEnquiryPI = async (updateData, file) => {
 exports.createSO = async (enquiryId, auth, body) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, level: 3 });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true });
         if (!findEnquiry) {
             return {
                 success: false,

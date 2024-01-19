@@ -46,6 +46,16 @@ exports.createEnquiryItem = async (auth, enquiryItemData) => {
             };
         }
 
+        const findTotalAmount = await query.aggregation(enquiryItemModel, enquiryDao.getEnquiryItemTotalForCheckToTotalOrderValue(enquiryItemData.enquiryId));
+        let totalPrice = +enquiryItemData.unitPrice * +enquiryItemData.quantity;
+        totalPrice += findTotalAmount[0]?.totalPrice || 0;
+        if (totalPrice > findenquiry.totalOrderValue) {
+            return {
+                success: false,
+                message: `The total price of items can't exceed the total order value(${findenquiry.totalOrderValue}) of the enquiry.`
+            };
+        }
+
         const findUniqueName = await query.findOne(enquiryItemModel, { partNumber: enquiryItemData.partNumber, enquiryId: enquiryItemData.enquiryId, isDeleted: false });
         if (findUniqueName) {
             return {
@@ -780,6 +790,7 @@ exports.getIteamsSupplierResponse = async (enquiryId, isShortListed) => {
                 data: IteamsSpllierResponse,
                 isItemShortListed: findenquiry.isItemShortListed,
                 isQuoteCreated: findenquiry.isQuoteCreated,
+                stageName: findenquiry.stageName,
                 quoteId: findenquiry.quoteId,
                 calculation: calculation[0]
             };
@@ -823,7 +834,9 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
                 success: true,
                 message: 'Supplier quotes fetched successfully.',
                 data: IteamsSpllierResponse,
-                isItemShortListed: findenquiry.isItemShortListed
+                isItemShortListed: findenquiry.isItemShortListed,
+                stageName: findenquiry.stageName
+
             };
         }
     } catch (error) {

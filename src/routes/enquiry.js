@@ -24,6 +24,22 @@ const router = express.Router();
 const LOG_ID = 'routes/enquiry';
 
 /**
+ * Route for getting enquiry dashboard count.
+ */
+router.get('/dashboardcount', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.enquiryDashboardCount(req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting  enquiry dashboard count: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
  * Route for creating enquiry.
  */
 router.post('/create', jwtVerify, validate(createEnquiry), async (req, res) => {
@@ -135,6 +151,22 @@ router.post('/deleteDocument/:id', jwtVerify, validate(deleteEnquiryDocument), a
     }
 });
 
+/**
+ * Route of getting mail logs
+ */
+router.get('/maillogs/:type/:enquiryId', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getMailLogs(req.params.type, req.params.enquiryId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/maillogs : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= QUOTE ============================= //
 
 let preFix = '/quote';
@@ -171,7 +203,7 @@ router.get(`${preFix}/delete/:id`, jwtVerify, async (req, res) => {
 });
 
 /**
- * Route for creating enquiry quote.
+ * Route for editing enquiry quote.
  */
 router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
     try {
@@ -202,6 +234,38 @@ router.get(`${preFix}/getAll/:enquiryId/:id?`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for getting all enquiry quote.
+ */
+router.get(`${preFix}/getAllData`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllQuote(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiry quote: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route of sending mail for enquiry quote.
+ */
+router.post(`${preFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        const result = await enquiryServices.sendMailForEnquiryQuote(req.body, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= PI ============================= //
 
 let piPreFix = '/pi';
@@ -221,6 +285,87 @@ router.post(`${piPreFix}/create/:enquiryId`, jwtVerify, validate(createPI), asyn
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
+
+/**
+ * Route for getting enquiry porforma invoice by enquiry id.
+ */
+router.get(`${piPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getPiById(req.params.enquiryId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting enquiry pi by enquiry id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all enquiry porforma invoice.
+ */
+router.get(`${piPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllPorformaInvoice(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiry porforma invoice: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry porforma invoice.
+ */
+router.post(`${piPreFix}/update/:enquiryId`, jwtVerify, validate(createPI), async (req, res) => {
+    try {
+        const result = await enquiryServices.updatePI(req.params.enquiryId, req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry porforma invoice: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for deleting enquiry porforma invoice.
+ */
+router.get(`${piPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deletePI(req.params.enquiryId, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry porforma invoice: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route of sending mail for enquiry porforma invoice.
+ */
+router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        const result = await enquiryServices.sendMailForEnquiryPI(req.body, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry${piPreFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 

@@ -2,6 +2,35 @@ const mongoose = require('mongoose');
 // const moment = require('moment');
 
 /**
+ * Generates an aggregation pipeline to sales dashboard count
+ *
+ * @param {string} orgId - The organization's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of enquiry.
+ */
+exports.getSalesDashboardCount = (orgId) => [
+    {
+        $match: {
+            isDeleted: false,
+            organisationId: new mongoose.Types.ObjectId(orgId)
+
+        }
+    },
+    {
+        $group: {
+            _id: '$level',
+            count: {
+                $sum: 1
+            }
+        }
+    },
+    {
+        $sort: {
+            _id: 1
+        }
+    }
+];
+
+/**
  * Options for customizing the lead retrieval.
  *
  * @typedef {object} GetAllLeadOptions
@@ -925,7 +954,8 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
                         dueDate: 1,
                         isItemShortListed: 1,
                         isQuoteCreated: 1,
-                        quoteId: 1
+                        quoteId: 1,
+                        stageName: 1
                     }
                 }
             ],
@@ -949,6 +979,12 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
             isItemShortListed: {
                 $arrayElemAt: [
                     '$result.isItemShortListed',
+                    0
+                ]
+            },
+            stageName: {
+                $arrayElemAt: [
+                    '$result.stageName',
                     0
                 ]
             }
@@ -1811,6 +1847,49 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = (enquiryId, query) => {
 };
 
 /**
+ * Generates an aggregation pipeline to retrieve Mail Logs
+ *
+ * @param {string} type - The enquiry's unique identifier.
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve Mail logs
+ */
+exports.getMailLogsPipeline = (type, enquiryId) => [
+    {
+        $match: {
+            $expr: {
+                $and: [
+                    {
+                        $eq: [
+                            '$mailDetails.enquiryId',
+                            enquiryId
+                        ]
+                    },
+                    {
+                        $eq: [
+                            '$mailDetails.type',
+                            type
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            nodemailerResponse: 0,
+            documents: 0,
+            subject: 0,
+            body: 0
+        }
+    },
+    {
+        $sort: {
+            createdAt: -1
+        }
+    }
+];
+
+/**
  * Generates an aggregation pipeline to retrieve Mail Logs of enquiry selected items (in respect of supplier)
  *
  * @param {string} enquiryId - The enquiry's unique identifier.
@@ -1881,6 +1960,43 @@ exports.getEnquiryByIdPipelineForSendMail = (orgId, enquiryId) => [
             companyName: 1,
             dueDate: 1,
             isItemShortListed: 1
+        }
+    }
+];
+
+/**
+ * Generates an aggregation pipeline to retrieve total price of all enquiry item (unitprice * quantity)
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline to retrieve data
+ */
+exports.getEnquiryItemTotalForCheckToTotalOrderValue = (enquiryId) => [
+    {
+        $match: {
+            enquiryId: new mongoose.Types.ObjectId(enquiryId),
+            isDeleted: false
+        }
+    },
+    {
+        $addFields: {
+            totalPrice: {
+                $multiply: [
+                    {
+                        $toDouble: '$unitPrice'
+                    },
+                    {
+                        $toDouble: '$quantity'
+                    }
+                ]
+            }
+        }
+    },
+    {
+        $group: {
+            _id: '$enquiryId',
+            totalPrice: {
+                $sum: '$totalPrice'
+            }
         }
     }
 ];
@@ -2000,4 +2116,332 @@ exports.getQuotePipeline = (enquiryId, id) => {
         data[0]['$match']['_id'] = new mongoose.Types.ObjectId(id);
     }
     return data;
+};
+
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry All quote for dashboard.
+ *
+ * @param {string} orgId - The enquiry's unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                level: 2,
+                isQuoteCreated: true,
+                isDeleted: false,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $sort: {
+                // 'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: 'enquiryquotes',
+                localField: 'quoteId',
+                foreignField: '_id',
+                as: 'quoteData'
+            }
+        },
+        {
+            $unwind:
+            /**
+             * path: Path to the array field.
+             * includeArrayIndex: Optional name for index.
+             * preserveNullAndEmptyArrays: Optional
+             *   toggle to unwind null and empty values.
+             */
+            {
+                path: '$quoteData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup:
+            {
+                from: 'enquirysupplierselecteditems',
+                localField: 'quoteData.enquiryFinalItemId',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'suppliers',
+                            localField:
+                                'supplierId',
+                            foreignField: '_id',
+                            as: 'supplierData'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$supplierData',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $addFields: {
+                            supplierCompanyName: '$supplierData.companyName'
+                        }
+                    },
+                    {
+                        $project: {
+                            supplierData: 0
+                        }
+                    }
+                ],
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $addFields:
+            /**
+             * newField: The new field name.
+             * expression: The new field expression.
+             */
+            {
+                totalQuote: {
+                    $round: ['$quoteData.totalQuote', 2]
+                },
+                margin: '$quoteData.margin',
+                totalItemQuantity: {
+                    $reduce: {
+                        input:
+                            '$enquirysupplierselecteditems',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                {
+                                    $toDouble:
+                                        '$$this.finalItemDetails.quantity'
+                                }
+                            ]
+                        }
+                    }
+                },
+                totalSuppliers: {
+                    $size: {
+                        $setUnion: {
+                            $map: {
+                                input: '$enquirysupplierselecteditems',
+                                as: 'item',
+                                in: '$$item.supplierId'
+                            }
+                        }
+                    }
+                },
+                duedate: '$quoteData.duedate',
+                agentTotalCommission:
+                    '$quoteData.agentTotalCommission',
+                addedSupplierFinalTotal:
+                    '$quoteData.addedSupplierFinalTotal',
+                quote_ID: '$quoteData.Id'
+            }
+        },
+        {
+            $project:
+            /**
+             * specifications: The fields to
+             *   include or exclude.
+             */
+            {
+                _id: 1,
+                quoteId: 1,
+                quote_ID: 1,
+                addedSupplierFinalTotal: 1,
+                agentTotalCommission: 1,
+                duedate: 1,
+                totalItemQuantity: 1,
+                margin: 1,
+                totalQuote: 1,
+                enquirysupplierselecteditems: 1,
+                companyName: 1,
+                contactPerson: 1,
+                stageName: 1,
+                isQuoteCreated: 1,
+                Activity: 1,
+                totalSuppliers: 1
+
+            }
+        }
+    ];
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            // { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+            // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+            // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        ];
+    }
+
+    if (sortBy && sortOrder) {
+        pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
+    } else {
+        pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+    return pipeline;
+};
+
+// ========================= PI ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry ppi by id.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getPiByIdPipeline = (enquiryId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            level: 3,
+            isDeleted: false
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryquotes',
+            localField: 'quoteId',
+            foreignField: '_id',
+            as: 'quoteData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData',
+            preserveNullAndEmptyArrays: true
+        }
+    }
+];
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry All porforma invoice for dashboard.
+ *
+ * @param {string} orgId - The enquiry's unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                level: 3,
+                isPiCreated: true,
+                isDeleted: false
+            }
+        },
+        {
+            $sort: {
+                // 'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiryquotes',
+                localField: 'quoteId',
+                foreignField: '_id',
+                as: 'quoteData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$quoteData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierselecteditems',
+                localField: 'quoteData.enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                Id: 1,
+                quote_Id: '$quoteId',
+                quoteId: '$quoteData.Id',
+                pi_Id: '$proformaInvoice._id',
+                piId: '$proformaInvoice.Id',
+                companyName: 1,
+                contactPerson: 1,
+                invoiceDate: '$proformaInvoice.invoiceDate',
+                invoiceDueDate: '$proformaInvoice.invoiceDueDate',
+                enquirysupplierselecteditems: 1,
+                totalItemQuantity: {
+                    $reduce: {
+                        input: '$enquirysupplierselecteditems',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                { $toDouble: '$$this.finalItemDetails.quantity' }
+                            ]
+                        }
+                    }
+                },
+                addedSupplierFinalTotal: '$proformaInvoice.addedSupplierFinalTotal',
+                vatGroupValue: '$proformaInvoice.vatGroupValue',
+                vatGroup: '$proformaInvoice.vatGroup',
+                createXero: '$proformaInvoice.createXero',
+                paymentStatus: '$proformaInvoice.paymentStatus',
+                stageName: 1,
+                Activity: 1
+            }
+        }
+    ];
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+        ];
+    }
+
+    if (sortBy && sortOrder) {
+        pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
+    } else {
+        pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+    return pipeline;
 };

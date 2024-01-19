@@ -1019,6 +1019,251 @@ exports.sendMailForEnquiryPI = async (updateData, file) => {
     }
 };
 
+// ========================= Sales Order ============================= //
+
+
+/**
+ * Add enquiry Sales Order.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {object} auth - req auth.
+ * @param {object} body - req body.
+ * @returns {object} - An object with the results.
+ */
+exports.createSO = async (enquiryId, auth, body) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, level: 3 });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isSupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po already created.'
+            };
+        }
+
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.Id = `SO-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry sales order creation by ${fname} ${lname} from quote Id : ${body.quoteId} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const createSO = await enquiryModel.findByIdAndUpdate(enquiryId,
+            {
+                salesOrder: body,
+                $push: { Activity: obj },
+                level: 4,
+                isSalesOrderCreated: true,
+                stageName: 'Create_Supplier_PO'
+            },
+            { new: true, runValidators: true });
+        if (createSO) {
+            return {
+                success: true,
+                message: 'Enquiry sales order created successfully.',
+                data: createSO
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding sales order: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * get enquiry Sales Order by enquiry id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @returns {object} - An object with the results.
+ */
+exports.getSOById = async (enquiryId) => {
+    try {
+        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getPiByIdSOPipeline(enquiryId));
+        if (findPiData) {
+            return {
+                success: true,
+                message: 'Enquiry sales order data.',
+                data: findPiData[0]
+            };
+        }
+        return {
+            success: false,
+            message: 'Enquiry sales order data not found.',
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during getting sales order by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+// /**
+//  * Gets all enquiry Porforma Invoice for dashboard of sales.
+//  *
+//  * @param {string} orgId - Id of logedin user organisation.
+//  * @param {object} queryObj - filters for getting all Enquiry.
+//  * @returns {object} - An object with the results, including all Enquiry.
+//  */
+// exports.getAllSalesOrder = async (orgId, queryObj) => {
+//     try {
+//         if (!orgId) {
+//             return {
+//                 success: false,
+//                 message: 'Organisation not found.'
+//             };
+//         }
+//         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+//         let obj = {
+//             organisationId: orgId,
+//             isDeleted: false
+//         };
+//         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+//         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+//         const totalPages = Math.ceil(enquiryListCount.length / perPage);
+//         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllPorformaInvoicePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+//         return {
+//             success: true,
+//             message: `Enquiry porforma invoice fetched successfully.`,
+//             data: {
+//                 enquiryData,
+//                 pagination: {
+//                     page,
+//                     perPage,
+//                     totalChildrenCount: enquiryListCount.length,
+//                     totalPages
+//                 }
+//             }
+//         };
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error fetching enquiry porforma invoice for dashboard of sales: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
+
+/**
+ * edit enquiry Sales Order.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {object} auth - req auth.
+ * @param {object} body - req body.
+ * @returns {object} - An object with the results, including enquiry Sales Order details.
+ */
+exports.updateSO = async (enquiryId, auth, body) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, isSalesOrderCreated: true, level: 4 });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isSupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po is already created.'
+            };
+        }
+        const { email, _id, fname, lname } = auth;
+        body.updatedBy = _id;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry sales order(id: ${findEnquiry.salesOrder._id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const editQuote = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            {
+                salesOrder: body,
+                $push: { Activity: obj }
+            },
+            { new: true, runValidators: true });
+        if (editQuote) {
+            return {
+                success: true,
+                message: 'Enquiry sales order edited successfully.',
+                data: editQuote
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during editing sales order: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * delete enquiry sales order.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including enquiry sales order details.
+ */
+exports.deleteSO = async (enquiryId, auth) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, isSalesOrderCreated: true, level: 4 });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.isSupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po already created.'
+            };
+        }
+        const { email, _id, fname, lname } = auth;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry sales order(id: ${findEnquiry.salesOrder._id}) deleted by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+        };
+        const editQuote = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            {
+                salesOrder: null,
+                $push: { Activity: obj },
+                level: 3,
+                isSalesOrderCreated: false,
+                stageName: 'Create_Sales_Order'
+            },
+            { new: true, runValidators: true }
+        );
+        if (editQuote) {
+            return {
+                success: true,
+                message: 'Enquiry sales order deleted successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting sales order: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 /**
  * Function to send mail.
  *

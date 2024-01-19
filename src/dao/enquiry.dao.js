@@ -2445,3 +2445,36 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
     }
     return pipeline;
 };
+
+// ========================= SO ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry SO by id.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getPiByIdSOPipeline = (enquiryId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            level: 4,
+            isSalesOrderCreated: true,
+            isDeleted: false
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryquotes',
+            localField: 'quoteId',
+            foreignField: '_id',
+            as: 'quoteData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData',
+            preserveNullAndEmptyArrays: true
+        }
+    }
+];

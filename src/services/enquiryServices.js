@@ -508,7 +508,7 @@ exports.deleteQuote = async (id, auth) => {
  */
 exports.updateQuote = async (id, auth, body) => {
     try {
-        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
         if (!findEnquiry) {
             return {
                 success: false,

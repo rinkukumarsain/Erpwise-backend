@@ -273,7 +273,7 @@ const enquirySchema = new Schema(
                         type: Number,
                         default: 0
                     },
-                    addedSupplierFinalTotal:{
+                    addedSupplierFinalTotal: {
                         type: Number,
                         default: 0
                     },
@@ -341,6 +341,72 @@ const enquirySchema = new Schema(
             ),
             default: null
         },
+        salesOrder: {
+            type: new Schema(
+                {
+                    Id: {
+                        type: String,
+                        required: true
+                    },
+                    proformaInvoiceId: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'enquiry',
+                        default: null
+                    },
+                    commodity: {
+                        type: String,
+                        default: null
+                    },
+                    customerPORefNo: {
+                        type: String,
+                        required: true
+                    },
+                    packing: {
+                        type: String,
+                        default: null
+                    },
+                    paymentTermsId: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'PaymentTerms',
+                        default: null
+                    },
+                    paymentTerms: {
+                        type: Number,
+                        default: null
+                    },
+                    deliveryPoint: {
+                        type: Number,
+                        default: 0
+                    },
+                    notes: {
+                        type: String,
+                        default: null
+                    },
+                    additionalNotes: {
+                        type: String,
+                        default: null
+                    },
+                    documents: {
+                        type: Array
+                    },
+                    customerPO: {
+                        type: String,
+                        default: null
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+
+                }
+            ),
+            default: null
+        },
         isItemAdded: {
             type: Boolean,
             default: false
@@ -356,7 +422,17 @@ const enquirySchema = new Schema(
         isPiCreated: {
             type: Boolean,
             default: false
-        }
+        },
+        isSalesOrderCreated: {
+            type: Boolean,
+            default: false
+        },
+        supplierPOId: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: ''
+            }
+        ]
     },
     {
         timestamps: true,

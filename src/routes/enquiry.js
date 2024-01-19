@@ -15,7 +15,9 @@ const { enquiryValidators: {
     // ==Quote== //
     createQuote,
     // ==PI== //
-    createPI
+    createPI,
+    // ==SO== //
+    createSO
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -365,6 +367,113 @@ router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (r
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
+
+// ========================= Sales Order ============================= //
+
+let soPreFix = '/so';
+
+/**
+ * Route for creating enquiry so.
+ */
+router.post(`${soPreFix}/create/:enquiryId`, jwtVerify, validate(createSO), async (req, res) => {
+    try {
+        const result = await enquiryServices.createSO(req.params.enquiryId, req.auth, req.body, req.files);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry so: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for creating enquiry so.
+ */
+router.post(`${soPreFix}/upload`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        if (req?.file.location) {
+            return handleResponse(res, statusCode.OK, {
+                success: true,
+                message: 'File uploaded successfully.',
+                data: req.file.location
+            });
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, {
+            success: false,
+            message: 'Error while uploading file.'
+        });
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry so: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting enquiry sales order by enquiry id.
+ */
+router.get(`${soPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getSOById(req.params.enquiryId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting enquiry so by enquiry id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+// /**
+//  * Route for getting all enquiry sales order.
+//  */
+// router.get(`${soPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+//     try {
+//         const result = await enquiryServices.getAllPorformaInvoice(req.headers['x-org-type'], req.query);
+//         if (result.success) {
+//             return handleResponse(res, statusCode.OK, result);
+//         }
+//         return handleResponse(res, statusCode.BAD_REQUEST, result);
+//     } catch (err) {
+//         logger.error(LOG_ID, `Error occurred while getting all enquiry sales order: ${err.message}`);
+//         handleErrorResponse(res, err.status, err.message, err);
+//     }
+// });
+
+/**
+ * Route for editing enquiry sales order.
+ */
+router.post(`${soPreFix}/update/:enquiryId`, jwtVerify, validate(createSO), async (req, res) => {
+    try {
+        const result = await enquiryServices.updateSO(req.params.enquiryId, req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for deleting enquiry sales order.
+ */
+router.get(`${soPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deleteSO(req.params.enquiryId, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 

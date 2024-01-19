@@ -129,3 +129,22 @@ exports.createPI = {
         currencyExchangeRate: Joi.number().allow(null)
     })
 };
+
+exports.createSO = {
+    body: Joi.object({
+        body: Joi.object({
+            // Id: Joi.string().required(),
+            proformaInvoiceId: Joi.string().required(),
+            commodity: Joi.string().allow(null),
+            customerPORefNo: Joi.string().required(),
+            packing: Joi.string().allow(null),
+            paymentTermsId: Joi.string().allow(null),
+            paymentTerms: Joi.number().allow(null),
+            deliveryPoint: Joi.number().allow(null),
+            notes: Joi.string().allow(null),
+            additionalNotes: Joi.string().allow(null),
+            documents: Joi.array().items(Joi.string().required()).allow(null),
+            customerPO: Joi.string().allow(null)
+        })
+    })
+};

@@ -948,12 +948,14 @@ exports.enquirySupplierSelectedItemMailLogs = async (enquiryId, supplierId) => {
 async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
     try {
         // console.log('path:::::::::::', path);
+        let supplierTotal = 0;
+        for (let ele of data) supplierTotal += ele.total;
         for (let ele of data) {
             let _id = ele._id;
             delete ele._id;
             // console.log('ele:>>>', ele);
             // const update = 
-            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, itemsSheet: path });
+            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: path });
             // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
             // console.log('update>>>>>>>', update);
         }

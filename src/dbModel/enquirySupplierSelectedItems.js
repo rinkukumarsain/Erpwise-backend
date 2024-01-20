@@ -92,11 +92,11 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                     },
                     vatGroupValue: {
                         type: Number,
-                        required: true
+                        default: 0
                     },
                     vatGroupValueConverted: {
                         type: Number,
-                        required: true
+                        default: 0
                     },
                     supplierTotalConverted: {
                         type: Number,

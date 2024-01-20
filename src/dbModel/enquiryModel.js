@@ -432,6 +432,12 @@ const enquirySchema = new Schema(
                 type: Schema.Types.ObjectId,
                 ref: ''
             }
+        ],
+        totalSuppliers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Supplier'
+            }
         ]
     },
     {

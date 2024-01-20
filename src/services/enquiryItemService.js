@@ -888,11 +888,21 @@ exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
                 performedByEmail: email,
                 actionName: `Enquiry items short listed by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
-            await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, isItemShortListed: true, stageName: 'Create_Quote' });
+            const findData = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: body.ids } });
+            await enquiryModel.updateOne(
+                { _id: enquiryId },
+                {
+                    $push: { Activity: obj },
+                    isItemShortListed: true,
+                    stageName: 'Create_Quote',
+                    totalSuppliers: [...new Set(findData.map(e => e.supplierId))]
+                }
+            );
             updatedIdsInEnquiryItems(body.ids);
             return {
                 success: true,
-                message: 'Enquiry Item short listed successfully.'
+                message: 'Enquiry Item short listed successfully.',
+                data: findData
             };
         }
     } catch (error) {

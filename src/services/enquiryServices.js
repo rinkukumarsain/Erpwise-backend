@@ -576,57 +576,57 @@ exports.deleteQuote = async (id, auth) => {
     }
 };
 
-/**
- * edit enquiry Quote.
- *
- * @param {string} id - quote id.
- * @param {object} auth - req auth.
- * @param {object} body - req body.
- * @returns {object} - An object with the results, including enquiry details.
- */
-exports.updateQuote = async (id, auth, body) => {
-    try {
-        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
-        if (!findEnquiry) {
-            return {
-                success: false,
-                message: 'Enquiry not found'
-            };
-        }
-        if (findEnquiry.isPiCreated) {
-            return {
-                success: false,
-                message: 'Enquiry porforma invoice is already created.'
-            };
-        }
-        const { email, _id, fname, lname } = auth;
-        body.updatedBy = _id;
-        const editQuote = await enquiryQuoteModel.findByIdAndUpdate(id, body, { new: true, runValidators: true });
-        if (editQuote) {
-            const obj = {
-                performedBy: _id,
-                performedByEmail: email,
-                actionName: `Enquiry quote(id: ${id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-            };
-            await enquiryModel.findByIdAndUpdate(
-                body.enquiryId,
-                { $push: { Activity: obj } },
-                { new: true, runValidators: true }
-            );
-            return {
-                success: true,
-                message: 'Enquiry quote edited successfully.',
-                data: editQuote
-            };
-        }
-    } catch (error) {
-        logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
+// /**
+//  * edit enquiry Quote.
+//  *
+//  * @param {string} id - quote id.
+//  * @param {object} auth - req auth.
+//  * @param {object} body - req body.
+//  * @returns {object} - An object with the results, including enquiry details.
+//  */
+// exports.updateQuote = async (id, auth, body) => {
+//     try {
+//         const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
+//         if (!findEnquiry) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry not found'
+//             };
+//         }
+//         if (findEnquiry.isPiCreated) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry porforma invoice is already created.'
+//             };
+//         }
+//         const { email, _id, fname, lname } = auth;
+//         body.updatedBy = _id;
+//         const editQuote = await enquiryQuoteModel.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+//         if (editQuote) {
+//             const obj = {
+//                 performedBy: _id,
+//                 performedByEmail: email,
+//                 actionName: `Enquiry quote(id: ${id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+//             };
+//             await enquiryModel.findByIdAndUpdate(
+//                 body.enquiryId,
+//                 { $push: { Activity: obj } },
+//                 { new: true, runValidators: true }
+//             );
+//             return {
+//                 success: true,
+//                 message: 'Enquiry quote edited successfully.',
+//                 data: editQuote
+//             };
+//         }
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
 
 /**
  * get all enquiry Quote's.

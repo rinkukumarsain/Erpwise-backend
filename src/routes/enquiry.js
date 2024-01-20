@@ -220,21 +220,21 @@ router.get(`${preFix}/delete/:id`, jwtVerify, async (req, res) => {
     }
 });
 
-/**
- * Route for editing enquiry quote.
- */
-router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
-    try {
-        const result = await enquiryServices.updateQuote(req.params.id, req.auth, req.body);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
+// /**
+//  * Route for editing enquiry quote.
+//  */
+// router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
+//     try {
+//         const result = await enquiryServices.updateQuote(req.params.id, req.auth, req.body);
+//         if (result.success) {
+//             return handleResponse(res, statusCode.OK, result);
+//         }
+//         return handleResponse(res, statusCode.BAD_REQUEST, result);
+//     } catch (err) {
+//         logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
+//         handleErrorResponse(res, err.status, err.message, err);
+//     }
+// });
 
 /**
  * Route for getting all/one enquiry quote's

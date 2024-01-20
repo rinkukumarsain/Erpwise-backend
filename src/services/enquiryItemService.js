@@ -895,7 +895,7 @@ exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
                     $push: { Activity: obj },
                     isItemShortListed: true,
                     stageName: 'Create_Quote',
-                    totalSuppliers: [...new Set(findData.map(e => e.supplierId))]
+                    totalSuppliers: [...new Set(findData.map(e => e.supplierId.toString()))]
                 }
             );
             updatedIdsInEnquiryItems(body.ids);

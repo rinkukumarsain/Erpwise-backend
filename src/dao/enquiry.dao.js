@@ -2466,6 +2466,25 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
             }
         },
         {
+            $project: {
+                proformaInvoice: 1,
+                organisationId: 1,
+                leadContactId: 1,
+                leadId: 1,
+                Id: 1,
+                level: 1,
+                isItemAdded: 1,
+                isItemShortListed: 1,
+                isQuoteCreated: 1,
+                isPiCreated: 1,
+                isSalesOrderCreated: 1,
+                quoteId: 1,
+                stageName: 1,
+                companyName: 1,
+                contactPerson: 1
+            }
+        },
+        {
             $lookup: {
                 from: 'enquiryquotes',
                 localField: 'quoteId',

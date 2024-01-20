@@ -90,6 +90,22 @@ router.get('/getAll', jwtVerify, validate(getAllEnquiry), async (req, res) => {
 });
 
 /**
+ * Route for deleting enquiry By Id
+ */
+router.get('/delete/:enquiryId', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deleteEnquiry(req.params.enquiryId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/delete/:enquiryId : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
  * Route for getting enquiry by id.
  */
 router.get('/get/:id', jwtVerify, async (req, res) => {

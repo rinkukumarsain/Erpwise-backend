@@ -246,6 +246,48 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
 };
 
 /**
+ * Delete enquiry By Id.
+ *
+ * @param {string} enquiryId - Id of enquiry.
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including enquiry.
+ */
+exports.deleteEnquiry = async (enquiryId, orgId) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, organisationId: orgId, isDeleted: false });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.level > 1 || findEnquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Deletion of the enquiry is not permitted.'
+            };
+        }
+        const deleteEnquiry = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { isDeleted: true },
+            { new: true, runValidators: true }
+        );
+        if (deleteEnquiry) {
+            return {
+                success: true,
+                message: 'Enquiry deleted successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Get Recommended Supplier With Items
  *
  * @param {string} enquiryId - Id of enquiry.

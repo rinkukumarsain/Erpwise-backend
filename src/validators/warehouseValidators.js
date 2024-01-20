@@ -30,6 +30,7 @@ exports.edit = {
         state: Joi.string().optional(),
         city: Joi.string().optional(),
         pincode: Joi.string().optional(),
-        note: Joi.string().optional()
+        note: Joi.string().optional(),
+        isActive: Joi.boolean().optional()
     })
 };

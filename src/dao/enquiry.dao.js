@@ -2505,8 +2505,12 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 foreignField: '_id',
                 as: 'enquirysupplierselecteditems'
             }
-        },
-        {
+        }
+    ];
+
+    if (po == 'yes') {
+        // addfield for totalSuppliers
+        pipeline.push({
             $addFields: {
                 totalSuppliers: {
                     $setUnion: {
@@ -2519,10 +2523,8 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                     }
                 }
             }
-        }
-    ];
-
-    if (po == 'yes') {
+        });
+        // lookup from supplier on totalSuppliers to fetch suppliers with their billing and shipping address
         pipeline.push({
             $lookup: {
                 from: 'suppliers',

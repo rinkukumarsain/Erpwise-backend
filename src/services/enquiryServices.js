@@ -1095,7 +1095,7 @@ exports.createSO = async (enquiryId, auth, body) => {
  */
 exports.getSOById = async (enquiryId) => {
     try {
-        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getPiByIdSOPipeline(enquiryId));
+        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getSOByIdPipeline(enquiryId));
         if (findPiData) {
             return {
                 success: true,

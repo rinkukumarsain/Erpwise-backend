@@ -2454,7 +2454,7 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
  * @param {string} enquiryId - The enquiry's unique identifier.
  * @returns {Array} - An aggregation pipeline
  */
-exports.getPiByIdSOPipeline = (enquiryId) => [
+exports.getSOByIdPipeline = (enquiryId) => [
     {
         $match: {
             _id: new mongoose.Types.ObjectId(enquiryId),
@@ -2475,6 +2475,28 @@ exports.getPiByIdSOPipeline = (enquiryId) => [
         $unwind: {
             path: '$quoteData',
             preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierselecteditems',
+            localField: 'quoteData.enquiryFinalItemId',
+            foreignField: '_id',
+            as: 'enquirysupplierselecteditems'
+        }
+    },
+    {
+        $addFields: {
+            totalSuppliers: {
+                $setUnion: {
+                    $map: {
+                        input:
+                            '$enquirysupplierselecteditems',
+                        as: 'item',
+                        in: '$$item.supplierId'
+                    }
+                }
+            }
         }
     }
 ];

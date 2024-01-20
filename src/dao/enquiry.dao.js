@@ -2452,54 +2452,154 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
  * Generates an aggregation pipeline to retrieve enquiry SO by id.
  *
  * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} po - To fetch po related details.
  * @returns {Array} - An aggregation pipeline
  */
-exports.getSOByIdPipeline = (enquiryId) => [
-    {
-        $match: {
-            _id: new mongoose.Types.ObjectId(enquiryId),
-            level: 4,
-            isSalesOrderCreated: true,
-            isDeleted: false
-        }
-    },
-    {
-        $lookup: {
-            from: 'enquiryquotes',
-            localField: 'quoteId',
-            foreignField: '_id',
-            as: 'quoteData'
-        }
-    },
-    {
-        $unwind: {
-            path: '$quoteData',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'enquirysupplierselecteditems',
-            localField: 'quoteData.enquiryFinalItemId',
-            foreignField: '_id',
-            as: 'enquirysupplierselecteditems'
-        }
-    },
-    {
-        $addFields: {
-            totalSuppliers: {
-                $setUnion: {
-                    $map: {
-                        input:
-                            '$enquirysupplierselecteditems',
-                        as: 'item',
-                        in: '$$item.supplierId'
+exports.getSOByIdPipeline = (enquiryId, po) => {
+    let pipeline = [
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(enquiryId),
+                level: 4,
+                isSalesOrderCreated: true,
+                isDeleted: false
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquiryquotes',
+                localField: 'quoteId',
+                foreignField: '_id',
+                as: 'quoteData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$quoteData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierselecteditems',
+                localField: 'quoteData.enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $addFields: {
+                totalSuppliers: {
+                    $setUnion: {
+                        $map: {
+                            input:
+                                '$enquirysupplierselecteditems',
+                            as: 'item',
+                            in: '$$item.supplierId'
+                        }
                     }
                 }
             }
         }
+    ];
+
+    if (po == 'yes') {
+        pipeline.push({
+            $lookup: {
+                from: 'suppliers',
+                localField: 'totalSuppliers',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 1,
+                            companyName: 1,
+                            Id: 1,
+                            email: 1,
+                            phone: 1
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'supplieraddresses',
+                            let: {
+                                id: '$_id'
+                            },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $and: [
+                                                {
+                                                    $eq: [
+                                                        '$supplierId',
+                                                        '$$id'
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$isDeleted',
+                                                        false
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$addresstype',
+                                                        'Billing'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            as: 'billingAddress'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'supplieraddresses',
+                            let: {
+                                id: '$_id'
+                            },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $and: [
+                                                {
+                                                    $eq: [
+                                                        '$supplierId',
+                                                        '$$id'
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$isDeleted',
+                                                        false
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$addresstype',
+                                                        'Shipping'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            as: 'shippingAddress'
+                        }
+                    }
+                ],
+                as: 'totalSuppliers'
+            }
+        });
     }
-];
+    return pipeline;
+};
 
 /**
  * Generates an aggregation pipeline to retrieve enquiry All sales order for dashboard.

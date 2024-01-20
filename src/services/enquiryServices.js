@@ -1133,11 +1133,12 @@ exports.createSO = async (enquiryId, auth, body) => {
  * get enquiry Sales Order by enquiry id.
  *
  * @param {string} enquiryId - enquiry id.
+ * @param {string} po - To fetch supplier po related details.
  * @returns {object} - An object with the results.
  */
-exports.getSOById = async (enquiryId) => {
+exports.getSOById = async (enquiryId, po) => {
     try {
-        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getSOByIdPipeline(enquiryId));
+        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getSOByIdPipeline(enquiryId, po));
         if (findPiData) {
             return {
                 success: true,

@@ -429,9 +429,9 @@ router.post(`${soPreFix}/upload`, jwtVerify, uploadS3.single('file'), async (req
 /**
  * Route for getting enquiry sales order by enquiry id.
  */
-router.get(`${soPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+router.get(`${soPreFix}/get/:enquiryId/:po?`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
     try {
-        const result = await enquiryServices.getSOById(req.params.enquiryId);
+        const result = await enquiryServices.getSOById(req.params.enquiryId, req.params.po);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

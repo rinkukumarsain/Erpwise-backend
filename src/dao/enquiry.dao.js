@@ -2524,7 +2524,7 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 }
             }
         });
-        // lookup from supplier on totalSuppliers to fetch suppliers with their billing and shipping address
+        // lookup from supplier on totalSuppliers to fetch suppliers with their billing address
         pipeline.push({
             $lookup: {
                 from: 'suppliers',
@@ -2576,46 +2576,81 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                             ],
                             as: 'billingAddress'
                         }
-                    },
+                    }
+                    // {
+                    //     $lookup: {
+                    //         from: 'supplieraddresses',
+                    //         let: {
+                    //             id: '$_id'
+                    //         },
+                    //         pipeline: [
+                    //             {
+                    //                 $match: {
+                    //                     $expr: {
+                    //                         $and: [
+                    //                             {
+                    //                                 $eq: [
+                    //                                     '$supplierId',
+                    //                                     '$$id'
+                    //                                 ]
+                    //                             },
+                    //                             {
+                    //                                 $eq: [
+                    //                                     '$isDeleted',
+                    //                                     false
+                    //                                 ]
+                    //                             },
+                    //                             {
+                    //                                 $eq: [
+                    //                                     '$addresstype',
+                    //                                     'Shipping'
+                    //                                 ]
+                    //                             }
+                    //                         ]
+                    //                     }
+                    //                 }
+                    //             }
+                    //         ],
+                    //         as: 'shippingAddress'
+                    //     }
+                    // }
+                ],
+                as: 'totalSuppliers'
+            }
+        });
+        //  lookup from lead address to fetch the shipping address
+        pipeline.push({
+            $lookup: {
+                from: 'leadaddresses',
+                localField: 'leadId',
+                foreignField: 'leadId',
+                pipeline: [
                     {
-                        $lookup: {
-                            from: 'supplieraddresses',
-                            let: {
-                                id: '$_id'
-                            },
-                            pipeline: [
-                                {
-                                    $match: {
-                                        $expr: {
-                                            $and: [
-                                                {
-                                                    $eq: [
-                                                        '$supplierId',
-                                                        '$$id'
-                                                    ]
-                                                },
-                                                {
-                                                    $eq: [
-                                                        '$isDeleted',
-                                                        false
-                                                    ]
-                                                },
-                                                {
-                                                    $eq: [
-                                                        '$addresstype',
-                                                        'Shipping'
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ],
-                            as: 'shippingAddress'
+                        $match: {
+                            isActive: true,
+                            isDeleted: false,
+                            addresstype: 'Shipping'
                         }
                     }
                 ],
-                as: 'totalSuppliers'
+                as: 'shippingAddress'
+            }
+        });
+        //  lookup from warehouses to fetch the abailabe warehouses
+        pipeline.push({
+            $lookup: {
+                from: 'warehouses',
+                localField: 'organisationId',
+                foreignField: 'organisationId',
+                pipeline: [
+                    {
+                        $match: {
+                            isActive: true,
+                            isDeleted: false
+                        }
+                    }
+                ],
+                as: 'warehouses'
             }
         });
     }

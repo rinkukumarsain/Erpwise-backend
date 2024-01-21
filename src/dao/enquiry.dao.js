@@ -2322,6 +2322,7 @@ exports.getPiByIdPipeline = (enquiryId) => [
         $match: {
             _id: new mongoose.Types.ObjectId(enquiryId),
             level: 3,
+            isPiCreated: true,
             isDeleted: false
         }
     },
@@ -2336,6 +2337,81 @@ exports.getPiByIdPipeline = (enquiryId) => [
     {
         $unwind: {
             path: '$quoteData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierselecteditems',
+            localField: 'quoteData.enquiryFinalItemId',
+            foreignField: '_id',
+            as: 'enquirysupplierselecteditems'
+        }
+    },
+    {
+        $addFields: {
+            totalSuppliers: {
+                $size: {
+                    $setUnion: {
+                        $map: {
+                            input:
+                                '$enquirysupplierselecteditems',
+                            as: 'item',
+                            in: '$$item.supplierId'
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisations',
+            localField: 'organisationId',
+            foreignField: '_id',
+            as: 'orgData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$orgData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisationaddresses',
+            let: {
+                organisationId: '$organisationId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$organisationId',
+                                        '$$organisationId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$addresstype',
+                                        'Billing'
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'organisationAddress'
+        }
+    },
+    {
+        $unwind: {
+            path: '$organisationAddress',
             preserveNullAndEmptyArrays: true
         }
     }

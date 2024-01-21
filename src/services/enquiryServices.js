@@ -548,7 +548,7 @@ exports.deleteQuote = async (id, auth) => {
                     performedByEmail: email,
                     actionName: `Enquiry quote deleted (id: ${id}) by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
                 };
-                let update = { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote' };
+                let update = { $push: { Activity: obj } };
                 if (quoteId) update['quoteId'] = quoteId;
                 if (chekUpdate) {
                     update['stageName'] = 'Create_Quote';

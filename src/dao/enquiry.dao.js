@@ -2345,7 +2345,7 @@ exports.getPiByIdPipeline = (enquiryId) => [
             from: 'enquirysupplierselecteditems',
             localField: 'quoteData.enquiryFinalItemId',
             foreignField: '_id',
-            as: 'enquirysupplierselecteditems'
+            as: 'quoteData.enquiryFinalItem'
         }
     },
     {
@@ -2355,7 +2355,7 @@ exports.getPiByIdPipeline = (enquiryId) => [
                     $setUnion: {
                         $map: {
                             input:
-                                '$enquirysupplierselecteditems',
+                                '$quoteData.enquiryFinalItem',
                             as: 'item',
                             in: '$$item.supplierId'
                         }
@@ -2369,12 +2369,12 @@ exports.getPiByIdPipeline = (enquiryId) => [
             from: 'organisations',
             localField: 'organisationId',
             foreignField: '_id',
-            as: 'orgData'
+            as: 'quoteData.orgData'
         }
     },
     {
         $unwind: {
-            path: '$orgData',
+            path: '$quoteData.orgData',
             preserveNullAndEmptyArrays: true
         }
     },
@@ -2406,12 +2406,12 @@ exports.getPiByIdPipeline = (enquiryId) => [
                     }
                 }
             ],
-            as: 'organisationAddress'
+            as: 'quoteData.organisationAddress'
         }
     },
     {
         $unwind: {
-            path: '$organisationAddress',
+            path: '$quoteData.organisationAddress',
             preserveNullAndEmptyArrays: true
         }
     }

@@ -888,11 +888,21 @@ exports.shortListTheITemsOfEnquiry = async (auth, enquiryId, body) => {
                 performedByEmail: email,
                 actionName: `Enquiry items short listed by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
-            await enquiryModel.updateOne({ _id: enquiryId }, { $push: { Activity: obj }, isItemShortListed: true, stageName: 'Create_Quote' });
+            const findData = await query.find(enquirySupplierSelectedItemsModel, { _id: { $in: body.ids } });
+            await enquiryModel.updateOne(
+                { _id: enquiryId },
+                {
+                    $push: { Activity: obj },
+                    isItemShortListed: true,
+                    stageName: 'Create_Quote',
+                    totalSuppliers: [...new Set(findData.map(e => e.supplierId.toString()))]
+                }
+            );
             updatedIdsInEnquiryItems(body.ids);
             return {
                 success: true,
-                message: 'Enquiry Item short listed successfully.'
+                message: 'Enquiry Item short listed successfully.',
+                data: findData
             };
         }
     } catch (error) {
@@ -938,12 +948,14 @@ exports.enquirySupplierSelectedItemMailLogs = async (enquiryId, supplierId) => {
 async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
     try {
         // console.log('path:::::::::::', path);
+        let supplierTotal = 0;
+        for (let ele of data) supplierTotal += ele.total;
         for (let ele of data) {
             let _id = ele._id;
             delete ele._id;
             // console.log('ele:>>>', ele);
             // const update = 
-            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, itemsSheet: path });
+            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: path });
             // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
             // console.log('update>>>>>>>', update);
         }

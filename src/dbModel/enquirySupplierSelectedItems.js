@@ -90,6 +90,34 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         type: String,
                         default: '0'
                     },
+                    vatGroupValue: {
+                        type: Number,
+                        default: 0
+                    },
+                    vatGroupValueConverted: {
+                        type: Number,
+                        default: 0
+                    },
+                    supplierTotalConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    freightChargesConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    packingChargesConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    convertedToCurrency: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'currency'
+                    },
+                    currencyExchangeRate: {
+                        type: Number,
+                        required: true
+                    },
                     createdBy: {
                         type: mongoose.Types.ObjectId,
                         ref: 'User'

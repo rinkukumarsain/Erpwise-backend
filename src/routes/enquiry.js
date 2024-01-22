@@ -90,6 +90,22 @@ router.get('/getAll', jwtVerify, validate(getAllEnquiry), async (req, res) => {
 });
 
 /**
+ * Route for deleting enquiry By Id
+ */
+router.get('/delete/:enquiryId', jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deleteEnquiry(req.params.enquiryId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry/delete/:enquiryId : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
  * Route for getting enquiry by id.
  */
 router.get('/get/:id', jwtVerify, async (req, res) => {
@@ -204,21 +220,21 @@ router.get(`${preFix}/delete/:id`, jwtVerify, async (req, res) => {
     }
 });
 
-/**
- * Route for editing enquiry quote.
- */
-router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
-    try {
-        const result = await enquiryServices.updateQuote(req.params.id, req.auth, req.body);
-        if (result.success) {
-            return handleResponse(res, statusCode.OK, result);
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, result);
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
+// /**
+//  * Route for editing enquiry quote.
+//  */
+// router.post(`${preFix}/update/:id`, jwtVerify, validate(createQuote), async (req, res) => {
+//     try {
+//         const result = await enquiryServices.updateQuote(req.params.id, req.auth, req.body);
+//         if (result.success) {
+//             return handleResponse(res, statusCode.OK, result);
+//         }
+//         return handleResponse(res, statusCode.BAD_REQUEST, result);
+//     } catch (err) {
+//         logger.error(LOG_ID, `Error occurred while creating new enquiry quote: ${err.message}`);
+//         handleErrorResponse(res, err.status, err.message, err);
+//     }
+// });
 
 /**
  * Route for getting all/one enquiry quote's
@@ -413,9 +429,9 @@ router.post(`${soPreFix}/upload`, jwtVerify, uploadS3.single('file'), async (req
 /**
  * Route for getting enquiry sales order by enquiry id.
  */
-router.get(`${soPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+router.get(`${soPreFix}/get/:enquiryId/:po?`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
     try {
-        const result = await enquiryServices.getSOById(req.params.enquiryId);
+        const result = await enquiryServices.getSOById(req.params.enquiryId, req.params.po);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -426,21 +442,21 @@ router.get(`${soPreFix}/get/:enquiryId`, jwtVerify, validate(getAllEnquiry), asy
     }
 });
 
-// /**
-//  * Route for getting all enquiry sales order.
-//  */
-// router.get(`${soPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
-//     try {
-//         const result = await enquiryServices.getAllPorformaInvoice(req.headers['x-org-type'], req.query);
-//         if (result.success) {
-//             return handleResponse(res, statusCode.OK, result);
-//         }
-//         return handleResponse(res, statusCode.BAD_REQUEST, result);
-//     } catch (err) {
-//         logger.error(LOG_ID, `Error occurred while getting all enquiry sales order: ${err.message}`);
-//         handleErrorResponse(res, err.status, err.message, err);
-//     }
-// });
+/**
+ * Route for getting all enquiry sales order.
+ */
+router.get(`${soPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllSalesOrder(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 /**
  * Route for editing enquiry sales order.

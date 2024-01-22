@@ -13,6 +13,7 @@ const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
+const { CRMlevelEnum } = require('../../config/default.json');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -237,6 +238,48 @@ exports.getEnquiryById = async (orgId, enquiryId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting enquiry by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Delete enquiry By Id.
+ *
+ * @param {string} enquiryId - Id of enquiry.
+ * @param {string} orgId - Id of logedin user organisation.
+ * @returns {object} - An object with the results, including enquiry.
+ */
+exports.deleteEnquiry = async (enquiryId, orgId) => {
+    try {
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, organisationId: orgId, isDeleted: false });
+        if (!findEnquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found'
+            };
+        }
+        if (findEnquiry.level > 1 || findEnquiry.isItemShortListed) {
+            return {
+                success: false,
+                message: 'Deletion of the enquiry is not permitted.'
+            };
+        }
+        const deleteEnquiry = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { isDeleted: true },
+            { new: true, runValidators: true }
+        );
+        if (deleteEnquiry) {
+            return {
+                success: true,
+                message: 'Enquiry deleted successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry by id: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -505,7 +548,7 @@ exports.deleteQuote = async (id, auth) => {
                     performedByEmail: email,
                     actionName: `Enquiry quote deleted (id: ${id}) by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
                 };
-                let update = { $push: { Activity: obj }, level: 2, isQuoteCreated: true, stageName: 'View_Quote' };
+                let update = { $push: { Activity: obj } };
                 if (quoteId) update['quoteId'] = quoteId;
                 if (chekUpdate) {
                     update['stageName'] = 'Create_Quote';
@@ -533,57 +576,57 @@ exports.deleteQuote = async (id, auth) => {
     }
 };
 
-/**
- * edit enquiry Quote.
- *
- * @param {string} id - quote id.
- * @param {object} auth - req auth.
- * @param {object} body - req body.
- * @returns {object} - An object with the results, including enquiry details.
- */
-exports.updateQuote = async (id, auth, body) => {
-    try {
-        const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
-        if (!findEnquiry) {
-            return {
-                success: false,
-                message: 'Enquiry not found'
-            };
-        }
-        if (findEnquiry.isPiCreated) {
-            return {
-                success: false,
-                message: 'Enquiry porforma invoice is already created.'
-            };
-        }
-        const { email, _id, fname, lname } = auth;
-        body.updatedBy = _id;
-        const editQuote = await enquiryQuoteModel.findByIdAndUpdate(id, body, { new: true, runValidators: true });
-        if (editQuote) {
-            const obj = {
-                performedBy: _id,
-                performedByEmail: email,
-                actionName: `Enquiry quote(id: ${id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
-            };
-            await enquiryModel.findByIdAndUpdate(
-                body.enquiryId,
-                { $push: { Activity: obj } },
-                { new: true, runValidators: true }
-            );
-            return {
-                success: true,
-                message: 'Enquiry quote edited successfully.',
-                data: editQuote
-            };
-        }
-    } catch (error) {
-        logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
-        return {
-            success: false,
-            message: 'Something went wrong'
-        };
-    }
-};
+// /**
+//  * edit enquiry Quote.
+//  *
+//  * @param {string} id - quote id.
+//  * @param {object} auth - req auth.
+//  * @param {object} body - req body.
+//  * @returns {object} - An object with the results, including enquiry details.
+//  */
+// exports.updateQuote = async (id, auth, body) => {
+//     try {
+//         const findEnquiry = await query.findOne(enquiryModel, { _id: body.enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true });
+//         if (!findEnquiry) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry not found'
+//             };
+//         }
+//         if (findEnquiry.isPiCreated) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry porforma invoice is already created.'
+//             };
+//         }
+//         const { email, _id, fname, lname } = auth;
+//         body.updatedBy = _id;
+//         const editQuote = await enquiryQuoteModel.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+//         if (editQuote) {
+//             const obj = {
+//                 performedBy: _id,
+//                 performedByEmail: email,
+//                 actionName: `Enquiry quote(id: ${id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+//             };
+//             await enquiryModel.findByIdAndUpdate(
+//                 body.enquiryId,
+//                 { $push: { Activity: obj } },
+//                 { new: true, runValidators: true }
+//             );
+//             return {
+//                 success: true,
+//                 message: 'Enquiry quote edited successfully.',
+//                 data: editQuote
+//             };
+//         }
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error occurred during adding Quote: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };
 
 /**
  * get all enquiry Quote's.
@@ -1033,7 +1076,7 @@ exports.sendMailForEnquiryPI = async (updateData, file) => {
 exports.createSO = async (enquiryId, auth, body) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, level: 3 });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true });
         if (!findEnquiry) {
             return {
                 success: false,
@@ -1065,6 +1108,11 @@ exports.createSO = async (enquiryId, auth, body) => {
             },
             { new: true, runValidators: true });
         if (createSO) {
+            await leadModel.findByIdAndUpdate(
+                findEnquiry.leadId,
+                { isMovedToSalesOrder: true, level: CRMlevelEnum['SALESORDER'] },
+                { runValidators: true }
+            );
             return {
                 success: true,
                 message: 'Enquiry sales order created successfully.',
@@ -1085,11 +1133,12 @@ exports.createSO = async (enquiryId, auth, body) => {
  * get enquiry Sales Order by enquiry id.
  *
  * @param {string} enquiryId - enquiry id.
+ * @param {string} po - To fetch supplier po related details.
  * @returns {object} - An object with the results.
  */
-exports.getSOById = async (enquiryId) => {
+exports.getSOById = async (enquiryId, po) => {
     try {
-        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getPiByIdSOPipeline(enquiryId));
+        const findPiData = await query.aggregation(enquiryModel, enquiryDao.getSOByIdPipeline(enquiryId, po));
         if (findPiData) {
             return {
                 success: true,
@@ -1111,51 +1160,51 @@ exports.getSOById = async (enquiryId) => {
     }
 };
 
-// /**
-//  * Gets all enquiry Porforma Invoice for dashboard of sales.
-//  *
-//  * @param {string} orgId - Id of logedin user organisation.
-//  * @param {object} queryObj - filters for getting all Enquiry.
-//  * @returns {object} - An object with the results, including all Enquiry.
-//  */
-// exports.getAllSalesOrder = async (orgId, queryObj) => {
-//     try {
-//         if (!orgId) {
-//             return {
-//                 success: false,
-//                 message: 'Organisation not found.'
-//             };
-//         }
-//         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-//         let obj = {
-//             organisationId: orgId,
-//             isDeleted: false
-//         };
-//         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-//         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
-//         const totalPages = Math.ceil(enquiryListCount.length / perPage);
-//         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllPorformaInvoicePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-//         return {
-//             success: true,
-//             message: `Enquiry porforma invoice fetched successfully.`,
-//             data: {
-//                 enquiryData,
-//                 pagination: {
-//                     page,
-//                     perPage,
-//                     totalChildrenCount: enquiryListCount.length,
-//                     totalPages
-//                 }
-//             }
-//         };
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error fetching enquiry porforma invoice for dashboard of sales: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
+/**
+ * Gets all enquiry sales order for dashboard of sales.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all Enquiry.
+ */
+exports.getAllSalesOrder = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        let obj = {
+            organisationId: orgId,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSalesOrderPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        return {
+            success: true,
+            message: `Enquiry sales order fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryListCount.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching enquiry sales order for dashboard of sales: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
 
 /**
  * edit enquiry Sales Order.

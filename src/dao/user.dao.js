@@ -91,11 +91,15 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
     if (isActive) {
         arr[0]['$match']['isActive'] = isActive === 'true' ? true : false;
     }
-    if (isRole && isRole == 'true') {
-        arr[0]['$match']['$or'] = [
-            { role: 'admin' },
-            { role: 'sales' }
-        ];
+    if (isRole) {
+        if (isRole == 'salesperson') {
+            arr[0]['$match']['$or'] = [
+                { role: 'admin' },
+                { role: 'sales' }
+            ];
+        } else if (isRole == 'warehouse') {
+            arr[0]['$match']['role'] = 'warehouseManager';
+        }
     }
     if (sortBy && sortOrder) {
         delete arr[1]['$sort']['updatedAt'];

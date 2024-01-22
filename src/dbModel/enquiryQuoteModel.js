@@ -38,7 +38,7 @@ const enquiryQuoteSchema = new Schema(
         ],
         vatGroupId: {
             type: Schema.Types.ObjectId,
-            required: true,
+            // required: true,
             ref: 'vat'
         },
         vatGroup: {

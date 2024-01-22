@@ -219,11 +219,21 @@ exports.getAllUsers = async (queryParam, orgId) => {
         const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder } = queryParam;
         let obj = {};
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (isRole == 'true') {
-            obj['$or'] = [
-                { role: 'admin' },
-                { role: 'sales' }
-            ];
+        // if (isRole == 'true') {
+        //     obj['$or'] = [
+        //         { role: 'admin' },
+        //         { role: 'sales' }
+        //     ];
+        // }
+        if (isRole) {
+            if (isRole == 'salesperson') {
+                obj['$or'] = [
+                    { role: 'admin' },
+                    { role: 'sales' }
+                ];
+            } else if (isRole == 'warehouse') {
+                obj['role'] = 'warehouseManager';
+            }
         }
 
         obj['organisationId'] = orgId;

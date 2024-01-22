@@ -43,11 +43,18 @@ exports.addFinanceDetailsSuppler = {
     body: Joi.object({
         paymentTermsId: Joi.optional().optional(),
         deliveryTerm: Joi.optional().required(),
-        vatGroupId: Joi.string().required(),
+        vatGroupId: Joi.string().allow(null),
         paymentOption: Joi.string().required(),
         supplierTotal: Joi.string().required(),
         freightCharges: Joi.string().required(),
         packingCharges: Joi.string().required(),
-        currency: Joi.string().required()
+        currency: Joi.string().required(),
+        vatGroupValue: Joi.number().allow(null),
+        vatGroupValueConverted: Joi.number().allow(null),
+        supplierTotalConverted: Joi.number().required(),
+        freightChargesConverted: Joi.number().required(),
+        packingChargesConverted: Joi.number().required(),
+        convertedToCurrency: Joi.string().required(),
+        currencyExchangeRate: Joi.number().required()
     })
 };

@@ -2583,6 +2583,14 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
             }
         },
         {
+            $lookup: {
+                from: 'organisations',
+                localField: 'organisationId',
+                foreignField: '_id',
+                as: 'quoteData.orgData'
+            }
+        },
+        {
             $unwind: {
                 path: '$quoteData.orgData',
                 preserveNullAndEmptyArrays: true
@@ -2635,7 +2643,7 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                     $setUnion: {
                         $map: {
                             input:
-                                '$quoteData.enquirysupplierselecteditems',
+                                '$quoteData.enquiryFinalItem',
                             as: 'item',
                             in: '$$item.supplierId'
                         }

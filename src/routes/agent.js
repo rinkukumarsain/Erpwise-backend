@@ -7,7 +7,8 @@ const { statusCode } = require('../../config/default.json');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { agentServices } = require('../services');
 const { agentValidators: {
-    createAgent
+    createAgent,
+    editAgent
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -43,6 +44,38 @@ router.get('/getAll', jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during agent/getAll : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for edit agent by id.
+ */
+router.post('/update/:id', jwtVerify, validate(editAgent), async (req, res) => {
+    try {
+        const result = await agentServices.edit(req.params.id, req.auth, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during agent/edit : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for deleting agent by id.
+ */
+router.get('/delete/:id', jwtVerify, async (req, res) => {
+    try {
+        const result = await agentServices.delete(req.params.id, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during agent/delete : ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

@@ -17,3 +17,22 @@ exports.createAgent = {
         pincode: Joi.string().required()
     })
 };
+
+exports.editAgent = {
+    body: Joi.object({
+        name: Joi.string().optional(),
+        email: Joi.string().optional(),
+        mobile: Joi.string().optional(),
+        mobileCode: Joi.string().optional(),
+        paymentTermsId: Joi.string().optional(),
+        vatGroupId: Joi.string().optional(),
+        note: Joi.string().optional(),
+        billingAdd1: Joi.string().optional(),
+        billingAdd2: Joi.string().optional(),
+        city: Joi.string().optional(),
+        state: Joi.string().optional(),
+        country: Joi.string().optional(),
+        pincode: Joi.string().optional(),
+        isActive: Joi.boolean().optional()
+    })
+};

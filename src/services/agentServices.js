@@ -92,3 +92,83 @@ exports.getAllAgent = async (orgId) => {
         };
     }
 };
+
+/**
+ * Edit agent by id.
+ *
+ * @param {string} id - The id of agent.
+ * @param {object} auth - The authenticated user information.
+ * @param {object} body - The request body containing agent information.
+ * @param {string} orgId - The request headers containing id of organization.
+ * @returns {Promise<object>} - A promise that resolves to an object with the success status, message, and data.
+ */
+exports.edit = async (id, auth, body, orgId) => {
+    try {
+        const agent = await query.findOne(agentModel, { _id: id, organisationId: orgId, isDeleted: false });
+        if (!agent) {
+            return {
+                success: false,
+                message: 'agent not found!'
+            };
+        }
+        if (body.email) {
+            // Check if the email is unique
+            const checkUniqueEmail = await query.findOne(agentModel, { email: body.email, _id: { $ne: id } });
+            if (checkUniqueEmail) {
+                return {
+                    success: false,
+                    message: 'This agent email is already taken. Please choose a different one.',
+                    data: { email: body.email }
+                };
+            }
+        }
+        body.updatedBy = auth._id;
+        const updateagent = await agentModel.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        if (updateagent) {
+            return {
+                success: true,
+                message: 'agent updated successfully.',
+                data: updateagent
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during updating agent by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Delete agent by id.
+ *
+ * @param {string} id - The id of agent.
+ * @param {string} orgId - The request headers containing id of organization.
+ * @returns {Promise<object>} - A promise that resolves to an object with the success status, message, and data.
+ */
+exports.delete = async (id, orgId) => {
+    try {
+        const agent = await query.findOne(agentModel, { _id: id, organisationId: orgId, isDeleted: false });
+        if (!agent) {
+            return {
+                success: false,
+                message: 'agent not found!'
+            };
+        }
+        const deleteagent = await agentModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true, runValidators: true });
+        if (deleteagent) {
+            return {
+                success: true,
+                message: 'agent deleted successfully.'
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting agent by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

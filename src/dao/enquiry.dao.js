@@ -2579,7 +2579,50 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 from: 'enquirysupplierselecteditems',
                 localField: 'quoteData.enquiryFinalItemId',
                 foreignField: '_id',
-                as: 'enquirysupplierselecteditems'
+                as: 'quoteData.enquiryFinalItem'
+            }
+        },
+        {
+            $unwind: {
+                path: '$quoteData.orgData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'organisationaddresses',
+                let: {
+                    organisationId: '$organisationId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            '$organisationId',
+                                            '$$organisationId'
+                                        ]
+                                    },
+                                    {
+                                        $eq: [
+                                            '$addresstype',
+                                            'Billing'
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: 'quoteData.organisationAddress'
+            }
+        },
+        {
+            $unwind: {
+                path: '$quoteData.organisationAddress',
+                preserveNullAndEmptyArrays: true
             }
         }
     ];
@@ -2592,7 +2635,7 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                     $setUnion: {
                         $map: {
                             input:
-                                '$enquirysupplierselecteditems',
+                                '$quoteData.enquirysupplierselecteditems',
                             as: 'item',
                             in: '$$item.supplierId'
                         }

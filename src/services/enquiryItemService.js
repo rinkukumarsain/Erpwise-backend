@@ -720,7 +720,7 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => 
             };
         }
 
-        if (findenquiry.level == 2) {
+        if (findenquiry.isQuoteCreated) {
             return {
                 success: false,
                 message: 'Enquiry quote is already created.'

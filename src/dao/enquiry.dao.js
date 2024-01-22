@@ -2321,7 +2321,7 @@ exports.getPiByIdPipeline = (enquiryId) => [
     {
         $match: {
             _id: new mongoose.Types.ObjectId(enquiryId),
-            level: 3,
+            // level: 3,
             isPiCreated: true,
             isDeleted: false
         }
@@ -2536,7 +2536,7 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
         {
             $match: {
                 _id: new mongoose.Types.ObjectId(enquiryId),
-                level: 4,
+                // level: 4,
                 isSalesOrderCreated: true,
                 isDeleted: false
             }
@@ -2631,6 +2631,34 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
         {
             $unwind: {
                 path: '$quoteData.organisationAddress',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'leads',
+                localField: 'leadId',
+                foreignField: '_id',
+                as: 'leadData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$leadData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'leadcontacts',
+                localField: 'leadContactId',
+                foreignField: '_id',
+                as: 'leadContactData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$leadContactData',
                 preserveNullAndEmptyArrays: true
             }
         }

@@ -2,6 +2,7 @@
 const { warehouseModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { warehouseDao } = require('../dao');
 
 const LOG_ID = 'services/warehouseService';
 
@@ -70,7 +71,7 @@ exports.getAll = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const warehouseList = await query.find(warehouseModel, { organisationId: orgId, isDeleted: false });
+        const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId));
         if (warehouseList.length == 0) {
             return {
                 success: false,

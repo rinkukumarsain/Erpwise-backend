@@ -2671,13 +2671,18 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 totalSuppliers: {
                     $setUnion: {
                         $map: {
-                            input:
-                                '$quoteData.enquiryFinalItem',
+                            input: '$quoteData.enquiryFinalItem',
                             as: 'item',
                             in: '$$item.supplierId'
                         }
                     }
                 }
+            }
+        });
+        // removiing enquiryFinalItem from quoteData
+        pipeline.push({
+            $project: {
+                'quoteData.enquiryFinalItem': 0
             }
         });
         // lookup from supplier on totalSuppliers to fetch suppliers with their billing address
@@ -2732,44 +2737,71 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                             ],
                             as: 'billingAddress'
                         }
+                    },
+                    {
+                        $lookup: {
+                            from: 'enquirysupplierselecteditems',
+                            let: {
+                                id: '$_id',
+                                enquiryId: new mongoose.Types.ObjectId(enquiryId)
+                            },
+                            pipeline: [
+                                // Add your stages here based on the requirements
+                                {
+                                    $match: {
+                                        $expr: {
+                                            // Your match conditions here
+                                            $and: [
+                                                {
+                                                    $eq: [
+                                                        '$supplierId',
+                                                        '$$id'
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$enquiryId',
+                                                        '$$enquiryId'
+                                                    ]
+                                                },
+                                                {
+                                                    $eq: [
+                                                        '$isShortListed',
+                                                        true
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    $lookup: {
+                                        from: 'supplieritems',
+                                        localField: 'supplierItemId',
+                                        foreignField: '_id',
+                                        as: 'supplieritems'
+                                    }
+                                },
+                                {
+                                    $unwind: {
+                                        path: '$supplieritems',
+                                        preserveNullAndEmptyArrays: true
+                                    }
+                                }
+                            ],
+                            as: 'enquiryFinalItem'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            financeMeta: {
+                                $arrayElemAt: [
+                                    '$enquiryFinalItem.financeMeta',
+                                    0
+                                ]
+                            }
+                        }
                     }
-                    // {
-                    //     $lookup: {
-                    //         from: 'supplieraddresses',
-                    //         let: {
-                    //             id: '$_id'
-                    //         },
-                    //         pipeline: [
-                    //             {
-                    //                 $match: {
-                    //                     $expr: {
-                    //                         $and: [
-                    //                             {
-                    //                                 $eq: [
-                    //                                     '$supplierId',
-                    //                                     '$$id'
-                    //                                 ]
-                    //                             },
-                    //                             {
-                    //                                 $eq: [
-                    //                                     '$isDeleted',
-                    //                                     false
-                    //                                 ]
-                    //                             },
-                    //                             {
-                    //                                 $eq: [
-                    //                                     '$addresstype',
-                    //                                     'Shipping'
-                    //                                 ]
-                    //                             }
-                    //                         ]
-                    //                     }
-                    //                 }
-                    //             }
-                    //         ],
-                    //         as: 'shippingAddress'
-                    //     }
-                    // }
                 ],
                 as: 'totalSuppliers'
             }

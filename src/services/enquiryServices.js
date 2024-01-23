@@ -13,6 +13,7 @@ const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
+const { generateId } = require('../utils/generateId');
 const { CRMlevelEnum } = require('../../config/default.json');
 
 const LOG_ID = 'services/enquiryService';
@@ -78,7 +79,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
         enquiryData.createdBy = _id;
         enquiryData.updatedBy = _id;
         enquiryData.organisationId = orgId;
-        enquiryData.Id = `EQ-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        enquiryData.Id = generateId('EQ');
         const newEnquiry = await query.create(enquiryModel, enquiryData);
         if (newEnquiry) {
             await leadModel.findByIdAndUpdate(
@@ -466,7 +467,7 @@ exports.createQuote = async (auth, body, orgId) => {
         body.updatedBy = _id;
         body.leadId = findEnquiry.leadId;
         body.leadContactId = findEnquiry.leadContactId;
-        body.Id = `Q-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('Q');
         const saveQuote = await query.create(enquiryQuoteModel, body);
         if (saveQuote) {
             if (findTotalQuotes.length > 0) {
@@ -798,7 +799,7 @@ exports.createPI = async (enquiryId, auth, body) => {
         }
         body.createdBy = _id;
         body.updatedBy = _id;
-        body.Id = `PI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('PI');
         const obj = {
             performedBy: _id,
             performedByEmail: email,
@@ -1092,7 +1093,7 @@ exports.createSO = async (enquiryId, auth, body) => {
 
         body.createdBy = _id;
         body.updatedBy = _id;
-        body.Id = `SO-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('SO');
         const obj = {
             performedBy: _id,
             performedByEmail: email,

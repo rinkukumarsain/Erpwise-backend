@@ -5,6 +5,7 @@ const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../co
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { generateId } = require('../utils/generateId');
 
 const LOG_ID = 'services/leadService';
 
@@ -42,7 +43,7 @@ exports.createLead = async (auth, leadData, orgId) => {
         leadData.updatedBy = _id;
         leadData.organisationId = orgId;
         leadData.level = CRMlevelEnum.LEAD;
-        leadData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        leadData.Id = generateId('LI');
         const newLead = await query.create(leadModel, leadData);
         return {
             success: true,
@@ -330,7 +331,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         prospectData.updatedBy = _id;
         prospectData.organisationId = orgId;
         prospectData.level = CRMlevelEnum.PROSPECT;
-        prospectData.Id = `LI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        prospectData.Id = generateId('LI');
         // if (Object.keys(prospectData.qualifymeta).length > 2) prospectData.isQualified = true;
         prospectData.qualifymeta.interest = 'LOW';
         const newLead = await query.create(leadModel, prospectData);

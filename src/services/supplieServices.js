@@ -5,6 +5,7 @@ const { supplierLevelEnum, supplierValueByKey, supplierPipelineLevel } = require
 const { supplierDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { generateId } = require('../utils/generateId');
 
 const LOG_ID = 'services/supplierService';
 
@@ -43,7 +44,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         supplierData.updatedBy = _id;
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
-        supplierData.Id = `SI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        supplierData.Id = generateId('SI');
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,
@@ -288,7 +289,7 @@ exports.createApprovedSupplier = async (auth, body, orgId) => {
         body.organisationId = orgId;
         body.level = supplierLevelEnum.APPROVEDSUPPLIERS;
         // body.pipelineStage = supplierValueByKey[supplierLevelEnum.APPROVEDSUPPLIERS];
-        body.Id = `SI-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('SI');
         const newLead = await query.create(supplierModel, body);
         // if(newLead){
 

@@ -2,6 +2,7 @@
 const { warehouseModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { generateId } = require('../utils/generateId');
 const { warehouseDao } = require('../dao');
 
 const LOG_ID = 'services/warehouseService';
@@ -30,7 +31,7 @@ exports.create = async (auth, body, orgId) => {
         body.createdBy = auth._id;
         body.updatedBy = auth._id;
         body.organisationId = orgId;
-        body.Id = `W-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('W');
 
         // Insert the Warehouse
         let insertWarehouse = await query.create(warehouseModel, body);

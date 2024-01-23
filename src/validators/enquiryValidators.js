@@ -146,3 +146,47 @@ exports.createSO = {
         customerPO: Joi.string().allow(null)
     })
 };
+
+exports.createSupplierPO = {
+    body: Joi.object({
+        // Id: Joi.string().required(),
+        // enquiryId: Joi.string().required(),
+        supplierId: Joi.string().required(),
+        supplierAddressId: Joi.string().required(),
+        supplierAddress: Joi.string().required(),
+        shipTo: Joi.string().required(),
+        shipToCustomer: Joi.string().allow(null),
+        leadAddressId: Joi.string().allow(null),
+        shipToWarehouse: Joi.string().allow(null),
+        warehouseId: Joi.string().allow(null),
+        deliveryPoint: Joi.number().required(),
+        supplierPODate: Joi.string().required(),
+        validTillDate: Joi.string().required(),
+        packing: Joi.string().required(),
+        commodity: Joi.string().required(),
+        paymentTermsId: Joi.string().required(),
+        paymentTerms: Joi.number().required(),
+        documents: Joi.array().items(Joi.string().required()).allow(null),
+        supplierOrderConfirmation: Joi.string().required(null),
+        notes: Joi.string().allow(null),
+        additionalNotes: Joi.string().allow(null),
+        financeMeta: Joi.object({
+            paymentTermsId: Joi.string().allow(null),
+            paymentTerms:Joi.number().allow(null),
+            deliveryTerm: Joi.optional().required(),
+            vatGroupId: Joi.string().allow(null),
+            paymentOption: Joi.string().required(),
+            supplierTotal: Joi.number().required(),
+            freightCharges: Joi.number().required(),
+            packingCharges: Joi.number().required(),
+            currency: Joi.string().required(),
+            vatGroupValue: Joi.number().allow(null),
+            vatGroupValueConverted: Joi.number().allow(null),
+            supplierTotalConverted: Joi.number().required(),
+            freightChargesConverted: Joi.number().required(),
+            packingChargesConverted: Joi.number().required(),
+            convertedToCurrency: Joi.string().required(),
+            currencyExchangeRate: Joi.number().required()
+        }).required()
+    })
+};

@@ -2,6 +2,7 @@
 const { agentModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { generateId } = require('../utils/generateId');
 
 const LOG_ID = 'services/agentService';
 
@@ -29,7 +30,7 @@ exports.createAgent = async (auth, body, orgId) => {
         body.createdBy = auth._id;
         body.updatedBy = auth._id;
         body.organisationId = orgId;
-        body.Id = `A-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`;
+        body.Id = generateId('A');
 
         // Insert the agent
         let insertAgent = await query.create(agentModel, body);

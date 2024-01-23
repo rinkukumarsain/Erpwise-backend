@@ -17,6 +17,17 @@ const enquirySupplierPOSchema = new Schema(
             required: true,
             ref: 'Supplier'
         },
+        organisationId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organisation',
+            required: true
+        },
+        enquiryFinalItemId: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'EnquiryItem'
+            }
+        ],
         supplierAddressId: {
             type: mongoose.Types.ObjectId,
             required: true,
@@ -32,12 +43,22 @@ const enquirySupplierPOSchema = new Schema(
             enum: ['customer', 'warehouse', 'fob/exw']
         },
         shipToCustomer: {
+            type: String,
+            default: null
+        },
+        leadAddressId: {
             type: Schema.Types.ObjectId,
-            ref: 'LeadAddress'
+            ref: 'LeadAddress',
+            default: null
         },
         shipToWarehouse: {
+            type: String,
+            default: null
+        },
+        warehouseId: {
             type: Schema.Types.ObjectId,
-            ref: 'warehouse'
+            ref: 'warehouse',
+            default: null
         },
         deliveryPoint: {
             type: Number,
@@ -81,6 +102,93 @@ const enquirySupplierPOSchema = new Schema(
         },
         additionalNotes: {
             type: String,
+            default: null
+        },
+        financeMeta: {
+            type: new Schema(
+                {
+                    paymentTermsId: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'PaymentTerms'
+                    },
+                    paymentTerms: {
+                        type: Number,
+                        default: 0
+                    },
+                    vatGroupId: {
+                        type: Schema.Types.ObjectId,
+                        // required: true,
+                        ref: 'vat'
+                    },
+                    paymentOption: {
+                        type: Number,
+                        required: true
+                    },
+                    comment: {
+                        type: String
+                        // required: true,
+                    },
+                    deliveryTerm: {
+                        type: Number,
+                        default: null
+                    },
+                    supplierTotal: {
+                        type: Number,
+                        required: true
+                    },
+                    freightCharges: {
+                        type: Number,
+                        default: 0
+                    },
+                    packingCharges: {
+                        type: Number,
+                        default: 0
+                    },
+                    vatGroupValue: {
+                        type: Number,
+                        default: 0
+                    },
+                    vatGroupValueConverted: {
+                        type: Number,
+                        default: 0
+                    },
+                    supplierTotalConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    freightChargesConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    packingChargesConverted: {
+                        type: Number,
+                        required: true
+                    },
+                    convertedToCurrency: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'currency'
+                    },
+                    currencyExchangeRate: {
+                        type: Number,
+                        required: true
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    currency: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'Currency'
+                    }
+
+                },
+                { _id: false }
+            ),
             default: null
         },
         createdBy: {

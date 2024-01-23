@@ -25,6 +25,10 @@ const enquirySupplierPOSchema = new Schema(
             type: String,
             default: 'Create_Shipment'
         },
+        level: {
+            type: Number,
+            default: 5
+        },
         organisationId: {
             type: mongoose.Types.ObjectId,
             ref: 'Organisation',

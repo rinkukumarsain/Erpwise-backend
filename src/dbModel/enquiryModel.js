@@ -434,7 +434,7 @@ const enquirySchema = new Schema(
         supplierPOId: [
             {
                 type: Schema.Types.ObjectId,
-                ref: ''
+                ref: 'enquirySupplierPO'
             }
         ],
         totalSuppliers: [

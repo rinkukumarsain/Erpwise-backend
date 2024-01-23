@@ -21,6 +21,10 @@ const enquirySupplierPOSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'Lead'
         },
+        stageName: {
+            type: String,
+            default: 'Create_Shipment'
+        },
         organisationId: {
             type: mongoose.Types.ObjectId,
             ref: 'Organisation',

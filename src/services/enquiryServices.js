@@ -1085,7 +1085,7 @@ exports.createSO = async (enquiryId, auth, body) => {
                 message: 'Enquiry not found'
             };
         }
-        if (findEnquiry.isSupplierPO) {
+        if (findEnquiry.isSupplierPOCreated) {
             return {
                 success: false,
                 message: 'Enquiry supplier po already created.'
@@ -1225,7 +1225,7 @@ exports.updateSO = async (enquiryId, auth, body) => {
                 message: 'Enquiry not found'
             };
         }
-        if (findEnquiry.isSupplierPO) {
+        if (findEnquiry.isSupplierPOCreated) {
             return {
                 success: false,
                 message: 'Enquiry supplier po is already created.'
@@ -1277,7 +1277,7 @@ exports.deleteSO = async (enquiryId, auth) => {
                 message: 'Enquiry not found'
             };
         }
-        if (findEnquiry.isSupplierPO) {
+        if (findEnquiry.isSupplierPOCreated) {
             return {
                 success: false,
                 message: 'Enquiry supplier po already created.'
@@ -1329,18 +1329,18 @@ exports.deleteSO = async (enquiryId, auth) => {
 exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
     try {
         const { email, _id, fname, lname } = auth;
-        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true });
+        const findEnquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isItemShortListed: true, isQuoteCreated: true, isPiCreated: true, isSalesOrderCreated: true });
         if (!findEnquiry) {
             return {
                 success: false,
                 message: 'Enquiry not found'
             };
         }
-        const enquirySupplierSelectedItemData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, isShortListed: true });
+        const enquirySupplierSelectedItemData = await query.find(enquirySupplierSelectedItemsModel, { enquiryId, isShortListed: true, isDeleted: false });
         const tempSupplierPOId = findEnquiry?.supplierPOId || [];
         const totalSuppliers = findEnquiry?.totalSuppliers || [...new Set(enquirySupplierSelectedItemData.map(e => e.supplierId.toString()))];
 
-        if ( totalSuppliers.length == tempSupplierPOId.length || totalSuppliers.length == tempSupplierPOId.length + 1) {
+        if (totalSuppliers.length == tempSupplierPOId.length || totalSuppliers.length == tempSupplierPOId.length + 1) {
             return {
                 success: false,
                 message: 'The purchase order for the supplier in response to the enquiry has already been generated for all suppliers..'
@@ -1352,6 +1352,8 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
         body.Id = generateId('SPO');
         body.organisationId = orgId;
         body.enquiryId = enquiryId;
+        body.leadId = findEnquiry.leadId;
+        body.enquiryFinalItemId = enquirySupplierSelectedItemData.map(e => e._id);
 
         const createSupplierPO = await query.create(enquirySupplierPOModel, body);
         if (createSupplierPO) {
@@ -1361,24 +1363,24 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
                 actionName: `Enquiry supplier po creation by ${fname} ${lname} for supplier Id : ${body.supplierId} | supplier PO ID :- ${body.Id} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
             };
             const tempData = findEnquiry?.supplierPOId || [];
-            await enquiryModel.findByIdAndUpdate(enquiryId,
+            await enquiryModel.findByIdAndUpdate(
+                enquiryId,
                 {
-                    salesOrder: body,
                     $push: { Activity: obj },
                     level: 5,
-                    isSupplierPO: true,
+                    isSupplierPOCreated: true,
                     supplierPOId: [createSupplierPO._id, ...tempData]
                 },
                 { new: true, runValidators: true });
             return {
                 success: true,
-                message: 'Enquiry sales order created successfully.',
+                message: 'Enquiry supplier po created successfully.',
                 data: createSupplierPO
             };
         }
 
     } catch (error) {
-        logger.error(LOG_ID, `Error occurred during adding sales order: ${error}`);
+        logger.error(LOG_ID, `Error occurred during adding supplier po: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

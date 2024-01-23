@@ -427,7 +427,7 @@ const enquirySchema = new Schema(
             type: Boolean,
             default: false
         },
-        isSupplierPO: {
+        isSupplierPOCreated: {
             type: Boolean,
             default: false
         },

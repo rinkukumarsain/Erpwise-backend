@@ -50,28 +50,24 @@ const enquirySupplierPOSchema = new Schema(
             required: true,
             enum: ['customer', 'warehouse', 'fob/exw']
         },
-        shipToAddressId: {
+        shipToCustomer: {
             type: String,
             default: null
         },
-        // shipToCustomer: {
-        //     type: String,
-        //     default: null
-        // },
-        // leadAddressId: {
-        //     type: Schema.Types.ObjectId,
-        //     ref: 'LeadAddress',
-        //     default: null
-        // },
-        // shipToWarehouse: {
-        //     type: String,
-        //     default: null
-        // },
-        // warehouseId: {
-        //     type: Schema.Types.ObjectId,
-        //     ref: 'warehouse',
-        //     default: null
-        // },
+        leadAddressId: {
+            type: Schema.Types.ObjectId,
+            ref: 'LeadAddress',
+            default: null
+        },
+        shipToWarehouse: {
+            type: String,
+            default: null
+        },
+        warehouseId: {
+            type: Schema.Types.ObjectId,
+            ref: 'warehouse',
+            default: null
+        },
         deliveryPoint: {
             type: Number,
             default: 0

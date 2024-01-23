@@ -17,7 +17,9 @@ const { enquiryValidators: {
     // ==PI== //
     createPI,
     // ==SO== //
-    createSO
+    createSO,
+    // ==SPO== //
+    createSupplierPO
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -393,7 +395,7 @@ let soPreFix = '/so';
  */
 router.post(`${soPreFix}/create/:enquiryId`, jwtVerify, validate(createSO), async (req, res) => {
     try {
-        const result = await enquiryServices.createSO(req.params.enquiryId, req.auth, req.body, req.files);
+        const result = await enquiryServices.createSO(req.params.enquiryId, req.auth, req.body);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -486,6 +488,26 @@ router.get(`${soPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while deleting enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+// ========================= Supplier po ============================= //
+
+const spoPreFix = '/spo';
+
+/**
+ * Route for creating enquiry supplier po.
+ */
+router.post(`${spoPreFix}/create/:enquiryId`, jwtVerify, validate(createSupplierPO), async (req, res) => {
+    try {
+        const result = await enquiryServices.createSupplierPO(req.params.enquiryId, req.auth, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating new enquiry Supplier po: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

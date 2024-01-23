@@ -41,7 +41,7 @@ exports.addEnquirySupplierSelectedItem = {
 
 exports.addFinanceDetailsSuppler = {
     body: Joi.object({
-        paymentTermsId: Joi.optional().optional(),
+        paymentTermsId: Joi.string().allow(null),
         deliveryTerm: Joi.optional().required(),
         vatGroupId: Joi.string().allow(null),
         paymentOption: Joi.string().required(),

@@ -427,6 +427,10 @@ const enquirySchema = new Schema(
             type: Boolean,
             default: false
         },
+        isSupplierPO: {
+            type: Boolean,
+            default: false
+        },
         supplierPOId: [
             {
                 type: Schema.Types.ObjectId,

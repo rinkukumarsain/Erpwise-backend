@@ -17,6 +17,10 @@ const enquirySupplierPOSchema = new Schema(
             required: true,
             ref: 'Supplier'
         },
+        leadId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Lead'
+        },
         organisationId: {
             type: mongoose.Types.ObjectId,
             ref: 'Organisation',

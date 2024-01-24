@@ -157,7 +157,7 @@ exports.createSupplierPO = {
         shipTo: Joi.string().required(),
         shipToCustomer: Joi.string().allow(''),
         leadAddressId: Joi.string().allow(''),
-        shipToWarehouseId: Joi.string().allow(''),
+        shipToWarehouse: Joi.string().allow(''),
         warehouseId: Joi.string().allow(''),
         deliveryPoint: Joi.number().required(),
         supplierPODate: Joi.string().required(),

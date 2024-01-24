@@ -133,7 +133,7 @@ const enquirySupplierPOSchema = new Schema(
                         ref: 'vat'
                     },
                     paymentOption: {
-                        type: Number,
+                        type: String,
                         required: true
                     },
                     comment: {

@@ -1340,7 +1340,7 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
         const tempSupplierPOId = findEnquiry?.supplierPOId || [];
         const totalSuppliers = findEnquiry?.totalSuppliers || [...new Set(enquirySupplierSelectedItemData.map(e => e.supplierId.toString()))];
 
-        if (totalSuppliers.length == tempSupplierPOId.length || totalSuppliers.length == tempSupplierPOId.length + 1) {
+        if (totalSuppliers.length == tempSupplierPOId.length) {
             return {
                 success: false,
                 message: 'The purchase order for the supplier in response to the enquiry has already been generated for all suppliers..'

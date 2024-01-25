@@ -1368,6 +1368,7 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
                 {
                     $push: { Activity: obj },
                     level: 5,
+                    stageName: 'Create_Order_Tracking',
                     isSupplierPOCreated: true,
                     supplierPOId: [createSupplierPO._id, ...tempData]
                 },

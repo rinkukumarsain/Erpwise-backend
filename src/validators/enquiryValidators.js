@@ -166,7 +166,7 @@ exports.createSupplierPO = {
         commodity: Joi.string().required(),
         paymentTermsId: Joi.string().required(),
         paymentTerms: Joi.number().required(),
-        documents: Joi.array().items(Joi.string().required()).allow([]),
+        documents: Joi.array().items(Joi.string().required()).allow(null),
         supplierOrderConfirmation: Joi.string().required(null),
         notes: Joi.string().allow(null),
         additionalNotes: Joi.string().allow(null),

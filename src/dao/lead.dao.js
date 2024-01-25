@@ -213,6 +213,40 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
         pipeline[1]['$sort']['updatedAt'] = -1;
     }
 
+    if (level == '4') {
+        pipeline.push(
+            {
+                $lookup: {
+                    from: 'enquiries',
+                    localField: '_id',
+                    foreignField: 'leadId',
+                    pipeline: [
+                        {
+                            $match: {
+                                isSalesOrderCreated: true
+                            }
+                        }
+                    ],
+                    as: 'result'
+                }
+            }
+        );
+        pipeline.push(
+            {
+                $addFields: {
+                    totalProjects: {
+                        $size: '$result'
+                    }
+                }
+            }
+        );
+        pipeline.push({
+            $project: {
+                result: 0
+            }
+        });
+    }
+
     return pipeline;
 };
 

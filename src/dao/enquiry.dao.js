@@ -2970,3 +2970,369 @@ exports.getAllSalesOrderPipeline = (orgId, { isActive, page, perPage, sortBy, so
     }
     return pipeline;
 };
+
+// ========================= Supplier PO ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry Spupplier po by enquiryId.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} orgId - org id.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            level: 5,
+            isSupplierPOCreated: true,
+            isDeleted: false
+        }
+    },
+    {
+        $project: {
+            proformaInvoice: 1,
+            organisationId: 1,
+            leadContactId: 1,
+            leadId: 1,
+            Id: 1,
+            level: 1,
+            isItemAdded: 1,
+            isItemShortListed: 1,
+            isQuoteCreated: 1,
+            isPiCreated: 1,
+            isSalesOrderCreated: 1,
+            quoteId: 1,
+            stageName: 1,
+            companyName: 1,
+            contactPerson: 1,
+            salesOrderId: '$salesOrder.Id',
+            isSupplierPOCreated: 1,
+            supplierPOId: 1,
+            totalSuppliers: 1
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryquotes',
+            localField: 'quoteId',
+            foreignField: '_id',
+            as: 'quoteData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierselecteditems',
+            localField: 'quoteData.enquiryFinalItemId',
+            foreignField: '_id',
+            as: 'quoteData.enquiryFinalItem'
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisations',
+            localField: 'organisationId',
+            foreignField: '_id',
+            as: 'quoteData.orgData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData.orgData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisationaddresses',
+            let: {
+                organisationId: '$organisationId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$organisationId',
+                                        '$$organisationId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$addresstype',
+                                        'Billing'
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'quoteData.organisationAddress'
+        }
+    },
+    {
+        $unwind: {
+            path: '$quoteData.organisationAddress',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'leads',
+            localField: 'leadId',
+            foreignField: '_id',
+            as: 'leadData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$leadData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadcontacts',
+            localField: 'leadContactId',
+            foreignField: '_id',
+            as: 'leadContactData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$leadContactData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            totalSuppliers: {
+                $cond: {
+                    if: {
+                        $ne: [
+                            {
+                                $ifNull: [
+                                    '$totalSuppliers',
+                                    null
+                                ]
+                            },
+                            null
+                        ]
+                    },
+                    then: '$totalSuppliers',
+                    else: {
+                        $setUnion: {
+                            $map: {
+                                input:
+                                    '$quoteData.enquiryFinalItem',
+                                as: 'item',
+                                in: '$$item.supplierId'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        $project:{
+            'quoteData.enquiryFinalItem': 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            localField: 'totalSuppliers',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        companyName: 1,
+                        Id: 1,
+                        email: 1,
+                        phone: 1
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'enquirysupplierpos',
+                        let: {
+                            id: '$_id',
+                            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$id'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$enquiryId',
+                                                    '$$enquiryId'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'poData'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$poData',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'supplieraddresses',
+                        let: {
+                            id: '$_id'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$id'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isDeleted',
+                                                    false
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$addresstype',
+                                                    'Billing'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'billingAddress'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'enquirysupplierselecteditems',
+                        let: {
+                            id: '$_id',
+                            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+                        },
+                        pipeline: [
+                            // Add your stages here based on the requirements
+                            {
+                                $match: {
+                                    $expr: {
+                                        // Your match conditions here
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$id'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$enquiryId',
+                                                    '$$enquiryId'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isShortListed',
+                                                    true
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: 'supplieritems',
+                                    localField: 'supplierItemId',
+                                    foreignField: '_id',
+                                    as: 'supplieritems'
+                                }
+                            },
+                            {
+                                $unwind: {
+                                    path: '$supplieritems',
+                                    preserveNullAndEmptyArrays: true
+                                }
+                            }
+                        ],
+                        as: 'enquiryFinalItem'
+                    }
+                },
+                {
+                    $addFields: {
+                        financeMeta: '$poData.financeMeta'
+                    }
+                }
+            ],
+            as: 'totalSuppliers'
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadaddresses',
+            localField: 'leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false,
+                        addresstype: 'Shipping'
+                    }
+                }
+            ],
+            as: 'shippingAddress'
+        }
+    },
+    {
+        $lookup: {
+            from: 'warehouses',
+            localField: 'organisationId',
+            foreignField: 'organisationId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false
+                    }
+                }
+            ],
+            as: 'warehouses'
+        }
+    }
+];

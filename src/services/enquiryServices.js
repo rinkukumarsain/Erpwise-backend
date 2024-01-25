@@ -1353,7 +1353,9 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
         body.organisationId = orgId;
         body.enquiryId = enquiryId;
         body.leadId = findEnquiry.leadId;
-        body.enquiryFinalItemId = enquirySupplierSelectedItemData.map(e => e._id);
+        body.enquiryFinalItemId = enquirySupplierSelectedItemData.filter(e => {
+            if (e.supplierId == body.supplierId) return e._id;
+        });
 
         const createSupplierPO = await query.create(enquirySupplierPOModel, body);
         if (createSupplierPO) {

@@ -102,7 +102,8 @@ const enquirySupplierPOSchema = new Schema(
             required: true
         },
         documents: {
-            type: Array
+            type: Array,
+            default: null
         },
         supplierOrderConfirmation: {
             type: String,

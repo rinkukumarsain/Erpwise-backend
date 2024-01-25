@@ -3504,10 +3504,12 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
         let obj = {
             '$match': {
                 '$or': [
-                    { 'salesOrder.Id': { $regex: `${search}.*`, $options: 'i' } },
-                    { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
                     { companyName: { $regex: `${search}.*`, $options: 'i' } },
-                    { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+                    { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+                    { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
+                    { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
+                    { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { warehouseName: { $regex: `${search}.*`, $options: 'i' } }
                 ]
             }
         };

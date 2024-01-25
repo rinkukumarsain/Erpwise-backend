@@ -1390,6 +1390,32 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
 };
 
 /**
+ * get Supplier PO by enquiry.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.getAllSupplierPoOfEnquiry = async (enquiryId, orgId) => {
+    try {
+        const findData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoOfEnquiryPipeline(enquiryId, orgId));
+        if (findData.length == 1) {
+            return {
+                success: true,
+                message: 'Enquiry supplier po fetched successfully.',
+                data: findData[0]
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during getting all supplier po of an enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

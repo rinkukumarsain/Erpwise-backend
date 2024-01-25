@@ -3145,7 +3145,7 @@ exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
         }
     },
     {
-        $project:{
+        $project: {
             'quoteData.enquiryFinalItem': 0
         }
     },
@@ -3336,3 +3336,191 @@ exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry Spupplier po by enquiryId.
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    const pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                level: 5,
+                isSupplierPOCreated: true,
+                isDeleted: false
+            }
+        },
+        {
+            $sort: {
+                'updatedAt': -1
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $project: {
+                organisationId: 1,
+                leadContactId: 1,
+                leadId: 1,
+                companyName: 1,
+                contactPerson: 1,
+                Id: 1,
+                level: 1,
+                isItemAdded: 1,
+                isItemShortListed: 1,
+                isQuoteCreated: 1,
+                isPiCreated: 1,
+                isSalesOrderCreated: 1,
+                stageName: 1,
+                salesOrderId: '$salesOrder.Id',
+                isSupplierPOCreated: 1,
+                supplierPOId: 1
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierpos',
+                localField: 'supplierPOId',
+                foreignField: '_id',
+                as: 'poData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$poData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                localField: 'poData.supplierId',
+                foreignField: '_id',
+                as: 'poData.suppliersCompanyName'
+            }
+        },
+        {
+            $lookup: {
+                from: 'warehouses',
+                localField: 'poData.warehouseId',
+                foreignField: '_id',
+                as: 'poData.warehouseName'
+            }
+        },
+        {
+            $addFields: {
+                stageName: '$poData.stageName',
+                supplierPOId: '$poData.Id',
+                'poData.suppliersCompanyName': {
+                    $arrayElemAt: [
+                        '$poData.suppliersCompanyName',
+                        0
+                    ]
+                },
+                'poData.warehouseName': {
+                    $arrayElemAt: [
+                        '$poData.warehouseName',
+                        0
+                    ]
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierselecteditems',
+                localField: 'poData.enquiryFinalItemId',
+                foreignField: '_id',
+                as: 'enquirysupplierselecteditems'
+            }
+        },
+        {
+            $addFields: {
+                suppliersCompanyName:
+                    '$poData.suppliersCompanyName.companyName',
+                warehouseName: {
+                    $cond: {
+                        if: {
+                            $and: [
+                                {
+                                    $ifNull: ['$poData', false]
+                                },
+                                {
+                                    $ifNull: [
+                                        '$poData.warehouseName',
+                                        false
+                                    ]
+                                }
+                            ]
+                        },
+                        then: '$poData.warehouseName.name',
+                        else: null
+                    }
+                },
+                totalItemQuantity: {
+                    $reduce: {
+                        input: '$enquirysupplierselecteditems',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                {
+                                    $toDouble:
+                                        '$$this.finalItemDetails.quantity'
+                                }
+                            ]
+                        }
+                    }
+                },
+                validTillDate: '$poData.validTillDate',
+                poValue: {
+                    $add: [
+                        '$poData.financeMeta.freightChargesConverted',
+                        '$poData.financeMeta.packingChargesConverted',
+                        '$poData.financeMeta.supplierTotalConverted'
+                    ]
+                }
+            }
+        },
+        {
+            $project: {
+                poData: 0
+            }
+        }
+    ];
+
+    if (isActive) {
+        pipeline[0]['$match']['isActive'] = isActive === 'true' ? true : false;
+    }
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { 'salesOrder.Id': { $regex: `${search}.*`, $options: 'i' } },
+                    { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+    return pipeline;
+};

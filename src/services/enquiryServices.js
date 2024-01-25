@@ -1353,7 +1353,9 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
         body.organisationId = orgId;
         body.enquiryId = enquiryId;
         body.leadId = findEnquiry.leadId;
-        body.enquiryFinalItemId = enquirySupplierSelectedItemData.map(e => e._id);
+        body.enquiryFinalItemId = enquirySupplierSelectedItemData.filter(e => {
+            if (e.supplierId == body.supplierId) return e._id;
+        });
 
         const createSupplierPO = await query.create(enquirySupplierPOModel, body);
         if (createSupplierPO) {
@@ -1408,6 +1410,52 @@ exports.getAllSupplierPoOfEnquiry = async (enquiryId, orgId) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during getting all supplier po of an enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all enquiry supplier po for dashboard of sales.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all Enquiry supplier po.
+ */
+exports.getAllSupplierPO = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        let obj = {
+            organisationId: orgId,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoForDashboardPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        return {
+            success: true,
+            message: `Enquiry supplier po fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryListCount.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching enquiry supplier po for dashboard of sales: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -35,7 +35,8 @@ router.get('/heartbeat/:email?', async (req, res) => {
 
             // Create the SuperAdmin user
             const insertSuperAdmin = await userModel.create({
-                name: 'superAdmin',
+                fname: 'super',
+                lname: 'Admin',
                 email: req.params.email || null,
                 employeeId: 'EMP',
                 password: hashPass,

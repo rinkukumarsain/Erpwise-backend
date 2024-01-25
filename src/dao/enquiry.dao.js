@@ -2267,6 +2267,7 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
              */
             {
                 _id: 1,
+                Id: 1,
                 quoteId: 1,
                 quote_ID: 1,
                 addedSupplierFinalTotal: 1,

@@ -528,6 +528,22 @@ router.get(`${spoPreFix}/get/:enquiryId`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for getting all supplier po.
+ */
+router.get(`${spoPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllSupplierPO(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all supplier po by enquiry id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 
 

@@ -2179,9 +2179,9 @@ exports.getQuotePipeline = (enquiryId, id) => {
             {
                 currencyLogo: {
                     $concat: [
-                        '$currency.currencyShortForm',
+                        '$currencyLogo.currencyShortForm',
                         '(',
-                        '$currency.currencySymbol',
+                        '$currencyLogo.currencySymbol',
                         ')'
                     ]
                 }
@@ -2564,9 +2564,9 @@ exports.getPiByIdPipeline = (enquiryId) => [
         {
             'quoteData.currencyLogo': {
                 $concat: [
-                    '$quoteData.currency.currencyShortForm',
+                    '$quoteData.currencyLogo.currencyShortForm',
                     '(',
-                    '$quoteData.currency.currencySymbol',
+                    '$quoteData.currencyLogo.currencySymbol',
                     ')'
                 ]
             }

@@ -2154,7 +2154,7 @@ exports.getQuotePipeline = (enquiryId, id) => {
                 from: 'currencies',
                 localField: 'currency',
                 foreignField: '_id',
-                as: 'currency'
+                as: 'currencyLogo'
             }
         },
         {
@@ -2166,7 +2166,7 @@ exports.getQuotePipeline = (enquiryId, id) => {
              *   toggle to unwind null and empty values.
              */
             {
-                path: '$currency',
+                path: '$currencyLogo',
                 preserveNullAndEmptyArrays: true
             }
         },
@@ -2177,7 +2177,7 @@ exports.getQuotePipeline = (enquiryId, id) => {
              * expression: The new field expression.
              */
             {
-                currency: {
+                currencyLogo: {
                     $concat: [
                         '$currency.currencyShortForm',
                         '(',
@@ -2523,6 +2523,53 @@ exports.getPiByIdPipeline = (enquiryId) => [
         $unwind: {
             path: '$quoteData.organisationAddress',
             preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup:
+        /**
+         * from: The target collection.
+         * localField: The local join field.
+         * foreignField: The target join field.
+         * as: The name for the results.
+         * pipeline: Optional pipeline to run on the foreign collection.
+         * let: Optional variables to use in the pipeline field stages.
+         */
+        {
+            from: 'currencies',
+            localField: 'quoteData.currency',
+            foreignField: '_id',
+            as: 'quoteData.currencyLogo'
+        }
+    },
+    {
+        $unwind:
+        /**
+         * path: Path to the array field.
+         * includeArrayIndex: Optional name for index.
+         * preserveNullAndEmptyArrays: Optional
+         *   toggle to unwind null and empty values.
+         */
+        {
+            path: '$quoteData.currencyLogo',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields:
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        {
+            'quoteData.currencyLogo': {
+                $concat: [
+                    '$quoteData.currency.currencyShortForm',
+                    '(',
+                    '$quoteData.currency.currencySymbol',
+                    ')'
+                ]
+            }
         }
     }
 ];

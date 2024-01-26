@@ -2141,6 +2141,53 @@ exports.getQuotePipeline = (enquiryId, id) => {
             }
         },
         {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: 'currencies',
+                localField: 'currency',
+                foreignField: '_id',
+                as: 'currency'
+            }
+        },
+        {
+            $unwind:
+            /**
+             * path: Path to the array field.
+             * includeArrayIndex: Optional name for index.
+             * preserveNullAndEmptyArrays: Optional
+             *   toggle to unwind null and empty values.
+             */
+            {
+                path: '$currency',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields:
+            /**
+             * newField: The new field name.
+             * expression: The new field expression.
+             */
+            {
+                currency: {
+                    $concat: [
+                        '$currency.currencyShortForm',
+                        '(',
+                        '$currency.currencySymbol',
+                        ')'
+                    ]
+                }
+            }
+        },
+        {
             $sort: {
                 isActive: -1
             }

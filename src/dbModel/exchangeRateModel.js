@@ -82,6 +82,10 @@ const exchangeRateSchema = new Schema({
             currencyId: { type: mongoose.Types.ObjectId }
         }]
     },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
     Activity: [userActionSchema]
 }, { timestamps: true, versionKey: false });
 

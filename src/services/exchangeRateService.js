@@ -204,12 +204,13 @@ exports.getExchangeRate = async (reqQuery, orgId) => {
  */
 exports.delete = async (id) => {
     try {
-        const data = await exchangeRateModel.findByIdAndDelete(id);
-        return {
-            success: true,
-            message: 'You have successfully deleted exchange rate',
-            data: data
-        };
+        const data = await exchangeRateModel.findByIdAndUpdate({ _id: id }, { isDeleted: true }, { new: true });
+        if (data) {
+            return {
+                success: true,
+                message: 'You have successfully deleted exchange rate'
+            };
+        }
     } catch (error) {
         console.error(error);
         logger.error(LOG_ID, `Error occurred during getExchangeRate: ${error}`);

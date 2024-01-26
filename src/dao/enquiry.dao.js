@@ -2043,6 +2043,40 @@ exports.getQuotePipeline = (enquiryId, id) => {
         },
         {
             $lookup: {
+                from: 'leadaddresses',
+                localField: 'leadId',
+                foreignField: 'leadId',
+                pipeline: [
+                    {
+                        $match: {
+                            isActive: true,
+                            isDeleted: false,
+                            addresstype: 'Shipping'
+                        }
+                    }
+                ],
+                as: 'shippingAddress'
+            }
+        },
+        {
+            $lookup: {
+                from: 'leadaddresses',
+                localField: 'leadId',
+                foreignField: 'leadId',
+                pipeline: [
+                    {
+                        $match: {
+                            isActive: true,
+                            isDeleted: false,
+                            addresstype: 'Billing'
+                        }
+                    }
+                ],
+                as: 'billingAddress'
+            }
+        },
+        {
+            $lookup: {
                 from: 'leadcontacts',
                 localField: 'leadContactId',
                 foreignField: '_id',

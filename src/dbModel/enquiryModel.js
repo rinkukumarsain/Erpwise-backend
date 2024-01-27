@@ -92,6 +92,10 @@ const enquirySchema = new Schema(
             required: true,
             ref: 'User'
         },
+        salesPersonName: {
+            type: String,
+            required: true
+        },
         dueDate: {
             type: Date,
             default: ''

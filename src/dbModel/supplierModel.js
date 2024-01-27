@@ -120,6 +120,10 @@ const supplierSchema = new Schema(
             required: true,
             ref: 'User'
         },
+        salesPersonName: {
+            type: String,
+            required: true
+        },
         organisationId: {
             type: mongoose.Types.ObjectId,
             ref: 'Organisation',

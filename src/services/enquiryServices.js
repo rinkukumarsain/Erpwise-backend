@@ -8,7 +8,8 @@ const {
     enquirySupplierSelectedItemsModel,
     enquiryQuoteModel,
     mailLogsModel,
-    enquirySupplierPOModel
+    enquirySupplierPOModel,
+    userModel
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -71,6 +72,13 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        const findUser = await query.findOne(userModel, { _id: enquiryData.salesPerson, isActive: true });
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Sales person not found.'
+            };
+        }
         let obj = {
             performedBy: _id,
             performedByEmail: email,
@@ -81,6 +89,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
         enquiryData.updatedBy = _id;
         enquiryData.organisationId = orgId;
         enquiryData.Id = generateId('EQ');
+        enquiryData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newEnquiry = await query.create(enquiryModel, enquiryData);
         if (newEnquiry) {
             await leadModel.findByIdAndUpdate(

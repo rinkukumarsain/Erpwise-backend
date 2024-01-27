@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { leadModel, enquiryModel } = require('../dbModel');
+const { leadModel, enquiryModel, userModel } = require('../dbModel');
 const { CRMlevelEnum, CRMlevelValueByKey, crmPipelineLevel } = require('../../config/default.json');
 const { leadDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -25,6 +25,13 @@ exports.createLead = async (auth, leadData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        const findUser = await query.findOne(userModel, { _id: leadData.salesPerson, isActive: true });
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Sales person not found.'
+            };
+        }
         const findUniqueCompanyName = await query.findOne(leadModel, { organisationId: orgId, companyName: leadData.companyName });
         if (findUniqueCompanyName) {
             return {
@@ -44,6 +51,7 @@ exports.createLead = async (auth, leadData, orgId) => {
         leadData.organisationId = orgId;
         leadData.level = CRMlevelEnum.LEAD;
         leadData.Id = generateId('LI');
+        leadData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newLead = await query.create(leadModel, leadData);
         return {
             success: true,
@@ -83,16 +91,28 @@ exports.getAllLead = async (orgId, queryObj) => {
                 };
             }
         }
-        let obj = {
-            organisationId: orgId,
-            level: level ? +level : 1,
-            isDeleted: false
-        };
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (id) obj['_id'] = id;
-        const leadListCount = await query.find(leadModel, obj, { _id: 1 });
-        const totalPages = Math.ceil(leadListCount.length / perPage);
+        // let obj = {
+        //     organisationId: orgId,
+        //     level: level ? +level : 1,
+        //     isDeleted: false
+        // };
+        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        // if (id) obj['_id'] = id;
+        // if (salesPerson) {
+        //     obj['salesPerson'] = salesPerson;
+        // }
+
+        // if (search) {
+        //     obj['$or'] = [
+        //         { Id: { $regex: `${search}.*`, $options: 'i' } },
+        //         { companyName: { $regex: `${search}.*`, $options: 'i' } },
+        //         { address: { $regex: `${search}.*`, $options: 'i' } },
+        //         { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
+        //     ];
+        // }
+        // const leadListCount = await query.find(leadModel, obj, { _id: 1 });
         const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId: id, search, salesPerson }));
+        const totalPages = Math.ceil(leadData.length / perPage);
         const messageName = CRMlevelValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
@@ -103,7 +123,7 @@ exports.getAllLead = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: leadListCount.length,
+                    totalChildrenCount: leadData.length,
                     totalPages
                 }
             }

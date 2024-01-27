@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { supplierModel, supplierItemsModel, userModel } = require('../dbModel');
+const { supplierModel, supplierItemsModel } = require('../dbModel');
 const { supplierLevelEnum, supplierValueByKey, supplierPipelineLevel } = require('../../config/default.json');
 const { supplierDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -33,13 +33,13 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
                 message: 'Company name already exist.'
             };
         }
-        const findUser = await query.findOne(userModel, { _id: supplierData.salesPerson, isActive: true });
-        if (!findUser) {
-            return {
-                success: false,
-                message: 'Sales person not found.'
-            };
-        }
+        // const findUser = await query.findOne(userModel, { _id: supplierData.salesPerson, isActive: true });
+        // if (!findUser) {
+        //     return {
+        //         success: false,
+        //         message: 'Sales person not found.'
+        //     };
+        // }
         const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
@@ -52,7 +52,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
         supplierData.Id = generateId('SI');
-        supplierData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
+        // supplierData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,

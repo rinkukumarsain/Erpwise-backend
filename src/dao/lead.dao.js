@@ -456,6 +456,7 @@ exports.getAllLeadsAvailableForEnquiry = (orgId) => [
             isQualified: true,
             isContactAdded: true,
             isActive: true,
+            level: { $ne: 1 },
             isDeleted: false
         }
     },

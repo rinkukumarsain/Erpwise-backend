@@ -84,16 +84,16 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 };
             }
         }
-        let obj = {
-            organisationId: orgId,
-            level: level ? +level : 1,
-            isDeleted: false
-        };
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (id) obj['_id'] = id;
-        const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
-        const totalPages = Math.ceil(supplierListCount.length / perPage);
+        // let obj = {
+        //     organisationId: orgId,
+        //     level: level ? +level : 1,
+        //     isDeleted: false
+        // };
+        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        // if (id) obj['_id'] = id;
+        // const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
         const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id }));
+        const totalPages = Math.ceil(supplierData.length / perPage);
         const messageName = supplierValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
@@ -104,13 +104,13 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: supplierListCount.length,
+                    totalChildrenCount: supplierData.length,
                     totalPages
                 }
             }
         };
     } catch (error) {
-        logger.error(LOG_ID, `Error fetching lead: ${error}`);
+        logger.error(LOG_ID, `Error fetching supplier: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -156,7 +156,8 @@ exports.getAllEnquiryPipeline = (orgId, { isActive, page, perPage, sortBy, sortO
     if (search) {
         pipeline[0]['$match']['$or'] = [
             { Id: { $regex: `${search}.*`, $options: 'i' } },
-            { companyName: { $regex: `${search}.*`, $options: 'i' } }
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
             // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
             // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
             // { final_quote: { $regex: `${search}.*`, $options: 'i' } }

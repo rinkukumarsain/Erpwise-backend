@@ -53,7 +53,8 @@ exports.getAllSupplier = {
         perPage: Joi.string().optional(),
         sortBy: Joi.string().optional(),
         sortOrder: Joi.string().optional(),
-        level: Joi.string().optional()
+        level: Joi.string().optional(),
+        search: Joi.string().optional()
     })
 };
 

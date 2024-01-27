@@ -1,6 +1,6 @@
 const moment = require('moment');
 // Local Import
-const { supplierModel, supplierItemsModel } = require('../dbModel');
+const { supplierModel, supplierItemsModel, userModel } = require('../dbModel');
 const { supplierLevelEnum, supplierValueByKey, supplierPipelineLevel } = require('../../config/default.json');
 const { supplierDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -33,6 +33,13 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
                 message: 'Company name already exist.'
             };
         }
+        const findUser = await query.findOne(userModel, { _id: supplierData.salesPerson, isActive: true });
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Sales person not found.'
+            };
+        }
         const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
@@ -45,6 +52,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
         supplierData.Id = generateId('SI');
+        supplierData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,
@@ -75,7 +83,7 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 message: 'Organisation not found.'
             };
         }
-        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id } = queryObj;
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search } = queryObj;
         if (level) {
             if (!supplierValueByKey[level]) {
                 return {
@@ -92,7 +100,7 @@ exports.getAllSupplier = async (orgId, queryObj) => {
         // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         // if (id) obj['_id'] = id;
         // const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
-        const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id }));
+        const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id, search }));
         const totalPages = Math.ceil(supplierData.length / perPage);
         const messageName = supplierValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();

@@ -183,7 +183,6 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
             { Id: { $regex: `${search}.*`, $options: 'i' } },
             { companyName: { $regex: `${search}.*`, $options: 'i' } },
             { address: { $regex: `${search}.*`, $options: 'i' } },
-            { salesPersonName: { $regex: `${search}.*`, $options: 'i' } },
             { industryType: { $regex: `${search}.*`, $options: 'i' } }
         ];
     }

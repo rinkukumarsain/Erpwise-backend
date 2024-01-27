@@ -108,6 +108,6 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
         // delete arr[1]['$sort'];
         arr.splice(1, 1);
     }
-    console.log('>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(arr));
+    // console.log('>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(arr));
     return arr;
 };

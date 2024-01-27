@@ -4,15 +4,8 @@ const mongoose = require('mongoose');
 /**
  * Generates an aggregation pipeline to retrieve a paginated list of users.
  *
- * @typedef {object} getExchangeRatePipeline
- * @property {string} orgId - The organization's unique identifier.
+* @property {string} orgId - The organization's unique identifier.
  * @property {string} isActive - Filter users based on their activation status. Pass 'true' or 'false'.
- */
-
-/**
- * Generates an aggregation pipeline to retrieve a paginated list of users.
- *
- * @param {getExchangeRatePipeline} options - Options to customize the user retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated list of users.
  */
 
@@ -21,8 +14,13 @@ exports.getExchangeRatePipeline = ({ orgId, isActive }) => {
     let matchObj = {};
     if (orgId) { matchObj['orgId'] = new mongoose.Types.ObjectId(orgId); }
     isActive ? matchObj['isActive'] = isActive : matchObj['isActive'] = true;
-
-    condition.push({ '$match': matchObj }, {
+    condition.push({
+        $match: {
+            isActive: true,
+            orgId: new mongoose.Types.ObjectId(orgId)
+        }
+    });
+    condition.push({
         '$lookup': {
             'from': 'organisations',
             'localField': 'orgId',

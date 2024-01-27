@@ -2043,6 +2043,40 @@ exports.getQuotePipeline = (enquiryId, id) => {
         },
         {
             $lookup: {
+                from: 'leadaddresses',
+                localField: 'leadId',
+                foreignField: 'leadId',
+                pipeline: [
+                    {
+                        $match: {
+                            isActive: true,
+                            isDeleted: false,
+                            addresstype: 'Shipping'
+                        }
+                    }
+                ],
+                as: 'shippingAddress'
+            }
+        },
+        {
+            $lookup: {
+                from: 'leadaddresses',
+                localField: 'leadId',
+                foreignField: 'leadId',
+                pipeline: [
+                    {
+                        $match: {
+                            isActive: true,
+                            isDeleted: false,
+                            addresstype: 'Billing'
+                        }
+                    }
+                ],
+                as: 'billingAddress'
+            }
+        },
+        {
+            $lookup: {
                 from: 'leadcontacts',
                 localField: 'leadContactId',
                 foreignField: '_id',
@@ -2104,6 +2138,53 @@ exports.getQuotePipeline = (enquiryId, id) => {
             $unwind: {
                 path: '$organisationAddress',
                 preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup:
+            /**
+             * from: The target collection.
+             * localField: The local join field.
+             * foreignField: The target join field.
+             * as: The name for the results.
+             * pipeline: Optional pipeline to run on the foreign collection.
+             * let: Optional variables to use in the pipeline field stages.
+             */
+            {
+                from: 'currencies',
+                localField: 'currency',
+                foreignField: '_id',
+                as: 'currencyLogo'
+            }
+        },
+        {
+            $unwind:
+            /**
+             * path: Path to the array field.
+             * includeArrayIndex: Optional name for index.
+             * preserveNullAndEmptyArrays: Optional
+             *   toggle to unwind null and empty values.
+             */
+            {
+                path: '$currencyLogo',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields:
+            /**
+             * newField: The new field name.
+             * expression: The new field expression.
+             */
+            {
+                currencyLogo: {
+                    $concat: [
+                        '$currencyLogo.currencyShortForm',
+                        '(',
+                        '$currencyLogo.currencySymbol',
+                        ')'
+                    ]
+                }
             }
         },
         {
@@ -2267,6 +2348,7 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
              */
             {
                 _id: 1,
+                Id: 1,
                 quoteId: 1,
                 quote_ID: 1,
                 addedSupplierFinalTotal: 1,
@@ -2441,6 +2523,53 @@ exports.getPiByIdPipeline = (enquiryId) => [
         $unwind: {
             path: '$quoteData.organisationAddress',
             preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup:
+        /**
+         * from: The target collection.
+         * localField: The local join field.
+         * foreignField: The target join field.
+         * as: The name for the results.
+         * pipeline: Optional pipeline to run on the foreign collection.
+         * let: Optional variables to use in the pipeline field stages.
+         */
+        {
+            from: 'currencies',
+            localField: 'quoteData.currency',
+            foreignField: '_id',
+            as: 'quoteData.currencyLogo'
+        }
+    },
+    {
+        $unwind:
+        /**
+         * path: Path to the array field.
+         * includeArrayIndex: Optional name for index.
+         * preserveNullAndEmptyArrays: Optional
+         *   toggle to unwind null and empty values.
+         */
+        {
+            path: '$quoteData.currencyLogo',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields:
+        /**
+         * newField: The new field name.
+         * expression: The new field expression.
+         */
+        {
+            'quoteData.currencyLogo': {
+                $concat: [
+                    '$quoteData.currencyLogo.currencyShortForm',
+                    '(',
+                    '$quoteData.currencyLogo.currencySymbol',
+                    ')'
+                ]
+            }
         }
     }
 ];

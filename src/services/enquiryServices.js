@@ -194,16 +194,23 @@ exports.getAllEnquiry = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search, salesPerson, leadId } = queryObj;
-        // let obj = {
-        //     organisationId: orgId,
-        //     // level: level ? +level : 1,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        // if (id) obj['_id'] = id;
-        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        let obj = {
+            organisationId: orgId,
+            level: level ? +level : 1,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { salesPersonName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllEnquiryPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId, enquiryId: id, search, salesPerson }));
-        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry fetched successfully.`,
@@ -212,7 +219,7 @@ exports.getAllEnquiry = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryData.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }
@@ -691,14 +698,26 @@ exports.getAllQuote = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        // let obj = {
-        //     organisationId: orgId,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        let obj = {
+            organisationId: orgId,
+            isDeleted: false,
+            level: 2,
+            isQuoteCreated: true
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                // { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+                // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+                // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllQuotePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry Quote fetched successfully.`,
@@ -707,7 +726,7 @@ exports.getAllQuote = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryData.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }
@@ -892,14 +911,23 @@ exports.getAllPorformaInvoice = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        // let obj = {
-        //     organisationId: orgId,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        let obj = {
+            organisationId: orgId,
+            level: 3,
+            isPiCreated: true,
+            isDeleted: false
+        };
+        if (search) {
+            obj['$or'] = [
+                { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllPorformaInvoicePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry porforma invoice fetched successfully.`,
@@ -908,7 +936,7 @@ exports.getAllPorformaInvoice = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryData.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }
@@ -1187,14 +1215,24 @@ exports.getAllSalesOrder = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        // let obj = {
-        //     organisationId: orgId,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        let obj = {
+            organisationId: orgId,
+            level: 4,
+            isQuoteCreated: true,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                { 'salesOrder.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSalesOrderPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry sales order fetched successfully.`,
@@ -1203,7 +1241,7 @@ exports.getAllSalesOrder = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryData.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }
@@ -1442,14 +1480,26 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        // let obj = {
-        //     organisationId: orgId,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        let obj = {
+            organisationId: orgId,
+            level: 5,
+            isSupplierPOCreated: true,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+                { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
+                { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
+                { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                { warehouseName: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoForDashboardPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
-        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry supplier po fetched successfully.`,
@@ -1458,7 +1508,7 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryData.length,
+                    totalChildrenCount: enquiryListCount.length,
                     totalPages
                 }
             }

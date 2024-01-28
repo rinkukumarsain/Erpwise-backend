@@ -1,6 +1,59 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+/**
+ * @typedef {object} UserAction
+ * @property {mongoose.Types.ObjectId} enquiryId - The ID of enquiry.
+ * @property {mongoose.Types.ObjectId} agentId - The ID of enquiry.
+ * @property {number} commission - The commission that a agent will get in %.
+ * @property {number} commissionValue - The value of commission.
+ * @property {string} notes - description.
+ * @property {boolean} agentBill - boolean.
+ * @property {Date} createdAt - The timestamp when the document was created.
+ * @property {Date} updatedAt - The timestamp when the document was last updated.
+ */
+
+/**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const AgentCommissionSchema = new Schema(
+    {
+        enquiryId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'enquiry',
+            required: true
+        },
+        agentId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'agent',
+            unique: true,
+            required: true
+        },
+        commission: {
+            type: Number,
+            required: true
+        },
+        commissionValue: {
+            type: Number,
+            required: true
+        },
+        notes: {
+            type: String,
+            default: null
+        },
+        agentBill: {
+            type: Boolean,
+            defalut: false
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
 const enquiryQuoteSchema = new Schema(
     {
         Id: {
@@ -136,6 +189,7 @@ const enquiryQuoteSchema = new Schema(
             type: Number,
             default: null
         },
+        AgentCommission: [AgentCommissionSchema],
         createdBy: {
             type: mongoose.Types.ObjectId
         },

@@ -462,7 +462,6 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Enquiry porforma invoice is already created.'
             };
         }
-
         const findFinalItems = await query.find(enquirySupplierSelectedItemsModel, { enquiryId: body.enquiryId, isShortListed: true, isDeleted: false }, { _id: 1 });
         if (findFinalItems.length == 0) {
             return {
@@ -477,6 +476,33 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Three quotes are already created.'
             };
         }
+        if (Array.isArray(body.agent) && body.agent.length > 0) {
+            body.agentTotalCommission = 0;
+            body.agentTotalCommissionValue = 0;
+            let uniqueAgentIds = new Set();
+
+            for (let ele of body.agent) {
+                if (body.agentTotalCommission > 50) {
+                    return {
+                        success: false,
+                        message: `Total commission can't be more than 50%.`
+                    };
+                }
+                if (uniqueAgentIds.has(ele.agentId)) {
+                    return {
+                        success: false,
+                        message: 'You cannot add the same agent multiple times.'
+                    };
+                }
+
+                uniqueAgentIds.add(ele.agentId);
+
+                body.agentTotalCommission += ele.commission;
+                body.agentTotalCommissionValue += ele.commissionValue;
+                ele.enquiryId = body.enquiryId;
+            }
+        }
+
 
         body.enquiryFinalItemId = findFinalItems.map(e => e._id);
         body.organisationId = orgId;

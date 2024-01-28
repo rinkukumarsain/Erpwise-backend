@@ -91,28 +91,28 @@ exports.getAllLead = async (orgId, queryObj) => {
                 };
             }
         }
-        // let obj = {
-        //     organisationId: orgId,
-        //     level: level ? +level : 1,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        let obj = {
+            organisationId: orgId,
+            level: level ? +level : 1,
+            isDeleted: false
+        };
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         // if (id) obj['_id'] = id;
-        // if (salesPerson) {
-        //     obj['salesPerson'] = salesPerson;
-        // }
+        if (salesPerson) {
+            obj['salesPerson'] = salesPerson;
+        }
 
-        // if (search) {
-        //     obj['$or'] = [
-        //         { Id: { $regex: `${search}.*`, $options: 'i' } },
-        //         { companyName: { $regex: `${search}.*`, $options: 'i' } },
-        //         { address: { $regex: `${search}.*`, $options: 'i' } },
-        //         { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
-        //     ];
-        // }
-        // const leadListCount = await query.find(leadModel, obj, { _id: 1 });
+        if (search) {
+            obj['$or'] = [
+                { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { address: { $regex: `${search}.*`, $options: 'i' } },
+                { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        const leadListCount = await query.find(leadModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(leadListCount.length / perPage);
         const leadData = await query.aggregation(leadModel, leadDao.getAllLeadPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId: id, search, salesPerson }));
-        const totalPages = Math.ceil(leadData.length / perPage);
         const messageName = CRMlevelValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
@@ -123,7 +123,7 @@ exports.getAllLead = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: leadData.length,
+                    totalChildrenCount: leadListCount.length,
                     totalPages
                 }
             }

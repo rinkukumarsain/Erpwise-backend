@@ -92,16 +92,24 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 };
             }
         }
-        // let obj = {
-        //     organisationId: orgId,
-        //     level: level ? +level : 1,
-        //     isDeleted: false
-        // };
-        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        let obj = {
+            organisationId: orgId,
+            level: level ? +level : 1,
+            isDeleted: false
+        };
+        if (search) {
+            obj['$or'] = [
+                { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { address: { $regex: `${search}.*`, $options: 'i' } },
+                { industryType: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
+        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         // if (id) obj['_id'] = id;
-        // const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
+        const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
+        const totalPages = Math.ceil(supplierListCount.length / perPage);
         const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id, search }));
-        const totalPages = Math.ceil(supplierData.length / perPage);
         const messageName = supplierValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
@@ -112,7 +120,7 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: supplierData.length,
+                    totalChildrenCount: supplierListCount.length,
                     totalPages
                 }
             }

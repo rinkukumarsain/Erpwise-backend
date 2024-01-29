@@ -476,12 +476,14 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Three quotes are already created.'
             };
         }
-        if (Array.isArray(body.agent) && body.agent.length > 0) {
+        if (Array.isArray(body.AgentCommission) && body.AgentCommission.length > 0) {
             body.agentTotalCommission = 0;
             body.agentTotalCommissionValue = 0;
             let uniqueAgentIds = new Set();
 
-            for (let ele of body.agent) {
+            for (let ele of body.AgentCommission) {
+                ele.commission = Number(ele.commission);
+                ele.commissionValue = Number(ele.commissionValue);
                 if (body.agentTotalCommission > 50) {
                     return {
                         success: false,
@@ -497,13 +499,13 @@ exports.createQuote = async (auth, body, orgId) => {
 
                 uniqueAgentIds.add(ele.agentId);
 
-                body.agentTotalCommission += Number(ele.commission);
-                body.agentTotalCommissionValue += Number(ele.commissionValue);
+                body.agentTotalCommission += ele.commission;
+                body.agentTotalCommissionValue += ele.commissionValue;
                 ele.enquiryId = body.enquiryId;
             }
         }
 
-
+        // body.AgentCommission = body.agent
         body.enquiryFinalItemId = findFinalItems.map(e => e._id);
         body.organisationId = orgId;
         body.createdBy = _id;

@@ -102,10 +102,10 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
         }
     }
     if (sortBy && sortOrder) {
-        delete arr[1]['$sort']['updatedAt'];
+        // delete arr[1]['$sort']['updatedAt'];
         arr[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
     } else {
-        // delete arr[1]['$sort'];
+        arr[1]['$sort']['updatedAt'] = -1;
         arr.splice(1, 1);
     }
     // console.log('>>>>>>>>>>>>>>>>>>>>>>', JSON.stringify(arr));

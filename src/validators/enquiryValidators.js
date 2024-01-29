@@ -89,6 +89,7 @@ exports.createQuote = {
         agent: Joi.array().items(
             Joi.object({
                 agentId: Joi.string().required(),
+                name: Joi.string().required(),
                 commission: Joi.number().required(),
                 commissionValue: Joi.number().required(),
                 notes: Joi.string().allow(null)

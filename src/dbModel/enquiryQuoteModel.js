@@ -30,6 +30,10 @@ const AgentCommissionSchema = new Schema(
             ref: 'agent',
             required: true
         },
+        name: {
+            type: String,
+            required: true
+        },
         commission: {
             type: Number,
             required: true

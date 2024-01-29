@@ -15,7 +15,7 @@ const LOG_ID = 'routes/upload';
 /**
  * Route for creating enquiry so.
  */
-router.post('/', jwtVerify, uploadS3.single('file'), async (req, res) => {
+router.post('/upload', jwtVerify, uploadS3.single('file'), async (req, res) => {
     try {
         if (req?.file.location) {
             return handleResponse(res, statusCode.OK, {

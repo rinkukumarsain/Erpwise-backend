@@ -497,8 +497,8 @@ exports.createQuote = async (auth, body, orgId) => {
 
                 uniqueAgentIds.add(ele.agentId);
 
-                body.agentTotalCommission += ele.commission;
-                body.agentTotalCommissionValue += ele.commissionValue;
+                body.agentTotalCommission += Number(ele.commission);
+                body.agentTotalCommissionValue += Number(ele.commissionValue);
                 ele.enquiryId = body.enquiryId;
             }
         }

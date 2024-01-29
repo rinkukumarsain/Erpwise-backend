@@ -19,7 +19,8 @@ exports.registerUser = {
         mobile: Joi.string().optional(),
         mobileCode: Joi.string().optional(),
         jobTitle: Joi.string().optional(),
-        organisationId: Joi.string().required()
+        organisationId: Joi.string().required(),
+        image: Joi.string().optional()
     })
 };
 
@@ -43,7 +44,8 @@ exports.editUser = {
         email: Joi.string().optional(),
         mobile: Joi.string().optional(),
         mobileCode: Joi.string().optional(),
-        jobTitle: Joi.string().optional()
+        jobTitle: Joi.string().optional(),
+        image: Joi.string().optional()
     })
 };
 

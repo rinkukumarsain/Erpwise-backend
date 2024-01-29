@@ -406,27 +406,7 @@ router.post(`${soPreFix}/create/:enquiryId`, jwtVerify, validate(createSO), asyn
     }
 });
 
-/**
- * Route for creating enquiry so.
- */
-router.post(`${soPreFix}/upload`, jwtVerify, uploadS3.single('file'), async (req, res) => {
-    try {
-        if (req?.file.location) {
-            return handleResponse(res, statusCode.OK, {
-                success: true,
-                message: 'File uploaded successfully.',
-                data: req.file.location
-            });
-        }
-        return handleResponse(res, statusCode.BAD_REQUEST, {
-            success: false,
-            message: 'Error while uploading file.'
-        });
-    } catch (err) {
-        logger.error(LOG_ID, `Error occurred while creating new enquiry so: ${err.message}`);
-        handleErrorResponse(res, err.status, err.message, err);
-    }
-});
+
 
 /**
  * Route for getting enquiry sales order by enquiry id.

@@ -8,7 +8,8 @@ const {
     enquirySupplierSelectedItemsModel,
     enquiryQuoteModel,
     mailLogsModel,
-    enquirySupplierPOModel
+    enquirySupplierPOModel,
+    userModel
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -71,6 +72,13 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
                 message: 'Organisation not found.'
             };
         }
+        const findUser = await query.findOne(userModel, { _id: enquiryData.salesPerson, isActive: true });
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Sales person not found.'
+            };
+        }
         let obj = {
             performedBy: _id,
             performedByEmail: email,
@@ -81,6 +89,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
         enquiryData.updatedBy = _id;
         enquiryData.organisationId = orgId;
         enquiryData.Id = generateId('EQ');
+        enquiryData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newEnquiry = await query.create(enquiryModel, enquiryData);
         if (newEnquiry) {
             await leadModel.findByIdAndUpdate(
@@ -187,11 +196,18 @@ exports.getAllEnquiry = async (orgId, queryObj) => {
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search, salesPerson, leadId } = queryObj;
         let obj = {
             organisationId: orgId,
-            // level: level ? +level : 1,
+            level: level ? +level : 1,
             isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (id) obj['_id'] = id;
+        if (search) {
+            obj['$or'] = [
+                { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { salesPersonName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllEnquiryPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, leadId, enquiryId: id, search, salesPerson }));
@@ -446,7 +462,6 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Enquiry porforma invoice is already created.'
             };
         }
-
         const findFinalItems = await query.find(enquirySupplierSelectedItemsModel, { enquiryId: body.enquiryId, isShortListed: true, isDeleted: false }, { _id: 1 });
         if (findFinalItems.length == 0) {
             return {
@@ -461,6 +476,33 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Three quotes are already created.'
             };
         }
+        if (Array.isArray(body.agent) && body.agent.length > 0) {
+            body.agentTotalCommission = 0;
+            body.agentTotalCommissionValue = 0;
+            let uniqueAgentIds = new Set();
+
+            for (let ele of body.agent) {
+                if (body.agentTotalCommission > 50) {
+                    return {
+                        success: false,
+                        message: `Total commission can't be more than 50%.`
+                    };
+                }
+                if (uniqueAgentIds.has(ele.agentId)) {
+                    return {
+                        success: false,
+                        message: 'You cannot add the same agent multiple times.'
+                    };
+                }
+
+                uniqueAgentIds.add(ele.agentId);
+
+                body.agentTotalCommission += ele.commission;
+                body.agentTotalCommissionValue += ele.commissionValue;
+                ele.enquiryId = body.enquiryId;
+            }
+        }
+
 
         body.enquiryFinalItemId = findFinalItems.map(e => e._id);
         body.organisationId = orgId;
@@ -684,9 +726,21 @@ exports.getAllQuote = async (orgId, queryObj) => {
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
         let obj = {
             organisationId: orgId,
-            isDeleted: false
+            isDeleted: false,
+            level: 2,
+            isQuoteCreated: true
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                // { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+                // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+                // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllQuotePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
@@ -885,8 +939,17 @@ exports.getAllPorformaInvoice = async (orgId, queryObj) => {
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
         let obj = {
             organisationId: orgId,
+            level: 3,
+            isPiCreated: true,
             isDeleted: false
         };
+        if (search) {
+            obj['$or'] = [
+                { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const totalPages = Math.ceil(enquiryListCount.length / perPage);
@@ -1180,9 +1243,19 @@ exports.getAllSalesOrder = async (orgId, queryObj) => {
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
         let obj = {
             organisationId: orgId,
+            level: 4,
+            isQuoteCreated: true,
             isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                { 'salesOrder.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSalesOrderPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
@@ -1435,9 +1508,21 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
         let obj = {
             organisationId: orgId,
+            level: 5,
+            isSupplierPOCreated: true,
             isDeleted: false
         };
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        if (search) {
+            obj['$or'] = [
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+                { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
+                { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
+                { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                { warehouseName: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const totalPages = Math.ceil(enquiryListCount.length / perPage);
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoForDashboardPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));

@@ -87,6 +87,10 @@ const leadSchema = new Schema(
             required: true,
             ref: 'User'
         },
+        salesPersonName: {
+            type: String,
+            required: true
+        },
         website: {
             type: String,
             required: true

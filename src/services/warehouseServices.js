@@ -26,7 +26,7 @@ exports.create = async (auth, body, orgId) => {
                 data: { name: body.name }
             };
         }
-
+        delete body.isActive;
         // Set createdBy, updatedBy, organisationId and Id properties
         body.createdBy = auth._id;
         body.updatedBy = auth._id;

@@ -13,7 +13,8 @@ exports.create = {
         state: Joi.string().required(),
         city: Joi.string().required(),
         pincode: Joi.string().optional(),
-        note: Joi.string().optional()
+        note: Joi.string().optional(),
+        isActive: Joi.boolean().allow('')
     })
 };
 

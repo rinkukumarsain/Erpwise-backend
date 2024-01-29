@@ -20,7 +20,7 @@ const mongoose = require('mongoose');
  * @param {GetAllSuppliersOptions} options - Options to customize the suppliers retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated and sorted list of suppliers.
  */
-exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, supplierId }) => {
+exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, level, supplierId, search }) => {
     let pipeline = [
         {
             $match: {
@@ -177,6 +177,14 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
         pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
     } else {
         pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { address: { $regex: `${search}.*`, $options: 'i' } },
+            { industryType: { $regex: `${search}.*`, $options: 'i' } }
+        ];
     }
 
     return pipeline;
@@ -557,7 +565,7 @@ exports.searchIteamForEnquiry = (orgId, searchString, exactMatch) => {
         }
     ];
 
-    if(exactMatch == 'yes'){
+    if (exactMatch == 'yes') {
         arr[0]['$match'].partNumberCode = searchString;
     }
     return arr;

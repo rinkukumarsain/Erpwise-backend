@@ -200,7 +200,8 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
         pipeline[0]['$match']['$or'] = [
             { Id: { $regex: `${search}.*`, $options: 'i' } },
             { companyName: { $regex: `${search}.*`, $options: 'i' } },
-            { address: { $regex: `${search}.*`, $options: 'i' } }
+            { address: { $regex: `${search}.*`, $options: 'i' } },
+            { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
             // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
             // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
             // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
@@ -211,6 +212,40 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
         pipeline[1]['$sort'][sortBy] = sortOrder === 'desc' ? -1 : 1;
     } else {
         pipeline[1]['$sort']['updatedAt'] = -1;
+    }
+
+    if (level == '4') {
+        pipeline.push(
+            {
+                $lookup: {
+                    from: 'enquiries',
+                    localField: '_id',
+                    foreignField: 'leadId',
+                    pipeline: [
+                        {
+                            $match: {
+                                isSalesOrderCreated: true
+                            }
+                        }
+                    ],
+                    as: 'result'
+                }
+            }
+        );
+        pipeline.push(
+            {
+                $addFields: {
+                    totalProjects: {
+                        $size: '$result'
+                    }
+                }
+            }
+        );
+        pipeline.push({
+            $project: {
+                result: 0
+            }
+        });
     }
 
     return pipeline;
@@ -421,6 +456,7 @@ exports.getAllLeadsAvailableForEnquiry = (orgId) => [
             isQualified: true,
             isContactAdded: true,
             isActive: true,
+            level: { $ne: 1 },
             isDeleted: false
         }
     },

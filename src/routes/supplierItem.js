@@ -86,7 +86,7 @@ router.get('/get/hscode', jwtVerify, async (req, res) => {
 router.post('/bulkupload/:id', jwtVerify, upload.single('file'), async (req, res) => {
     try {
         logger.info(LOG_ID, `File to read all item's | File Path :- ${req.file.path}`);
-        console.log('req.file', req.file);
+        // console.log('req.file', req.file);
         const result = await supplierItemService.itemBulkUpload(req.auth, req.headers['x-org-type'], req.params.id, req.file.path);
         fs.unlink(req.file.path, (err) => {
             if (err) {

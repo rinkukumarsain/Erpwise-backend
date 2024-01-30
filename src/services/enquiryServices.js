@@ -476,12 +476,14 @@ exports.createQuote = async (auth, body, orgId) => {
                 message: 'Three quotes are already created.'
             };
         }
-        if (Array.isArray(body.agent) && body.agent.length > 0) {
+        if (Array.isArray(body.AgentCommission) && body.AgentCommission.length > 0) {
             body.agentTotalCommission = 0;
             body.agentTotalCommissionValue = 0;
             let uniqueAgentIds = new Set();
 
-            for (let ele of body.agent) {
+            for (let ele of body.AgentCommission) {
+                ele.commission = Number(ele.commission);
+                ele.commissionValue = Number(ele.commissionValue);
                 if (body.agentTotalCommission > 50) {
                     return {
                         success: false,
@@ -503,7 +505,7 @@ exports.createQuote = async (auth, body, orgId) => {
             }
         }
 
-
+        // body.AgentCommission = body.agent
         body.enquiryFinalItemId = findFinalItems.map(e => e._id);
         body.organisationId = orgId;
         body.createdBy = _id;
@@ -1541,6 +1543,111 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error fetching enquiry supplier po for dashboard of sales: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry Supplier PO.
+ *
+ * @param {string} supplierPOId - enquiry supplier po id.
+ * @param {object} auth - req auth.
+ * @param {object} body - req body.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.editSupplierPO = async (supplierPOId, auth, body, orgId) => {
+    try {
+        const { email, _id, fname, lname } = auth;
+        const findEnquirySupplierPO = await query.findOne(enquirySupplierPOModel, { _id: supplierPOId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findEnquirySupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po not found'
+            };
+        }
+
+        body.updatedBy = _id;
+
+
+        const updateSupplierPO = await enquirySupplierPOModel.findByIdAndUpdate(supplierPOId, body, { new: true, runValidators: true });
+        if (updateSupplierPO) {
+            const obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry supplier po edited by ${fname} ${lname} for supplier po Id : ${supplierPOId} | at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
+            };
+            await enquiryModel.findByIdAndUpdate(findEnquirySupplierPO.enquiryId, { $push: { Activity: obj } }, { runValidators: true });
+            return {
+                success: true,
+                message: 'Enquiry supplier po edited successfully.',
+                data: updateSupplierPO
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during editing supplier po by id(${supplierPOId}): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Send Mail For Enquiry Supplier PO
+ *
+ * @param {object} updateData - Data of Enquiry Supplier PO.
+ * @param {object} file - Data of uploaded sheet of Enquiry Supplier PO.
+ * @returns {object} - An object with the results.
+ */
+exports.sendMailForEnquirySupplierPO = async (updateData, file) => {
+    try {
+        const findenquiry = await query.findOne(enquiryModel,
+            {
+                _id: updateData.enquiryId,
+                isActive: true, isDeleted: false,
+                isQuoteCreated: true,
+                isPiCreated: true,
+                isSalesOrderCreated: true,
+                isSupplierPOCreated: true
+            });
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+        const findEnquirySupplierPO = await query.findOne(enquirySupplierPOModel, { _id: updateData.supplierPOId, isDeleted: false, isActive: true });
+        if (!findEnquirySupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po not found'
+            };
+        }
+        const mailDetails = {
+            enquiryId: updateData.enquiryId,
+            supplierPOId: updateData.supplierPOId,
+            type: 'enquirySupplierPO'
+        };
+        sendMailFun(
+            updateData.to,
+            updateData.cc,
+            updateData.subject,
+            updateData.body,
+            file,
+            mailDetails
+        );
+        return {
+            success: true,
+            message: `Enquiry supplier po mail sent.`,
+            data: updateData.enquiryId
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while send Mail For Enquiry supplier po: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

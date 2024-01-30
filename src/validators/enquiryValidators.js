@@ -86,9 +86,10 @@ exports.createQuote = {
         agentTotalCommissionValue: Joi.number().allow(null),
         subTotal: Joi.number().required(),
         currencyExchangeRate: Joi.number().allow(null),
-        agent: Joi.array().items(
+        AgentCommission: Joi.array().items(
             Joi.object({
                 agentId: Joi.string().required(),
+                name: Joi.string().required(),
                 commission: Joi.number().required(),
                 commissionValue: Joi.number().required(),
                 notes: Joi.string().allow(null)
@@ -196,5 +197,54 @@ exports.createSupplierPO = {
             convertedToCurrency: Joi.string().required(),
             currencyExchangeRate: Joi.number().required()
         }).required()
+    })
+};
+
+exports.editSupplierPO = {
+    body: Joi.object({
+        supplierAddressId: Joi.string().optional(),
+        supplierAddress: Joi.string().optional(),
+        shipTo: Joi.string().optional(),
+        shipToCustomer: Joi.string().optional(),
+        leadAddressId: Joi.string().optional(),
+        shipToWarehouse: Joi.string().optional(),
+        warehouseId: Joi.string().optional(),
+        deliveryPoint: Joi.number().optional(),
+        supplierPODate: Joi.string().optional(),
+        validTillDate: Joi.string().optional(),
+        packing: Joi.string().optional(),
+        commodity: Joi.string().optional(),
+        paymentTermsId: Joi.string().optional(),
+        paymentTerms: Joi.number().optional(),
+        documents: Joi.array().items(Joi.string().required()).optional(),
+        supplierOrderConfirmation: Joi.string().optional(),
+        notes: Joi.string().optional(),
+        additionalNotes: Joi.string().optional()
+    })
+};
+
+// ========================= Order Tracking ============================= //
+
+exports.createShipment = {
+    body: Joi.object({
+        enquiryId: Joi.string().required(),
+        supplierPoId: Joi.string().required(),
+        supplierId: Joi.string().required(),
+        enquiryFinalItemId: Joi.string().required(),
+        shipTo: Joi.string().required(),
+        partNumber: Joi.string().required(),
+        partNumberCode: Joi.string().required(),
+        partDesc: Joi.string().optional(),
+        unitPrice: Joi.number().required(),
+        quantity: Joi.number().required(),
+        totalPrice: Joi.number().required(),
+        supplierAddressId: Joi.string().required(),
+        supplierAddress: Joi.string().required(),
+        shipToCustomer: Joi.string().allow(''),
+        leadAddressId: Joi.string().allow(''),
+        shipToWarehouse: Joi.string().allow(''),
+        warehouseId: Joi.string().allow(''),
+        deliveryDate: Joi.string().required(),
+        notes: Joi.string().optional()
     })
 };

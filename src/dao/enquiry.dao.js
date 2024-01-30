@@ -2717,7 +2717,8 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 stageName: 1,
                 companyName: 1,
                 contactPerson: 1,
-                salesOrderId: '$salesOrder.Id'
+                salesOrderId: '$salesOrder.Id',
+                salesOrder: 1
             }
         },
         {
@@ -3578,6 +3579,7 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
             $addFields: {
                 stageName: '$poData.stageName',
                 supplierPOId: '$poData.Id',
+                supplierPO_id: '$poData._id',
                 'poData.suppliersCompanyName': {
                     $arrayElemAt: [
                         '$poData.suppliersCompanyName',

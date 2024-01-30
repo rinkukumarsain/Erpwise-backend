@@ -20,7 +20,7 @@ exports.connectDB = async () => {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        logger.info(LOG_ID, `Database connected successfully on ${conn.connection.host}`);
+        logger.info(LOG_ID, `Database(${conn.connection.db.namespace}) connected successfully on ${conn.connection.host}`);
     } catch (error) {
         console.log('error--->', error);
         logger.error(LOG_ID, 'Database not connected', error);

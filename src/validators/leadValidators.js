@@ -42,6 +42,7 @@ exports.updateLeadById = {
         address: Joi.string().optional(),
         note: Joi.string().optional(),
         dueDate: Joi.string().optional(),
+        currency: Joi.string().optional(),
         isActive: Joi.boolean().optional(),
         qualifymeta: Joi.object({
             orderValue: Joi.number().required(),

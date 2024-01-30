@@ -123,7 +123,7 @@ exports.getAllLead = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: leadData.length,
+                    totalChildrenCount: leadListCount.length,
                     totalPages
                 }
             }

@@ -28,7 +28,10 @@ const AgentCommissionSchema = new Schema(
         agentId: {
             type: mongoose.Types.ObjectId,
             ref: 'agent',
-            unique: true,
+            required: true
+        },
+        name: {
+            type: String,
             required: true
         },
         commission: {

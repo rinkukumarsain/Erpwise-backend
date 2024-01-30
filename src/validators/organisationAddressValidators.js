@@ -30,7 +30,7 @@ exports.getAllOrganisationAddresses = {
 exports.updateOrganisationAddress = {
     body: Joi.object({
         organisationId: Joi.string().allow(''),
-        addresstype: Joi.string().required(),
+        // addresstype: Joi.string().required(),
         address: Joi.string().required(),
         street: Joi.string().required(),
         area: Joi.string().required(),

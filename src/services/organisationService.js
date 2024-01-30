@@ -2,6 +2,7 @@ const { organisationModel } = require('../dbModel'); // Assuming your model file
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { orgDao } = require('../dao');
+const { default: mongoose } = require('mongoose');
 
 const LOG_ID = 'services/organisationService';
 
@@ -94,8 +95,29 @@ exports.getAllOrganisations = async () => {
  */
 exports.getOrganisationById = async (organisationId) => {
     try {
-        const organisation = await query.findById(organisationModel, organisationId);
-        if (!organisation) {
+        let pipeline = [
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(organisationId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'currencies',
+                    localField: 'currency',
+                    foreignField: '_id',
+                    as: 'currencyData'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$currencyData',
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ];
+        const organisation = await query.aggregation(organisationModel, pipeline);
+        if (organisation.length == 0) {
             return {
                 success: false,
                 message: 'No organisation found!'
@@ -104,7 +126,7 @@ exports.getOrganisationById = async (organisationId) => {
         return {
             success: true,
             message: 'Organisation data fetched successfully!',
-            data: organisation
+            data: organisation[0]
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting organisation by id: ${error}`);

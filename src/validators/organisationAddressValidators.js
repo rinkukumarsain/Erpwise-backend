@@ -31,13 +31,13 @@ exports.updateOrganisationAddress = {
     body: Joi.object({
         organisationId: Joi.string().allow(''),
         // addresstype: Joi.string().required(),
-        address: Joi.string().required(),
-        street: Joi.string().required(),
-        area: Joi.string().required(),
-        country: Joi.string().required(),
-        state: Joi.string().required(),
-        city: Joi.string().required(),
-        pincode: Joi.string().required(),
-        isDefault: Joi.boolean().required()
+        address: Joi.string().optional(),
+        street: Joi.string().optional(),
+        area: Joi.string().optional(),
+        country: Joi.string().optional(),
+        state: Joi.string().optional(),
+        city: Joi.string().optional(),
+        pincode: Joi.string().optional(),
+        isDefault: Joi.boolean().optional()
     })
 };

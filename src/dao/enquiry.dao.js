@@ -3578,6 +3578,7 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
             $addFields: {
                 stageName: '$poData.stageName',
                 supplierPOId: '$poData.Id',
+                supplierPO_id: '$poData._id',
                 'poData.suppliersCompanyName': {
                     $arrayElemAt: [
                         '$poData.suppliersCompanyName',

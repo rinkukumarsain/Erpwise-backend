@@ -199,3 +199,26 @@ exports.createSupplierPO = {
         }).required()
     })
 };
+
+exports.editSupplierPO = {
+    body: Joi.object({
+        supplierAddressId: Joi.string().optional(),
+        supplierAddress: Joi.string().optional(),
+        shipTo: Joi.string().optional(),
+        shipToCustomer: Joi.string().optional(),
+        leadAddressId: Joi.string().optional(),
+        shipToWarehouse: Joi.string().optional(),
+        warehouseId: Joi.string().optional(),
+        deliveryPoint: Joi.number().optional(),
+        supplierPODate: Joi.string().optional(),
+        validTillDate: Joi.string().optional(),
+        packing: Joi.string().optional(),
+        commodity: Joi.string().optional(),
+        paymentTermsId: Joi.string().optional(),
+        paymentTerms: Joi.number().optional(),
+        documents: Joi.array().items(Joi.string().required()).optional(),
+        supplierOrderConfirmation: Joi.string().optional(),
+        notes: Joi.string().optional(),
+        additionalNotes: Joi.string().optional()
+    })
+};

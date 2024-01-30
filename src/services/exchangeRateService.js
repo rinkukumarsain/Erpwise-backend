@@ -178,7 +178,7 @@ exports.getExchangeRate = async (reqQuery, orgId) => {
     try {
         reqQuery.orgId = orgId;
         const pipeLine = getExchangeRatePipeline(reqQuery);
-        console.log('::::::::::', JSON.stringify(pipeLine));
+        // console.log('::::::::::', JSON.stringify(pipeLine));
         const data = await query.aggregation(exchangeRateModel, pipeLine);
         return {
             success: true,

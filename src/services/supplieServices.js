@@ -33,6 +33,13 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
                 message: 'Company name already exist.'
             };
         }
+        // const findUser = await query.findOne(userModel, { _id: supplierData.salesPerson, isActive: true });
+        // if (!findUser) {
+        //     return {
+        //         success: false,
+        //         message: 'Sales person not found.'
+        //     };
+        // }
         const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
@@ -45,6 +52,7 @@ exports.createSupplier = async (auth, supplierData, orgId, type) => {
         supplierData.organisationId = orgId;
         supplierData.level = (type && type == 'yes') ? supplierLevelEnum.APPROVEDSUPPLIERS : supplierLevelEnum.PROSPECT;
         supplierData.Id = generateId('SI');
+        // supplierData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newSupplier = await query.create(supplierModel, supplierData);
         return {
             success: true,
@@ -75,7 +83,7 @@ exports.getAllSupplier = async (orgId, queryObj) => {
                 message: 'Organisation not found.'
             };
         }
-        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id } = queryObj;
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, level, id, search } = queryObj;
         if (level) {
             if (!supplierValueByKey[level]) {
                 return {
@@ -89,11 +97,19 @@ exports.getAllSupplier = async (orgId, queryObj) => {
             level: level ? +level : 1,
             isDeleted: false
         };
+        if (search) {
+            obj['$or'] = [
+                { Id: { $regex: `${search}.*`, $options: 'i' } },
+                { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                { address: { $regex: `${search}.*`, $options: 'i' } },
+                { industryType: { $regex: `${search}.*`, $options: 'i' } }
+            ];
+        }
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (id) obj['_id'] = id;
+        // if (id) obj['_id'] = id;
         const supplierListCount = await query.find(supplierModel, obj, { _id: 1 });
         const totalPages = Math.ceil(supplierListCount.length / perPage);
-        const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id }));
+        const supplierData = await query.aggregation(supplierModel, supplierDao.getAllSupplierPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, level, supplierId: id, search }));
         const messageName = supplierValueByKey[level ? level : '1'];
         const formattedString = messageName.charAt(0).toUpperCase() + messageName.slice(1).toLowerCase();
         return {
@@ -110,7 +126,7 @@ exports.getAllSupplier = async (orgId, queryObj) => {
             }
         };
     } catch (error) {
-        logger.error(LOG_ID, `Error fetching lead: ${error}`);
+        logger.error(LOG_ID, `Error fetching supplier: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

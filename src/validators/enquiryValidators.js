@@ -70,7 +70,7 @@ exports.createQuote = {
         packingCharges: Joi.number().required(),
         miscCharges: Joi.number().required(),
         discount: Joi.number().required(),
-        agentTotalCommission: Joi.number().required(),
+        agentTotalCommission: Joi.number().allow(null),
         duedate: Joi.string().required(),
         currency: Joi.string().allow(null),
         addedFreightCharges: Joi.number().required(),
@@ -83,9 +83,17 @@ exports.createQuote = {
         marginValue: Joi.number().required(),
         totalQuote: Joi.number().required(),
         finalQuote: Joi.number().required(),
-        agentTotalCommissionValue: Joi.number().required(),
+        agentTotalCommissionValue: Joi.number().allow(null),
         subTotal: Joi.number().required(),
-        currencyExchangeRate: Joi.number().allow(null)
+        currencyExchangeRate: Joi.number().allow(null),
+        agent: Joi.array().items(
+            Joi.object({
+                agentId: Joi.string().required(),
+                commission: Joi.number().required(),
+                commissionValue: Joi.number().required(),
+                notes: Joi.string().allow(null)
+            }).required()
+        ).allow(null)
     })
 };
 
@@ -172,7 +180,7 @@ exports.createSupplierPO = {
         additionalNotes: Joi.string().allow(null),
         financeMeta: Joi.object({
             paymentTermsId: Joi.string().allow(null),
-            paymentTerms:Joi.number().allow(null),
+            paymentTerms: Joi.number().allow(null),
             deliveryTerm: Joi.optional().required(),
             vatGroupId: Joi.string().allow(null),
             paymentOption: Joi.string().required(),

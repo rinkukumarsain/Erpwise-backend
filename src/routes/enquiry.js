@@ -19,7 +19,8 @@ const { enquiryValidators: {
     // ==SO== //
     createSO,
     // ==SPO== //
-    createSupplierPO
+    createSupplierPO,
+    editSupplierPO
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -524,6 +525,37 @@ router.get(`${spoPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req
     }
 });
 
+/**
+ * Route for editing enquiry supplier po.
+ */
+router.post(`${spoPreFix}/edit/:supplierPoId`, jwtVerify, validate(editSupplierPO), async (req, res) => {
+    try {
+        const result = await enquiryServices.editSupplierPO(req.params.supplierPoId, req.auth, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while editing new enquiry Supplier po: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route of sending mail for enquiry Supplier PO.
+ */
+router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req, res) => {
+    try {
+        const result = await enquiryServices.sendMailForEnquirySupplierPO(req.body, req.file);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during enquiry${spoPreFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 
 

@@ -2,25 +2,53 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 /**
- * Enquiry Item Shipment Schema for MongoDB.
- *
+ * @typedef {object} ShipmentStage
+ * @property {Date} date - Date of the stage
+ * @property {string} [note] - Optional note for the stage
+ * @property {string} [document] - Document associated with the stage
+ * @property {mongoose.Types.ObjectId} createdBy - ID of the user who created the stage
+ * @property {mongoose.Types.ObjectId} [updatedBy] - ID of the user who updated the stage
+ * @property {string} [createdByName] - Name of the user who created the stage
+ * @property {string} [createdByRole] - Role of the user who created the stage
+ */
+
+/**
  * @typedef {object} EnquiryItemShipment
- * @property {string} Id - The unique identifier for the item shipment (required and unique).
- * @property {mongoose.Types.ObjectId} enquiryId - The ID of the associated enquiry (referenced from 'Enquiry' model, required).
- * @property {mongoose.Types.ObjectId} supplierPoId - The ID of the associated supplier purchase order (referenced from 'EnquirySupplierPO' model, required).
- * @property {mongoose.Types.ObjectId} supplierId - The ID of the supplier (referenced from 'Supplier' model, required).
- * @property {Schema.Types.ObjectId} enquiryFinalItemId - The ID of the associated final item in the enquiry (referenced from 'EnquirySupplierSelectedItem' model, required).
- * @property {string} partNumber - The part number of the item (required).
- * @property {string} partNumberCode - The part number code of the item (required).
- * @property {string} partDesc - The description of the item (required).
- * @property {string} unitPrice - The unit price of the item (required).
- * @property {string} quantity - The total quantity of the item (required).
- * @property {number} shipQuantity - The shipped quantity of the item (required).
- * @property {number} totalPrice - The total price of the item (required).
- * @property {boolean} isActive - Indicates whether the item shipment is active (default: true).
- * @property {boolean} isDeleted - Indicates whether the item shipment is deleted (default: false).
- * @property {Date} createdAt - The timestamp when the item shipment was created.
- * @property {Date} updatedAt - The timestamp when the item shipment was last updated.
+ * @property {string} Id - Unique identifier for the shipment
+ * @property {mongoose.Types.ObjectId} enquiryId - ID of the associated enquiry
+ * @property {mongoose.Types.ObjectId} supplierPoId - ID of the associated supplier purchase order
+ * @property {mongoose.Types.ObjectId} supplierId - ID of the supplier
+ * @property {mongoose.Types.ObjectId} enquiryFinalItemId - ID of the associated final item in the enquiry
+ * @property {'customer' | 'warehouse' | 'fob/exw'} shipTo - Shipment destination
+ * @property {string} partNumber - Part number
+ * @property {string} partNumberCode - Part number code
+ * @property {string} partDesc - Part description
+ * @property {number} unitPrice - Unit price
+ * @property {number} quantity - Quantity to be shipped
+ * @property {number} shipQuantity - Shipped quantity
+ * @property {number} totalPrice - Total price
+ * @property {mongoose.Types.ObjectId} supplierAddressId - ID of the supplier's address
+ * @property {string} supplierAddress - Supplier's address
+ * @property {string} [shipToCustomer] - Address for customer shipment
+ * @property {mongoose.Types.ObjectId} [leadAddressId] - ID of the lead's address
+ * @property {string} [shipToWarehouse] - Address for warehouse shipment
+ * @property {mongoose.Types.ObjectId} [warehouseId] - ID of the associated warehouse
+ * @property {Date} deliveryDate - Expected delivery date
+ * @property {string} [note] - Optional note for the shipment
+ * @property {number} level - Shipment level
+ * @property {string} stageName - Current stage of the shipment
+ * @property {ShipmentStage | null} readyForDispatch - Details of the ready for dispatch stage
+ * @property {ShipmentStage | null} shipmentDispatched - Details of the shipment dispatched stage
+ * @property {ShipmentStage | null} warehouseGoodsOut - Details of the warehouse goods out stage
+ * @property {ShipmentStage | null} shipmentDelivered - Details of the shipment delivered stage
+ * @property {boolean} isActive - Indicates if the shipment is active
+ * @property {boolean} isDeleted - Indicates if the shipment is deleted
+ */
+
+/**
+ * Mongoose schema for Enquiry Item Shipment
+ * 
+ * @type {mongoose.Schema<EnquiryItemShipment>}
  */
 const enquiryitemshippmentSchema = new Schema(
     {
@@ -49,6 +77,11 @@ const enquiryitemshippmentSchema = new Schema(
             ref: 'EnquirySupplierSelectedItem',
             required: true
         },
+        shipTo: {
+            type: String,
+            required: true,
+            enum: ['customer', 'warehouse', 'fob/exw']
+        },
         partNumber: {
             type: String,
             required: true
@@ -76,6 +109,254 @@ const enquiryitemshippmentSchema = new Schema(
         totalPrice: {
             type: Number,
             required: true
+        },
+        supplierAddressId: {
+            type: mongoose.Types.ObjectId,
+            required: true,
+            ref: 'SupplierAddress'
+        },
+        supplierAddress: {
+            type: String,
+            required: true
+        },
+        shipToCustomer: {
+            type: String,
+            default: null
+        },
+        leadAddressId: {
+            type: Schema.Types.ObjectId,
+            ref: 'LeadAddress',
+            default: null
+        },
+        shipToWarehouse: {
+            type: String,
+            default: null
+        },
+        warehouseId: {
+            type: Schema.Types.ObjectId,
+            ref: 'warehouse',
+            default: null
+        },
+        deliveryDate: {
+            type: Date,
+            required: true
+        },
+        note: {
+            type: String,
+            default: null
+        },
+        level: {
+            type: Number,
+            level: 0
+        },
+        stageName: {
+            type: String,
+            default: 'Ready_For_Dispatch'
+        },
+        readyForDispatch: {
+            type: new Schema(
+                {
+                    date: {
+                        type: Date,
+                        required: true
+                    },
+                    note: {
+                        type: String,
+                        default: null
+                    },
+                    document: {
+                        type: String,
+                        default: null
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    createdByName: {
+                        type: String,
+                        default: null
+                    },
+                    createdByRole: {
+                        type: String,
+                        default: null
+                    }
+                },
+                {
+                    timestamps: true,
+                    versionKey: false
+                }
+            ),
+            default: null
+        },
+        shipmentDispatched: {
+            type: new Schema(
+                {
+                    carrier: {
+                        type: String,
+                        default: null
+                    },
+                    trackingNumber: {
+                        type: String,
+                        default: null
+                    },
+                    numOfBoxes: {
+                        type: Number,
+                        default: null
+                    },
+                    dispatchDate: {
+                        type: Date,
+                        required: true
+                    },
+                    expectedGoodsInDate: {
+                        type: Date,
+                        required: true
+                    },
+                    note: {
+                        type: String,
+                        default: null
+                    },
+                    document: {
+                        type: String,
+                        default: null
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    createdByName: {
+                        type: String,
+                        default: null
+                    },
+                    createdByRole: {
+                        type: String,
+                        default: null
+                    }
+                },
+                {
+                    timestamps: true,
+                    versionKey: false
+                }
+            ),
+            default: null
+        },
+        warehouseGoodsOut: {
+            type: new Schema(
+                {
+                    carrier: {
+                        type: String,
+                        required: true
+                    },
+                    trackingNumber: {
+                        type: String,
+                        required: true
+                    },
+                    numOfBoxes: {
+                        type: Number,
+                        default: null
+                    },
+                    goodsOutDate: {
+                        type: Date,
+                        required: true
+                    },
+                    packingCharges: {
+                        type: Number,
+                        default: null
+                    },
+                    freightCharges: {
+                        type: Number,
+                        default: null
+                    },
+                    note: {
+                        type: String,
+                        default: null
+                    },
+                    document: {
+                        type: String,
+                        default: null
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    createdByName: {
+                        type: String,
+                        default: null
+                    },
+                    createdByRole: {
+                        type: String,
+                        default: null
+                    }
+                },
+                {
+                    timestamps: true,
+                    versionKey: false
+                }
+            ),
+            default: null
+        },
+        shipmentDelivered: {
+            type: new Schema(
+                {
+                    deliveryDate: {
+                        type: Date,
+                        required: true
+                    },
+                    note: {
+                        type: String,
+                        default: null
+                    },
+                    document: {
+                        type: String,
+                        default: null
+                    },
+                    createdBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User'
+                    },
+                    updatedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    },
+                    createdByName: {
+                        type: String,
+                        default: null
+                    },
+                    createdByRole: {
+                        type: String,
+                        default: null
+                    }
+                },
+                {
+                    timestamps: true,
+                    versionKey: false
+                }
+            ),
+            default: null
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        updatedBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User',
+            default: null
         },
         isActive: {
             type: Boolean,

@@ -222,3 +222,29 @@ exports.editSupplierPO = {
         additionalNotes: Joi.string().optional()
     })
 };
+
+// ========================= Order Tracking ============================= //
+
+exports.createShipment = {
+    body: Joi.object({
+        enquiryId: Joi.string().required(),
+        supplierPoId: Joi.string().required(),
+        supplierId: Joi.string().required(),
+        enquiryFinalItemId: Joi.string().required(),
+        shipTo: Joi.string().required(),
+        partNumber: Joi.string().required(),
+        partNumberCode: Joi.string().required(),
+        partDesc: Joi.string().optional(),
+        unitPrice: Joi.number().required(),
+        quantity: Joi.number().required(),
+        totalPrice: Joi.number().required(),
+        supplierAddressId: Joi.string().required(),
+        supplierAddress: Joi.string().required(),
+        shipToCustomer: Joi.string().allow(''),
+        leadAddressId: Joi.string().allow(''),
+        shipToWarehouse: Joi.string().allow(''),
+        warehouseId: Joi.string().allow(''),
+        deliveryDate: Joi.string().required(),
+        notes: Joi.string().optional()
+    })
+};

@@ -340,6 +340,13 @@ exports.createProspect = async (auth, prospectData, orgId) => {
                 message: 'Company name already exist.'
             };
         }
+        const findUser = await query.findOne(userModel, { _id: prospectData.salesPerson, isActive: true });
+        if (!findUser) {
+            return {
+                success: false,
+                message: 'Sales person not found.'
+            };
+        }
         const { email, _id, fname, lname } = auth;
         let obj = {
             performedBy: _id,
@@ -354,6 +361,7 @@ exports.createProspect = async (auth, prospectData, orgId) => {
         prospectData.Id = generateId('LI');
         // if (Object.keys(prospectData.qualifymeta).length > 2) prospectData.isQualified = true;
         prospectData.qualifymeta.interest = 'LOW';
+        prospectData.salesPersonName = `${findUser.fname} ${findUser.lname}`;
         const newLead = await query.create(leadModel, prospectData);
         return {
             success: true,

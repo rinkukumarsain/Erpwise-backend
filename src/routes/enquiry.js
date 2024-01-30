@@ -528,7 +528,7 @@ router.get(`${spoPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req
 /**
  * Route for editing enquiry supplier po.
  */
-router.post(`${spoPreFix}/edit/:supplierPoId`, jwtVerify, validate(editSupplierPO), async (req, res) => {
+router.post(`${spoPreFix}/update/:supplierPoId`, jwtVerify, validate(editSupplierPO), async (req, res) => {
     try {
         const result = await enquiryServices.editSupplierPO(req.params.supplierPoId, req.auth, req.body, req.headers['x-org-type']);
         if (result.success) {

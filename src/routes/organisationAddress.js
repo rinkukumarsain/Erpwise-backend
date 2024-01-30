@@ -67,7 +67,7 @@ router.post('/create', jwtVerify, authorizeRoleAccess, validate(createOrganisati
  */
 router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(updateOrganisationAddress), async (req, res) => {
     try {
-        // req.body.organisationId = req.headers['x-org-type'];
+        delete req.body.organisationId;
         const result = await organisationAddressService.updateOrganisationAddress(req.params.id, req.body);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);

@@ -2,7 +2,7 @@ const { Joi } = require('express-validation');
 
 exports.createOrganisationAddress = {
     body: Joi.object({
-        organisationId: Joi.string().required(),
+        // organisationId: Joi.string().required(),
         addresstype: Joi.string().required(),
         address: Joi.string().required(),
         street: Joi.string().required(),
@@ -29,7 +29,7 @@ exports.getAllOrganisationAddresses = {
 
 exports.updateOrganisationAddress = {
     body: Joi.object({
-        organisationId: Joi.string().required(),
+        // organisationId: Joi.string().required(),
         addresstype: Joi.string().required(),
         address: Joi.string().required(),
         street: Joi.string().required(),

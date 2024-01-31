@@ -1698,7 +1698,7 @@ exports.createShipment = async (body, orgId, auth) => {
         //         message: 'Enquiry supplier shortlisted item not found.'
         //     };
         // }
-        const findEnquiryItemShippmentModel = query.find({
+        const findEnquiryItemShippmentModel = query.find(enquiryItemShippmentModel,{
             enquiryId: body.enquiryId,
             supplierPoId: body.supplierPoId,
             supplierId: body.supplierPoId,

@@ -20,7 +20,9 @@ const { enquiryValidators: {
     createSO,
     // ==SPO== //
     createSupplierPO,
-    editSupplierPO
+    editSupplierPO,
+    // ==OT== //
+    createShipment
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -559,5 +561,22 @@ router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (
 
 // ========================= Order Tracking ============================= //
 
+const otPreFix = '/ot';
+
+/**
+ * Route for creating shippment from enquiry supplier po.
+ */
+router.post(`${otPreFix}/create/`, jwtVerify, validate(createShipment), async (req, res) => {
+    try {
+        const result = await enquiryServices.createShipment(req.body, req.headers['x-org-type'], req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating shippment from enquiry supplier po: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 module.exports = router;

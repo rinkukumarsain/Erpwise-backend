@@ -9,7 +9,8 @@ const {
     enquiryQuoteModel,
     mailLogsModel,
     enquirySupplierPOModel,
-    userModel
+    userModel,
+    enquiryItemShippmentModel
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -1648,6 +1649,85 @@ exports.sendMailForEnquirySupplierPO = async (updateData, file) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while send Mail For Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+// ========================= Order Tracking ============================= //
+
+/**
+ * Create shippment from enquiry Supplier PO.
+ *
+ * @param {object} body - req body.
+ * @param {string} orgId - organisation id.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.createShipment = async (body, orgId, auth) => {
+    try {
+        const { _id } = auth;
+        const findenquiry = await query.findOne(enquiryModel,
+            {
+                _id: body.enquiryId,
+                isActive: true, isDeleted: false,
+                isQuoteCreated: true,
+                isPiCreated: true,
+                isSalesOrderCreated: true,
+                isSupplierPOCreated: true
+            });
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+        const findEnquirySupplierPO = await query.findOne(enquirySupplierPOModel, { _id: body.supplierPoId, isDeleted: false, isActive: true });
+        if (!findEnquirySupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po not found'
+            };
+        }
+        // const findEnquirySupplierSelectedItem = await query.findOne(enquirySupplierSelectedItemsModel, { _id: body.enquiryFinalItemId, isShortListed: true, isDeleted: false });
+        // if (!findEnquirySupplierSelectedItem) {
+        //     return {
+        //         success: false,
+        //         message: 'Enquiry supplier shortlisted item not found.'
+        //     };
+        // }
+        const findEnquiryItemShippmentModel = query.find({
+            enquiryId: body.enquiryId,
+            supplierPoId: body.supplierPoId,
+            supplierId: body.supplierPoId,
+            enquiryFinalItemId: body.enquiryFinalItemId
+        });
+        let totalQuantityOrdered = +body.shipQuantity;
+        if (findEnquiryItemShippmentModel.length > 0) {
+            for(let ele of findEnquiryItemShippmentModel) totalQuantityOrdered += ele.shipQuantity;
+            if(totalQuantityOrdered > +body.quantity){
+                return {
+                    success:false,
+                    message: `You have already created ${findEnquiryItemShippmentModel.length} shippment and the total of their quantity is ${totalQuantityOrdered - +body.shipQuantity}.`
+                };
+            }
+        }
+        body.Id = generateId('SHIP');
+        body.organisationId = orgId;
+        body.createdBy = _id;
+        body.updatedBy = _id;
+
+        const saveShippment = await query.create(enquiryItemShippmentModel, body);
+        if (saveShippment) {
+            return {
+                success: true,
+                message: 'Shippment created successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while creating shippment from Enquiry supplier po: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -2454,6 +2454,40 @@ exports.getPiByIdPipeline = (enquiryId) => [
     },
     {
         $lookup: {
+            from: 'leadaddresses',
+            localField: 'leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false,
+                        addresstype: 'Shipping'
+                    }
+                }
+            ],
+            as: 'quoteData.shippingAddress'
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadaddresses',
+            localField: 'leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false,
+                        addresstype: 'Billing'
+                    }
+                }
+            ],
+            as: 'quoteData.billingAddress'
+        }
+    },
+    {
+        $lookup: {
             from: 'enquirysupplierselecteditems',
             localField: 'quoteData.enquiryFinalItemId',
             foreignField: '_id',

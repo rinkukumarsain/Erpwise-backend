@@ -1476,6 +1476,7 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
  */
 exports.getAllSupplierPoOfEnquiry = async (enquiryId, orgId) => {
     try {
+        // console.log('::::::::', JSON.stringify(enquiryDao.getAllSupplierPoOfEnquiryPipeline(enquiryId, orgId)));
         const findData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoOfEnquiryPipeline(enquiryId, orgId));
         if (findData.length == 1) {
             return {

@@ -1,6 +1,9 @@
 {
   "name": "ERPWISE",
   "version": "1.0.0",
+  "engines": {
+    "node": ">8.3.0"
+  },
   "description": "",
   "main": "src/server/index.js",
   "scripts": {

@@ -1698,18 +1698,19 @@ exports.createShipment = async (body, orgId, auth) => {
         //         message: 'Enquiry supplier shortlisted item not found.'
         //     };
         // }
-        const findEnquiryItemShippmentModel = query.find(enquiryItemShippmentModel,{
+        const findEnquiryItemShippmentModel = await query.find(enquiryItemShippmentModel, {
             enquiryId: body.enquiryId,
             supplierPoId: body.supplierPoId,
-            supplierId: body.supplierPoId,
+            supplierId: body.supplierId,
             enquiryFinalItemId: body.enquiryFinalItemId
         });
         let totalQuantityOrdered = +body.shipQuantity;
+        console.log(findEnquiryItemShippmentModel.length);
         if (findEnquiryItemShippmentModel.length > 0) {
-            for(let ele of findEnquiryItemShippmentModel) totalQuantityOrdered += ele.shipQuantity;
-            if(totalQuantityOrdered > +body.quantity){
+            for (let ele of findEnquiryItemShippmentModel) totalQuantityOrdered += ele.shipQuantity;
+            if (totalQuantityOrdered > +body.quantity) {
                 return {
-                    success:false,
+                    success: false,
                     message: `You have already created ${findEnquiryItemShippmentModel.length} shippment and the total of their quantity is ${totalQuantityOrdered - +body.shipQuantity}.`
                 };
             }

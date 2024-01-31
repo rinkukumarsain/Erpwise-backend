@@ -72,6 +72,11 @@ const enquiryitemshippmentSchema = new Schema(
             required: true,
             ref: 'Supplier'
         },
+        organisationId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organisation',
+            required: true
+        },
         enquiryFinalItemId: {
             type: Schema.Types.ObjectId,
             ref: 'EnquirySupplierSelectedItem',

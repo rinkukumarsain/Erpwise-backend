@@ -52,6 +52,7 @@ router.post('/create', jwtVerify, authorizeRoleAccess, validate(createLeadContac
  */
 router.post('/update/:id', jwtVerify, authorizeRoleAccess, validate(updateLeadContactById), async (req, res) => {
     try {
+        delete req.body.leadId;
         const result = await leadContacts.updateLeadContactById(req.auth, req.params.id, req.body);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);

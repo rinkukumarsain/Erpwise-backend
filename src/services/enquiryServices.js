@@ -40,7 +40,7 @@ exports.enquiryDashboardCount = async (orgId) => {
             7: 0
         };
         if (findCount.length > 0) for (let ele of findCount) obj[ele._id] = ele.count;
-
+        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false });
         return {
             success: true,
             message: 'Sales dashboard count.',

@@ -22,7 +22,8 @@ const { enquiryValidators: {
     createSupplierPO,
     editSupplierPO,
     // ==OT== //
-    createShipment
+    createShipment,
+    editShipment
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -593,6 +594,38 @@ router.get(`${otPreFix}${ship}/get/:enquiryId`, jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while getting All Supplier With Items And Po With Shipments: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id.
+ */
+router.post(`${otPreFix}${ship}/update/:enquiryId/:shipmentId`, jwtVerify, validate(editShipment), async (req, res) => {
+    try {
+        const result = await enquiryServices.editShipment(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while editing enquiry item shipment by id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for deleting enquiry item shipment by id.
+ */
+router.get(`${otPreFix}${ship}/delete/:enquiryId/:shipmentId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deleteShipment(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry item shipment by id.: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

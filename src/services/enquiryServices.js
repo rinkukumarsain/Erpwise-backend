@@ -1771,6 +1771,97 @@ exports.getAllSupplierWithItemsAndPoWithShipments = async (enquiryId, orgId) => 
 };
 
 /**
+ * Edit enquiry item shipment by id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} updateData - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.editShipment = async (enquiryId, shipmentId, orgId, updateData, auth) => {
+    try {
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 0) {
+            return {
+                success: false,
+                message: `The order tracking has already begun therefore, you cannot edit the shipment now.`
+            };
+        }
+        updateData.updatedBy = auth._id;
+        const updateShipment = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, updateData, { new: true, runValidators: true });
+        if (updateShipment) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) updated successfully.`,
+                data: updateShipment
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}).`,
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Delete enquiry item shipment by id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.deleteShipment = async (enquiryId, shipmentId, orgId) => {
+    try {
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 0) {
+            return {
+                success: false,
+                message: `The order tracking has already begun therefore, you cannot delete the shipment now.`
+            };
+        }
+        const deleteShipment = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { isDeleted: true }, { new: true, runValidators: true });
+        if (deleteShipment) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) deleted successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while deleting shipment(${findShipment.Id}).`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while deleting shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

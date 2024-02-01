@@ -3920,6 +3920,18 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                                                 '$enquiryId',
                                                                 '$$enquiryId'
                                                             ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isDeleted',
+                                                                false
+                                                            ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isActive',
+                                                                true
+                                                            ]
                                                         }
                                                     ]
                                                 }

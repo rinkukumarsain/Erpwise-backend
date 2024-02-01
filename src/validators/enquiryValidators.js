@@ -249,3 +249,17 @@ exports.createShipment = {
         notes: Joi.string().optional()
     })
 };
+
+exports.editShipment = {
+    body: Joi.object({
+        shipTo: Joi.string().optional(),
+        supplierAddressId: Joi.string().optional(),
+        supplierAddress: Joi.string().optional(),
+        shipToCustomer: Joi.string().allow(''),
+        leadAddressId: Joi.string().allow(''),
+        shipToWarehouse: Joi.string().allow(''),
+        warehouseId: Joi.string().allow(''),
+        deliveryDate: Joi.string().optional(),
+        notes: Joi.string().optional()
+    })
+};

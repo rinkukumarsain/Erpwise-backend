@@ -40,7 +40,7 @@ exports.enquiryDashboardCount = async (orgId) => {
             7: 0
         };
         if (findCount.length > 0) for (let ele of findCount) obj[ele._id] = ele.count;
-
+        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false });
         return {
             success: true,
             message: 'Sales dashboard count.',
@@ -95,7 +95,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
         if (newEnquiry) {
             await leadModel.findByIdAndUpdate(
                 enquiryData.leadId,
-                { isMovedToEnquiry: true },
+                { isMovedToEnquiry: true, level: CRMlevelEnum.ENQUIRY },
                 { runValidators: true }
             );
             return {
@@ -1476,6 +1476,7 @@ exports.createSupplierPO = async (enquiryId, auth, body, orgId) => {
  */
 exports.getAllSupplierPoOfEnquiry = async (enquiryId, orgId) => {
     try {
+        // console.log('::::::::', JSON.stringify(enquiryDao.getAllSupplierPoOfEnquiryPipeline(enquiryId, orgId)));
         const findData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoOfEnquiryPipeline(enquiryId, orgId));
         if (findData.length == 1) {
             return {
@@ -1698,18 +1699,19 @@ exports.createShipment = async (body, orgId, auth) => {
         //         message: 'Enquiry supplier shortlisted item not found.'
         //     };
         // }
-        const findEnquiryItemShippmentModel = query.find({
+        const findEnquiryItemShippmentModel = await query.find(enquiryItemShippmentModel, {
             enquiryId: body.enquiryId,
             supplierPoId: body.supplierPoId,
-            supplierId: body.supplierPoId,
+            supplierId: body.supplierId,
             enquiryFinalItemId: body.enquiryFinalItemId
         });
         let totalQuantityOrdered = +body.shipQuantity;
+        console.log(findEnquiryItemShippmentModel.length);
         if (findEnquiryItemShippmentModel.length > 0) {
-            for(let ele of findEnquiryItemShippmentModel) totalQuantityOrdered += ele.shipQuantity;
-            if(totalQuantityOrdered > +body.quantity){
+            for (let ele of findEnquiryItemShippmentModel) totalQuantityOrdered += ele.shipQuantity;
+            if (totalQuantityOrdered > +body.quantity) {
                 return {
-                    success:false,
+                    success: false,
                     message: `You have already created ${findEnquiryItemShippmentModel.length} shippment and the total of their quantity is ${totalQuantityOrdered - +body.shipQuantity}.`
                 };
             }
@@ -1728,6 +1730,39 @@ exports.createShipment = async (body, orgId, auth) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error while creating shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * get enquiry with all its spupplier,supplier po
+ * and if shipments is created then the data of shipment
+ * by enquiryId.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.getAllSupplierWithItemsAndPoWithShipments = async (enquiryId, orgId) => {
+    try {
+        const findData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierWithItemsAndPoWithShipmentsPipeline(enquiryId, orgId));
+        if (findData.length > 0) {
+            return {
+                success: true,
+                message: 'Enquiry shipments fetched successfully.',
+                data: findData
+            };
+        }
+        return {
+            success: false,
+            message: 'Enquiry shipments not found.',
+            data: []
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during get All Supplier With Items And Po With Shipments: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

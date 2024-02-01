@@ -152,7 +152,7 @@ const enquiryitemshippmentSchema = new Schema(
         },
         level: {
             type: Number,
-            level: 0
+            default: 0
         },
         stageName: {
             type: String,

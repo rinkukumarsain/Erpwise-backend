@@ -29,6 +29,7 @@ exports.createLeadContact = {
 exports.updateLeadContactById = {
     body: Joi.object({
         name: Joi.string().optional(),
+        leadId: Joi.string().required(),
         email: Joi.string().optional(),
         location: Joi.string().optional(),
         designation: Joi.string().optional(),

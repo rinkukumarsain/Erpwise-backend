@@ -3721,3 +3721,336 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
     }
     return pipeline;
 };
+
+// ========================= Shipment create/get ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve enquiry with all its spupplier,supplier po
+ * and if shipments is created then the data of shipment
+ * by enquiryId.
+ *
+ * @param {string} enquiryId - The enquiry's unique identifier.
+ * @param {string} orgId - org id.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(enquiryId),
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            level: 5,
+            isSupplierPOCreated: true,
+            isDeleted: false
+        }
+    },
+    {
+        $project: {
+            organisationId: 1,
+            leadContactId: 1,
+            leadId: 1,
+            Id: 1,
+            level: 1,
+            isItemAdded: 1,
+            isItemShortListed: 1,
+            isQuoteCreated: 1,
+            isPiCreated: 1,
+            isSalesOrderCreated: 1,
+            quoteId: 1,
+            stageName: 1,
+            companyName: 1,
+            contactPerson: 1,
+            salesOrderId: '$salesOrder.Id',
+            isSupplierPOCreated: 1,
+            totalSuppliers: 1
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            localField: 'totalSuppliers',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        companyName: 1,
+                        Id: 1,
+                        email: 1,
+                        phone: 1
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'enquirysupplierpos',
+                        let: {
+                            id: '$_id',
+                            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$id'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$enquiryId',
+                                                    '$$enquiryId'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'poData'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$poData',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'supplieraddresses',
+                        let: {
+                            id: '$_id'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$id'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isDeleted',
+                                                    false
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$addresstype',
+                                                    'Billing'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'billingAddress'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'enquirysupplierselecteditems',
+                        let: {
+                            supplierId: '$_id',
+                            enquiryId: new mongoose.Types.ObjectId(enquiryId)
+                        },
+                        pipeline: [
+                            // Add your stages here based on the requirements
+                            {
+                                $match: {
+                                    $expr: {
+                                        // Your match conditions here
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    '$supplierId',
+                                                    '$$supplierId'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$enquiryId',
+                                                    '$$enquiryId'
+                                                ]
+                                            },
+                                            {
+                                                $eq: [
+                                                    '$isShortListed',
+                                                    true
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: 'enquiryitemshippments',
+                                    let: {
+                                        supplierId: '$supplierId',
+                                        id: '$_id',
+                                        enquiryId: '$enquiryId'
+                                    },
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                $expr: {
+                                                    $and: [
+                                                        {
+                                                            $eq: [
+                                                                '$enquiryFinalItemId',
+                                                                '$$id'
+                                                            ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$supplierId',
+                                                                '$$supplierId'
+                                                            ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$enquiryId',
+                                                                '$$enquiryId'
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    as: 'enquiryitemshipments'
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    totalShipQuantity: {
+                                        $reduce: {
+                                            input:
+                                                '$enquiryitemshipments',
+                                            initialValue: 0,
+                                            in: {
+                                                $add: [
+                                                    '$$value',
+                                                    '$$this.shipQuantity'
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    isShipmentCreate: {
+                                        $cond: {
+                                            if: {
+                                                $gt: [
+                                                    {
+                                                        $size:
+                                                            '$enquiryitemshipments'
+                                                    },
+                                                    0
+                                                ]
+                                            },
+                                            then: true,
+                                            else: false
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    remaningShipQuantity: {
+                                        $subtract: [
+                                            {
+                                                $toDouble: '$quantity'
+                                            },
+                                            '$totalShipQuantity'
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'enquiryFinalItem'
+                    }
+                },
+                {
+                    $addFields: {
+                        financeMeta: '$poData.financeMeta'
+                    }
+                }
+            ],
+            as: 'supplierDetails'
+        }
+    },
+    {
+        $unwind: {
+            path: '$supplierDetails',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            supplierCompanyName:
+                '$supplierDetails.companyName',
+            supplierId: '$supplierDetails.Id',
+            supplier_id: '$supplierDetails._id',
+            supplierPO: '$supplierDetails.poData',
+            supplierBillingAddress:
+                '$supplierDetails.billingAddress',
+            enquiryFinalItem:
+                '$supplierDetails.enquiryFinalItem',
+            supplierFinanceMeta:
+                '$supplierDetails.financeMeta'
+        }
+    },
+    {
+        $addFields: {
+            level: '$supplierPO.level',
+            stageName: '$supplierPO.stageName'
+        }
+    },
+    {
+        $project: {
+            supplierDetails: 0,
+            totalSuppliers: 0,
+            'enquiryFinalItem.financeMeta': 0
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadaddresses',
+            localField: 'leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false,
+                        addresstype: 'Shipping'
+                    }
+                }
+            ],
+            as: 'shippingAddress'
+        }
+    },
+    {
+        $lookup: {
+            from: 'warehouses',
+            localField: 'organisationId',
+            foreignField: 'organisationId',
+            pipeline: [
+                {
+                    $match: {
+                        isActive: true,
+                        isDeleted: false
+                    }
+                }
+            ],
+            as: 'warehouses'
+        }
+    }
+];

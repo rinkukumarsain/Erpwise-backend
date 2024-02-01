@@ -10,7 +10,7 @@ exports.createSupplierContact = {
         address2: Joi.string().required(),
         supplierId: Joi.string().required(),
         country: Joi.string().required(),
-        state: Joi.string().required(),
+        state: Joi.string().allow(''),
         city: Joi.string().required(),
         pinCode: Joi.string().required()
     })

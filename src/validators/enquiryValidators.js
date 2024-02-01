@@ -241,10 +241,10 @@ exports.createShipment = {
         totalPrice: Joi.number().required(),
         supplierAddressId: Joi.string().required(),
         supplierAddress: Joi.string().required(),
-        shipToCustomer: Joi.string().allow(''),
-        leadAddressId: Joi.string().allow(''),
-        shipToWarehouse: Joi.string().allow(''),
-        warehouseId: Joi.string().allow(''),
+        shipToCustomer: Joi.string().allow(null),
+        leadAddressId: Joi.string().allow(null),
+        shipToWarehouse: Joi.string().allow(null),
+        warehouseId: Joi.string().allow(null),
         deliveryDate: Joi.string().required(),
         notes: Joi.string().allow(null)
     })
@@ -255,10 +255,10 @@ exports.editShipment = {
         shipTo: Joi.string().optional(),
         supplierAddressId: Joi.string().optional(),
         supplierAddress: Joi.string().optional(),
-        shipToCustomer: Joi.string().allow(''),
-        leadAddressId: Joi.string().allow(''),
-        shipToWarehouse: Joi.string().allow(''),
-        warehouseId: Joi.string().allow(''),
+        shipToCustomer: Joi.string().allow(null),
+        leadAddressId: Joi.string().allow(null),
+        shipToWarehouse: Joi.string().allow(null),
+        warehouseId: Joi.string().allow(null),
         deliveryDate: Joi.string().optional(),
         notes: Joi.string().allow(null)
     })

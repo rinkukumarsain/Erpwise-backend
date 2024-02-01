@@ -76,8 +76,9 @@ exports.getAllAgent = async (orgId) => {
         const agentList = await query.find(agentModel, { organisationId: orgId, isActive: true, isDeleted: false });
         if (agentList.length == 0) {
             return {
-                success: false,
-                message: 'Agents not found!'
+                success: true,
+                message: 'Agents not found!',
+                data: []
             };
         }
         return {

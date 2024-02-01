@@ -283,3 +283,25 @@ exports.shipmentDispatched = {
         document: Joi.string().allow(null)
     })
 };
+
+exports.warehouseGoodsOut = {
+    body: Joi.object({
+        carrier: Joi.string().required(),
+        trackingNumber: Joi.string().required(),
+        numOfBoxes: Joi.number().allow(null),
+        goodsOutDate: Joi.string().required(),
+        packingCharges: Joi.number().allow(null),
+        freightCharges: Joi.number().allow(null),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.shipmentDelivered = {
+    body: Joi.object({
+        deliveryDate: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+

@@ -17,7 +17,7 @@ const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
 const { generateId } = require('../utils/generateId');
-const { CRMlevelEnum } = require('../../config/default.json');
+const { CRMlevelEnum, shipmentLevel } = require('../../config/default.json');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -1854,6 +1854,228 @@ exports.deleteShipment = async (enquiryId, shipmentId, orgId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while deleting shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to Ready For Dispatch.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentReadyForDispatch = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level >= 1) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { readyForDispatch: body, level: 1, stageName: 'Shipment_Dispatched' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) is ready to dispatch now.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to ready for dispatch.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to Ready For Dispatch: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to Shipment Dispatched
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 1) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if (!findShipment.readyForDispatch) {
+            return {
+                success: false,
+                message: 'First please update the shipment status to ready to dispatch.'
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: 2, stageName: 'Warehouse_Goods_Out_(GO)' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) is dispatched successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to shipment dispatch.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to shipment dispatch: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to warehouse Goods Out
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 1) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if (!findShipment.shipmentDispatched) {
+            return {
+                success: false,
+                message: 'First please update the shipment status to shipment dispatched.'
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { warehouseGoodsOut: body, level: 3, stageName: 'Shipment_Delivered' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Warehouse Goods Out for Shipment(${findShipment.Id}) successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to Warehouse Goods Out.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to Warehouse Goods Out: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to shipment delivered
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 1) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if (!findShipment.warehouseGoodsOut) {
+            return {
+                success: false,
+                message: 'First please update the shipment status to warehouse goods Out.'
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDelivered: body, level: 4, stageName: 'Create_Supplier_Bill' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `shipment delivered for Shipment(${findShipment.Id}) successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to shipment dselivered.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to shipment dselivered: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

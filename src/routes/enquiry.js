@@ -23,7 +23,11 @@ const { enquiryValidators: {
     editSupplierPO,
     // ==OT== //
     createShipment,
-    editShipment
+    editShipment,
+    readyForDispatch,
+    shipmentDelivered,
+    shipmentDispatched,
+    warehouseGoodsOut
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -626,6 +630,70 @@ router.get(`${otPreFix}${ship}/delete/:enquiryId/:shipmentId`, jwtVerify, async 
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while deleting enquiry item shipment by id.: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to Ready For Dispatch.
+ */
+router.post(`${otPreFix}${ship}/rod/:enquiryId/:shipmentId`, jwtVerify, validate(readyForDispatch), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentReadyForDispatch(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to Ready For Dispatch: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to Shipment Dispatched.
+ */
+router.post(`${otPreFix}${ship}/sd/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDispatched), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentShipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to Shipment Dispatched: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to warehouse Goods Out.
+ */
+router.post(`${otPreFix}${ship}/wgo/:enquiryId/:shipmentId`, jwtVerify, validate(warehouseGoodsOut), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentWarehouseGoodsOut(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to warehouse Goods Out: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id update status to shipment delivered.
+ */
+router.post(`${otPreFix}${ship}/sde/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDelivered), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentShipmentDelivered(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id, update status to shipment delivered: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

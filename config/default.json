@@ -295,6 +295,12 @@
         "3": "ENQUIRY",
         "4": "SALESORDER"
     },
+    "shipmentLevel": {
+        "1": "Ready_For_Dispatch",
+        "2": "Shipment_Dispatched",
+        "3": "Warehouse_Goods_Out_(GO)",
+        "4": "Shipment_Delivered"
+    },
     "crmPipelineLevel": {
         "ContactMade": 1,
         "MeetingArranged": 2,

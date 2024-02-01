@@ -245,8 +245,17 @@ exports.getAllUsers = async (queryParam, orgId) => {
         const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole, sortBy, sortOrder }));
         if (!userList.length) {
             return {
-                success: false,
-                message: 'User not found!'
+                success: true,
+                message: 'User not found!',
+                data: {
+                    userList: [],
+                    pagination: {
+                        page,
+                        perPage,
+                        totalChildrenCount: 0,
+                        totalPages: 0
+                    }
+                }
             };
         }
         return {

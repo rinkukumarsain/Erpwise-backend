@@ -72,6 +72,11 @@ const enquiryitemshippmentSchema = new Schema(
             required: true,
             ref: 'Supplier'
         },
+        organisationId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organisation',
+            required: true
+        },
         enquiryFinalItemId: {
             type: Schema.Types.ObjectId,
             ref: 'EnquirySupplierSelectedItem',
@@ -147,7 +152,7 @@ const enquiryitemshippmentSchema = new Schema(
         },
         level: {
             type: Number,
-            level: 0
+            default: 0
         },
         stageName: {
             type: String,

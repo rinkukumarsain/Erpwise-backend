@@ -20,7 +20,9 @@ const { enquiryValidators: {
     createSO,
     // ==SPO== //
     createSupplierPO,
-    editSupplierPO
+    editSupplierPO,
+    // ==OT== //
+    createShipment
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -559,5 +561,40 @@ router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (
 
 // ========================= Order Tracking ============================= //
 
+const otPreFix = '/ot';
+const ship = '/shipment';
+
+/**
+ * Route for creating shippment from enquiry supplier po.
+ */
+router.post(`${otPreFix}${ship}/create/`, jwtVerify, validate(createShipment), async (req, res) => {
+    try {
+        // jsashkasjdh
+        const result = await enquiryServices.createShipment(req.body, req.headers['x-org-type'], req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating shippment from enquiry supplier po: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting All Supplier With Items And Po With Shipments
+ */
+router.get(`${otPreFix}${ship}/get/:enquiryId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllSupplierWithItemsAndPoWithShipments(req.params.enquiryId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting All Supplier With Items And Po With Shipments: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 module.exports = router;

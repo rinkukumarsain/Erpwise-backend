@@ -95,7 +95,7 @@ exports.createEnquiry = async (auth, enquiryData, orgId) => {
         if (newEnquiry) {
             await leadModel.findByIdAndUpdate(
                 enquiryData.leadId,
-                { isMovedToEnquiry: true },
+                { isMovedToEnquiry: true, level: CRMlevelEnum.ENQUIRY },
                 { runValidators: true }
             );
             return {

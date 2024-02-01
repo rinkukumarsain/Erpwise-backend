@@ -246,7 +246,7 @@ exports.createShipment = {
         shipToWarehouse: Joi.string().allow(''),
         warehouseId: Joi.string().allow(''),
         deliveryDate: Joi.string().required(),
-        notes: Joi.string().optional()
+        notes: Joi.string().allow(null)
     })
 };
 
@@ -260,6 +260,26 @@ exports.editShipment = {
         shipToWarehouse: Joi.string().allow(''),
         warehouseId: Joi.string().allow(''),
         deliveryDate: Joi.string().optional(),
-        notes: Joi.string().optional()
+        notes: Joi.string().allow(null)
+    })
+};
+
+exports.readyForDispatch = {
+    body: Joi.object({
+        date: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.shipmentDispatched = {
+    body: Joi.object({
+        carrier: Joi.string().allow(null),
+        trackingNumber: Joi.string().allow(null),
+        numOfBoxes: Joi.number().allow(null),
+        dispatchDate: Joi.string().required(),
+        expectedGoodsInDate: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
     })
 };

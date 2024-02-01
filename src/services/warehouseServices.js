@@ -75,8 +75,9 @@ exports.getAll = async (orgId) => {
         const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId));
         if (warehouseList.length == 0) {
             return {
-                success: false,
-                message: 'Warehouse not found!'
+                success: true,
+                message: 'Warehouse not found!',
+                data: []
             };
         }
         return {

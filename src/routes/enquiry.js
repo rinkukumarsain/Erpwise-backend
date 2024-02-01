@@ -569,6 +569,7 @@ const ship = '/shipment';
  */
 router.post(`${otPreFix}${ship}/create/`, jwtVerify, validate(createShipment), async (req, res) => {
     try {
+        // jsashkasjdh
         const result = await enquiryServices.createShipment(req.body, req.headers['x-org-type'], req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);

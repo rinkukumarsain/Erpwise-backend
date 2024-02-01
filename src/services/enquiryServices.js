@@ -1738,6 +1738,39 @@ exports.createShipment = async (body, orgId, auth) => {
 };
 
 /**
+ * get enquiry with all its spupplier,supplier po
+ * and if shipments is created then the data of shipment
+ * by enquiryId.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.getAllSupplierWithItemsAndPoWithShipments = async (enquiryId, orgId) => {
+    try {
+        const findData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierWithItemsAndPoWithShipmentsPipeline(enquiryId, orgId));
+        if (findData.length > 0) {
+            return {
+                success: true,
+                message: 'Enquiry shipments fetched successfully.',
+                data: findData
+            };
+        }
+        return {
+            success: false,
+            message: 'Enquiry shipments not found.',
+            data: []
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during get All Supplier With Items And Po With Shipments: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 /**
  * @typedef {object} ShipmentStage
  * @property {Date} date - Date of the stage
- * @property {string} [note] - Optional note for the stage
+ * @property {string} [notes] - Optional note for the stage
  * @property {string} [document] - Document associated with the stage
  * @property {mongoose.Types.ObjectId} createdBy - ID of the user who created the stage
  * @property {mongoose.Types.ObjectId} [updatedBy] - ID of the user who updated the stage
@@ -34,7 +34,7 @@ const { Schema } = mongoose;
  * @property {string} [shipToWarehouse] - Address for warehouse shipment
  * @property {mongoose.Types.ObjectId} [warehouseId] - ID of the associated warehouse
  * @property {Date} deliveryDate - Expected delivery date
- * @property {string} [note] - Optional note for the shipment
+ * @property {string} [notes] - Optional note for the shipment
  * @property {number} level - Shipment level
  * @property {string} stageName - Current stage of the shipment
  * @property {ShipmentStage | null} readyForDispatch - Details of the ready for dispatch stage
@@ -146,7 +146,7 @@ const enquiryitemshippmentSchema = new Schema(
             type: Date,
             required: true
         },
-        note: {
+        notes: {
             type: String,
             default: null
         },
@@ -165,7 +165,7 @@ const enquiryitemshippmentSchema = new Schema(
                         type: Date,
                         required: true
                     },
-                    note: {
+                    notes: {
                         type: String,
                         default: null
                     },
@@ -221,7 +221,7 @@ const enquiryitemshippmentSchema = new Schema(
                         type: Date,
                         required: true
                     },
-                    note: {
+                    notes: {
                         type: String,
                         default: null
                     },
@@ -281,7 +281,7 @@ const enquiryitemshippmentSchema = new Schema(
                         type: Number,
                         default: null
                     },
-                    note: {
+                    notes: {
                         type: String,
                         default: null
                     },
@@ -321,7 +321,7 @@ const enquiryitemshippmentSchema = new Schema(
                         type: Date,
                         required: true
                     },
-                    note: {
+                    notes: {
                         type: String,
                         default: null
                     },

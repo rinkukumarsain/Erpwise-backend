@@ -1949,7 +1949,7 @@ exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, 
         body.updatedBy = _id;
         body.createdByName = `${fname} ${lname}`;
         body.createdByRole = role;
-        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: 2, stageName: 'Warehouse_Goods_Out_(GO)' }, { new: true, runValidators: true });
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
         if (update) {
             return {
                 success: true,

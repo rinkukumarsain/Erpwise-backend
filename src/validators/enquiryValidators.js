@@ -143,16 +143,16 @@ exports.createSO = {
     body: Joi.object({
         // Id: Joi.string().required(),
         proformaInvoiceId: Joi.string().required(),
-        commodity: Joi.string().allow(''),
+        commodity: Joi.string().allow(null),
         customerPORefNo: Joi.string().required(),
-        packing: Joi.string().allow(''),
-        paymentTermsId: Joi.string().allow(''),
-        paymentTerms: Joi.number().allow(''),
-        deliveryPoint: Joi.number().allow(''),
-        notes: Joi.string().allow(''),
-        additionalNotes: Joi.string().allow(''),
-        documents: Joi.array().items(Joi.string().required()).allow(''),
-        customerPO: Joi.string().allow('')
+        packing: Joi.string().allow(null),
+        paymentTermsId: Joi.string().allow(null),
+        paymentTerms: Joi.number().allow(null),
+        deliveryPoint: Joi.number().allow(null),
+        notes: Joi.string().allow(null),
+        additionalNotes: Joi.string().allow(null),
+        documents: Joi.array().items(Joi.string().required()).allow(null),
+        customerPO: Joi.string().allow(null)
     })
 };
 

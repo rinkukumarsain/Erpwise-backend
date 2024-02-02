@@ -1932,7 +1932,7 @@ exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, 
                 message: 'Enquiry shipment not found.'
             };
         }
-        if (findShipment.level > 1) {
+        if (findShipment.level >= 2) {
             const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
             return {
                 success: false,
@@ -1989,7 +1989,7 @@ exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, a
                 message: 'Enquiry shipment not found.'
             };
         }
-        if (findShipment.level > 1) {
+        if (findShipment.level >= 3) {
             const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
             return {
                 success: false,
@@ -2046,7 +2046,7 @@ exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, a
                 message: 'Enquiry shipment not found.'
             };
         }
-        if (findShipment.level > 1) {
+        if (findShipment.level >= 4) {
             const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
             return {
                 success: false,

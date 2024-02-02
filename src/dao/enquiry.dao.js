@@ -3984,6 +3984,11 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                         ]
                                     }
                                 }
+                            },
+                            {
+                                $addFields: {
+                                    'enquiryitemshipments.remaningShipQuantity': '$remaningShipQuantity'
+                                }
                             }
                         ],
                         as: 'enquiryFinalItem'

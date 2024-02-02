@@ -2053,10 +2053,10 @@ exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, a
                 message: `The order tracking has already begun, the current status is '${text}'`
             };
         }
-        if (!findShipment.warehouseGoodsOut) {
+        if ((findShipment.shipTo == 'warehouse' && !findShipment.warehouseGoodsOut) || (findShipment.shipTo == 'customer' && !findShipment.shipmentDispatched)) {
             return {
                 success: false,
-                message: 'First please update the shipment status to warehouse goods Out.'
+                message: `First please update the shipment status to ${findShipment.shipTo == 'warehouse' ? 'warehouse goods Out' : 'shipment dispatched'}.`
             };
         }
         body.createdBy = _id;

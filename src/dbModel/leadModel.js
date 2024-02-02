@@ -101,7 +101,7 @@ const leadSchema = new Schema(
         },
         note: {
             type: String,
-            required: true
+            default: null
         },
         organisationId: {
             type: mongoose.Types.ObjectId,

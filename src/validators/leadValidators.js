@@ -8,7 +8,7 @@ exports.createLead = {
         email: Joi.string().required(),
         phone: Joi.string().required(),
         address: Joi.string().required(),
-        note: Joi.string().required(),
+        note: Joi.string().allow(''),
         currency: Joi.string().required(),
         dueDate: Joi.string().required(),
         isActive: Joi.boolean().required()
@@ -86,7 +86,7 @@ exports.createProspect = {
         email: Joi.string().required(),
         phone: Joi.string().required(),
         address: Joi.string().required(),
-        note: Joi.string().required(),
+        note: Joi.string().allow(''),
         currency: Joi.string().required(),
         dueDate: Joi.string().optional(),
         qualifymeta: Joi.object({

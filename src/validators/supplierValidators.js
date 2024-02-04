@@ -7,7 +7,7 @@ exports.createSupplier = {
         email: Joi.string().required(),
         phone: Joi.string().required(),
         industryType: Joi.string().required(),
-        note: Joi.string().required(),
+        note: Joi.string().allow(''),
         businessAddress: Joi.string().required(),
         salesPerson: Joi.string().required(),
         currency: Joi.string().required(),

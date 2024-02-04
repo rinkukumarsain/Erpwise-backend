@@ -3920,6 +3920,18 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                                                 '$enquiryId',
                                                                 '$$enquiryId'
                                                             ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isDeleted',
+                                                                false
+                                                            ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isActive',
+                                                                true
+                                                            ]
                                                         }
                                                     ]
                                                 }
@@ -3971,6 +3983,11 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                             '$totalShipQuantity'
                                         ]
                                     }
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    'enquiryitemshipments.remaningShipQuantity': '$remaningShipQuantity'
                                 }
                             }
                         ],

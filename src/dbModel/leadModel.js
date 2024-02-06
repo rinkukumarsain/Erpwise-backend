@@ -37,6 +37,40 @@ const userActionSchema = new Schema(
     }
 );
 
+/**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const ReminderSchema = new Schema(
+    {
+        subject: {
+            type: String,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: true
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        createdByName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
 
 
 /**
@@ -248,6 +282,7 @@ const leadSchema = new Schema(
                 { _id: false }
             )
         },
+        reminders: [ReminderSchema],
         createdBy: {
             type: mongoose.Types.ObjectId,
             ref: 'User'

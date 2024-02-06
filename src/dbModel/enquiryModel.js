@@ -373,7 +373,8 @@ const enquirySchema = new Schema(
                         type: mongoose.Types.ObjectId,
                         ref: 'User',
                         default: null
-                    }
+                    },
+                    reminders: [ReminderSchema]
 
                 }
             ),
@@ -439,7 +440,8 @@ const enquirySchema = new Schema(
                         type: mongoose.Types.ObjectId,
                         ref: 'User',
                         default: null
-                    }
+                    },
+                    reminders: [ReminderSchema]
 
                 }
             ),

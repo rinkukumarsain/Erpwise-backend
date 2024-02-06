@@ -204,8 +204,10 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
         let val;
         if (isCustomerAccess) {
             const pass = `EMPUSER@${Math.floor(999 + Math.random() * 99)}`;
+            const name = findData.name.split(' ');
             let obj = {
-                'name': findData.name,
+                'fname': name[0],
+                'lname': name[1] || '',
                 'email': findData.email,
                 'employeeId': `EMP-CUST-${Math.floor(10 + Math.random() * 90)}`,
                 'role': rolesKeys['1'],

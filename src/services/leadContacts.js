@@ -1,9 +1,11 @@
 const moment = require('moment');
 // Local Import
 const { rolesKeys } = require('../../config/default.json');
-const { leadModel, leadContactModel, enquiryModel, userModel } = require('../dbModel');
+const { leadModel, leadContactModel, enquiryModel, userModel, mailLogsModel } = require('../dbModel');
 const { registerUser } = require('./userService');
 // const { leadDao } = require('../dao');
+const { sendMail } = require('../utils/sendMail');
+const { giveLeadContactLoginAccess } = require('../utils/html');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -198,7 +200,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
                 message: 'Lead Contact not found.'
             };
         }
-        const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
+
         let val;
         if (isCustomerAccess) {
             const pass = `EMPUSER@${Math.floor(999 + Math.random() * 99)}`;
@@ -218,9 +220,27 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             if (!val.success) {
                 return val;
             }
+            const mailDetails = {
+                leadContactId: findData._id,
+                leadId: findData.leadId,
+                type: 'leadContactCustomerLoginAccess'
+            };
+            sendMailFun(
+                findData.email,
+                'Welcome To ERPWISE',
+                giveLeadContactLoginAccess(findData.name, process.env.FRONTEND_URL, process.env.EMAIL1),
+                mailDetails
+            );
         } else {
-            const findUser = await userModel.findOneAndUpdate({ email: findData.email }, { isDeleted: true });
+            const findUser = await userModel.findOneAndUpdate({ email: findData.email }, { isDeleted: true }, { new: true, runValidators: true });
+            if (!findUser) {
+                return {
+                    success: false,
+                    message: `Error removing customer login access.`
+                };
+            }
         }
+        const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
         if (data && val.success) {
             return {
                 success: true,
@@ -236,3 +256,43 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
         };
     }
 };
+
+/**
+ * Function to send mail.
+ *
+ * @param {string} to - Send email to.
+ * @param {string} subject - Send email subject.
+ * @param {string} body - email body.
+ * @param {object} mailDetailData - email extra details.
+ * @returns {Promise<void>} - A Promise that resolves after operation.
+ */
+async function sendMailFun(to, subject, body, mailDetailData) {
+    try {
+        const mailCred = {
+            email: process.env.EMAIL1,
+            password: process.env.PASS1,
+            host: process.env.HOST,
+            port: 465,
+            secure: true
+        };
+        const mailDetails = {
+            to,
+            cc: '',
+            subject,
+            body,
+            attachments: []
+        };
+        const nodemailerResponse = await sendMail(mailCred, mailDetails);
+        await query.create(mailLogsModel, {
+            to,
+            from: mailCred.email,
+            subject,
+            body,
+            documents: [],
+            mailDetails: mailDetailData,
+            nodemailerResponse
+        });
+    } catch (error) {
+        logger.error(LOG_ID, `Error while sending mail TYPE:- (${mailDetailData.type}) : ${error}`);
+    }
+}

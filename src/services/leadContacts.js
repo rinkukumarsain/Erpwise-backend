@@ -230,7 +230,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             sendMailFun(
                 findData.email,
                 'Welcome To ERPWISE',
-                giveLeadContactLoginAccess(findData.name, process.env.FRONTEND_URL, process.env.EMAIL1),
+                giveLeadContactLoginAccess(findData.name, pass, process.env.FRONTEND_URL, process.env.EMAIL1),
                 mailDetails
             );
         } else {

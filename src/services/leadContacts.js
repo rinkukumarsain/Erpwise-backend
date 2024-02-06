@@ -234,7 +234,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
                 mailDetails
             );
         } else {
-            const findUser = await userModel.findOneAndUpdate({ email: findData.email }, { isDeleted: true }, { new: true, runValidators: true });
+            const findUser = await userModel.deleteOne({ email: findData.email });
             if (!findUser) {
                 return {
                     success: false,
@@ -243,7 +243,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             }
         }
         const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
-        if (data && val.success) {
+        if (data) {
             return {
                 success: true,
                 message: 'Lead contact updated successfully.',

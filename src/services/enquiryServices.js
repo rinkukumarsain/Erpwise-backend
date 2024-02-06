@@ -436,6 +436,54 @@ exports.getMailLogs = async (type, enquiryId) => {
     }
 };
 
+/**
+ * Add enquiry reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.addReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false });
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiry = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiry) {
+            return {
+                success: true,
+                message: 'Enquiry reminder added successfully.',
+                data: updatedenquiry
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 
 // ========================= QUOTE ============================= //
 

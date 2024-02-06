@@ -12,6 +12,7 @@ const { enquiryValidators: {
     getAllEnquiry,
     deleteEnquiryDocument,
     updateEnquiryById,
+    addReminder,
     // ==Quote== //
     createQuote,
     // ==PI== //
@@ -191,6 +192,22 @@ router.get('/maillogs/:type/:enquiryId', jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiry/maillogs : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post('/addreminder/:id', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

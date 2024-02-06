@@ -2670,6 +2670,7 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
                 quoteId: '$quoteData.Id',
                 pi_Id: '$proformaInvoice._id',
                 piId: '$proformaInvoice.Id',
+                piReminder: '$proformaInvoice.reminders',
                 companyName: 1,
                 contactPerson: 1,
                 invoiceDate: '$proformaInvoice.invoiceDate',
@@ -3101,6 +3102,7 @@ exports.getAllSalesOrderPipeline = (orgId, { isActive, page, perPage, sortBy, so
                 piId: '$proformaInvoice.Id',
                 so_Id: '$salesOrder._id',
                 soId: '$salesOrder.Id',
+                soReminder: '$salesOrder.reminders',
                 customerPORefNo:
                     '$salesOrder.customerPORefNo',
                 margin: '$quoteData.margin',

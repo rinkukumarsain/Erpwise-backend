@@ -311,6 +311,22 @@ router.post(`${preFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req
     }
 });
 
+/**
+ * Route for Adding enquiry quote reminder.
+ */
+router.post(`${preFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addQuoteReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry quote reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= PI ============================= //
 
 let piPreFix = '/pi';

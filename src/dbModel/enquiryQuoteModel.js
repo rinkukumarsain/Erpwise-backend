@@ -57,6 +57,40 @@ const AgentCommissionSchema = new Schema(
     }
 );
 
+/**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const ReminderSchema = new Schema(
+    {
+        subject: {
+            type: String,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: true
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        createdByName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
 const enquiryQuoteSchema = new Schema(
     {
         Id: {
@@ -200,6 +234,7 @@ const enquiryQuoteSchema = new Schema(
             type: mongoose.Types.ObjectId,
             default: null
         },
+        reminders: [ReminderSchema],
         isActive: {
             type: Boolean,
             default: true

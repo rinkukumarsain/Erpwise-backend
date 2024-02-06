@@ -1,6 +1,39 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+/**
+ * Mongoose schema for user actions.
+ *
+ */
+const ReminderSchema = new Schema(
+    {
+        subject: {
+            type: String,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: true
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        createdByName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
 const enquirySupplierPOSchema = new Schema(
     {
         Id: {
@@ -215,6 +248,7 @@ const enquirySupplierPOSchema = new Schema(
             type: Boolean,
             default: true
         },
+        reminders: [ReminderSchema],
         isDeleted: {
             type: Boolean,
             default: false

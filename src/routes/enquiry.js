@@ -629,6 +629,22 @@ router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (
     }
 });
 
+/**
+ * Route for Adding enquiry supplier PO reminder.
+ */
+router.post(`${spoPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSupplierPOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry supplier PO reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Order Tracking ============================= //
 
 const otPreFix = '/ot';

@@ -902,6 +902,8 @@ exports.addQuoteReminder = async (enquiryQuoteId, body, auth) => {
         );
 
         if (updatedenquiryQuote) {
+            updatedenquiryQuote._doc.quoterReminder = updatedenquiryQuote._doc.reminders;
+            delete updatedenquiryQuote._doc.reminders;
             return {
                 success: true,
                 message: 'Enquiry quote reminder added successfully.',
@@ -1259,6 +1261,8 @@ exports.addPIReminder = async (enquiryId, body, auth) => {
         );
 
         if (updatedenquiryPI) {
+            updatedenquiryPI._doc.piReminder = updatedenquiryPI._doc.proformaInvoice.reminders;
+            delete updatedenquiryPI._doc.proformaInvoice.reminders;
             return {
                 success: true,
                 message: 'Enquiry PI reminder added successfully.',
@@ -1568,6 +1572,8 @@ exports.addSOReminder = async (enquiryId, body, auth) => {
         );
 
         if (updatedenquirySO) {
+            updatedenquirySO._doc.soReminder = updatedenquirySO._doc.salesOrder.reminders;
+            delete updatedenquirySO._doc.salesOrder.reminders;
             return {
                 success: true,
                 message: 'Enquiry SO reminder added successfully.',
@@ -1842,6 +1848,62 @@ exports.sendMailForEnquirySupplierPO = async (updateData, file) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while send Mail For Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Add enquiry SupplierPO reminder.
+ *
+ * @param {string} supplierPOId - Id of enquiry SupplierPO (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiry SupplierPO data.
+ */
+exports.addSupplierPOReminder = async (supplierPOId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findEnquirySupplierPO = await query.findOne(enquirySupplierPOModel, { _id: supplierPOId, isDeleted: false, isActive: true });
+        if (!findEnquirySupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po not found'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+
+        const updatedenquirySupplierPO = await enquirySupplierPOModel.findByIdAndUpdate(
+            supplierPOId,
+            { $push: { reminders: body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquirySupplierPO) {
+            const obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry supplier PO reminder (Id: ${updatedenquirySupplierPO.Id}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+            };
+            await enquiryModel.findByIdAndUpdate(
+                updatedenquirySupplierPO.enquiryId,
+                {
+                    $push: { Activity: obj }
+                },
+                { new: true, runValidators: true });
+            updatedenquirySupplierPO._doc.poReminder = updatedenquirySupplierPO._doc.reminders;
+            delete updatedenquirySupplierPO._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry supplier PO reminder added successfully.',
+                data: updatedenquirySupplierPO
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry supplier PO: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

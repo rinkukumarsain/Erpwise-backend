@@ -3685,7 +3685,8 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                         '$poData.financeMeta.packingChargesConverted',
                         '$poData.financeMeta.supplierTotalConverted'
                     ]
-                }
+                },
+                poReminder: '$poData.reminders'
             }
         },
         {

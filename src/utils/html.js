@@ -50,14 +50,15 @@ exports.giveLeadContactLoginAccess = (User, YourAppLink, SupportEmail) => `<!DOC
             display: inline-block;
             padding: 8px 16px;
             background-color: #fe893a;
-            color: #ffffff;
             text-decoration: none;
+            color: #ffffff !important;
             border-radius: 5px;
             margin-top: 10px;
         }
 
         .footer {
             margin-top: 20px;
+            text-decoration: none;
             color: #888;
         }
     </style>

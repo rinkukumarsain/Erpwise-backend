@@ -2339,7 +2339,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                     '$quoteData.agentTotalCommission',
                 addedSupplierFinalTotal:
                     '$quoteData.addedSupplierFinalTotal',
-                quote_ID: '$quoteData.Id'
+                quote_ID: '$quoteData.Id',
+                quoterReminder: '$quoteData.reminders'
             }
         },
         {
@@ -2365,7 +2366,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 stageName: 1,
                 isQuoteCreated: 1,
                 Activity: 1,
-                totalSuppliers: 1
+                totalSuppliers: 1,
+                quoterReminder: 1
 
             }
         }

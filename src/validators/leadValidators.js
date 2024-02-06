@@ -113,3 +113,11 @@ exports.changePipelineStage = {
         pipelineName: Joi.string().required()
     })
 };
+
+exports.addReminder = {
+    body: Joi.object({
+        subject: Joi.string().required(),
+        date: Joi.string().required(),
+        comment: Joi.string().required()
+    })
+};

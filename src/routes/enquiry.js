@@ -12,6 +12,7 @@ const { enquiryValidators: {
     getAllEnquiry,
     deleteEnquiryDocument,
     updateEnquiryById,
+    addReminder,
     // ==Quote== //
     createQuote,
     // ==PI== //
@@ -195,6 +196,22 @@ router.get('/maillogs/:type/:enquiryId', jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post('/addreminder/:id', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= QUOTE ============================= //
 
 let preFix = '/quote';
@@ -290,6 +307,22 @@ router.post(`${preFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry quote reminder.
+ */
+router.post(`${preFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addQuoteReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry quote reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
@@ -394,6 +427,22 @@ router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (r
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${piPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addPIReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Sales Order ============================= //
 
 let soPreFix = '/so';
@@ -480,6 +529,22 @@ router.get(`${soPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${soPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Supplier po ============================= //
 
 const spoPreFix = '/spo';
@@ -560,6 +625,22 @@ router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiry${spoPreFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry supplier PO reminder.
+ */
+router.post(`${spoPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSupplierPOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry supplier PO reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

@@ -2,11 +2,12 @@
  * Give Lead Contact Login Access in Lead Contact section
  * 
  * @param {string} User user name
+ * @param {string} Password user password
  * @param {string} YourAppLink website utl
  * @param {string} SupportEmail website admin mail 
  * @returns {string} email template
  */
-exports.giveLeadContactLoginAccess = (User, YourAppLink, SupportEmail) => `<!DOCTYPE html>
+exports.giveLeadContactLoginAccess = (User, Password,YourAppLink, SupportEmail) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -70,6 +71,7 @@ exports.giveLeadContactLoginAccess = (User, YourAppLink, SupportEmail) => `<!DOC
         <p>Dear ${User},</p>
         <p>We are thrilled to welcome you to ERPWISE! Your journey with our platform has just begun, and we are excited to have you on board.</p>
         <p>Feel free to explore the features and functionalities tailored to meet your business needs.</p>
+        <p>Password : <b>${Password}</b></p>
         <a href="${YourAppLink}" class="button">Get Started</a>
         <p class="footer">If you have any questions or need assistance, please contact our support team at ${SupportEmail}.</p>
     </div>

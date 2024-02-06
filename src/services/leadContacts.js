@@ -230,11 +230,11 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             sendMailFun(
                 findData.email,
                 'Welcome To ERPWISE',
-                giveLeadContactLoginAccess(findData.name, process.env.FRONTEND_URL, process.env.EMAIL1),
+                giveLeadContactLoginAccess(findData.name, pass, process.env.FRONTEND_URL, process.env.EMAIL1),
                 mailDetails
             );
         } else {
-            const findUser = await userModel.findOneAndUpdate({ email: findData.email }, { isDeleted: true }, { new: true, runValidators: true });
+            const findUser = await userModel.deleteOne({ email: findData.email });
             if (!findUser) {
                 return {
                     success: false,
@@ -243,7 +243,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             }
         }
         const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
-        if (data && val.success) {
+        if (data) {
             return {
                 success: true,
                 message: 'Lead contact updated successfully.',

@@ -673,3 +673,51 @@ exports.getAllLeadForEnquiry = async (orgId) => {
         };
     }
 };
+
+/**
+ * Add lead reminder.
+ *
+ * @param {string} leadId - Id of lead (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the lead data.
+ */
+exports.addReminder = async (leadId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findLead = await query.findOne(leadModel, { _id: leadId, isDeleted: false });
+        if (!findLead) {
+            return {
+                success: false,
+                message: 'Lead not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Lead reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedLead = await leadModel.findByIdAndUpdate(
+            leadId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedLead) {
+            return {
+                success: true,
+                message: 'Lead reminder added successfully.',
+                data: updatedLead
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

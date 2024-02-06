@@ -7,7 +7,7 @@ const { statusCode } = require('../../config/default.json');
 const { uploadS3 } = require('../utils/multer');
 const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { leadServices } = require('../services');
-const { leadValidators: { createLead, getAllLead, updateLeadById, qualifyLeadById, createProspect, addLeadFinance, changePipelineStage } } = require('../validators');
+const { leadValidators: { createLead, getAllLead, updateLeadById, qualifyLeadById, createProspect, addLeadFinance, changePipelineStage, addReminder } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -219,6 +219,22 @@ router.get('/availableForEnquiry', jwtVerify, authorizeRoleAccess, async (req, r
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during login: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding lead reminder.
+ */
+router.post('/addreminder/:id', jwtVerify, authorizeRoleAccess, validate(addReminder), async (req, res) => {
+    try {
+        const result = await leadServices.addReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding lead reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

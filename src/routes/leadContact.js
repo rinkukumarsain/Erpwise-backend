@@ -80,4 +80,21 @@ router.get('/delete/:id', jwtVerify, authorizeRoleAccess, async (req, res) => {
     }
 });
 
+/**
+ * Route for giving/removing  lead contact cusomer access.
+ */
+router.post('/customer/:contactId', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadContacts.leadContactCustomerAccess(req.auth, req.params.contactId, req.body, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during  giving/ removing  lead contact cusomer access.: ${err.message}`);
+        logger.error(`${LOG_ID} - Error (leadContact/customer/:contactId)`, JSON.stringify(err));
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

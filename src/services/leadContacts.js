@@ -1,9 +1,11 @@
 const moment = require('moment');
 // Local Import
-// const { rolesKeys } = require('../../config/default.json');
-const { leadModel, leadContactModel, enquiryModel } = require('../dbModel');
-// const { registerUser } = require('./userService');
+const { rolesKeys } = require('../../config/default.json');
+const { leadModel, leadContactModel, enquiryModel, userModel, mailLogsModel } = require('../dbModel');
+const { registerUser } = require('./userService');
 // const { leadDao } = require('../dao');
+const { sendMail } = require('../utils/sendMail');
+const { giveLeadContactLoginAccess } = require('../utils/html');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 
@@ -189,46 +191,108 @@ exports.delete = async (auth, _id) => {
  * @param {string} orgId - Id of logedin user organisation.
  * @returns {object} - An object with the results, including updated Lead contact.
  */
-// exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgId) => {
-//     try {
-//         const findData = await query.findOne(leadContactModel, { _id, isActive: true });
-//         if (!findData) {
-//             return {
-//                 success: false,
-//                 message: 'Lead Contact not found.'
-//             };
-//         }
-//         const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
-//         // let val;
-//         if (isCustomerAccess) {
-//             let obj = {
-//                 'name': findData.name,
-//                 'email': findData.email,
-//                 'employeeId': `EMP-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`,
-//                 'role': rolesKeys['1'],
-//                 'password': btoa(findData.name),
-//                 'createdBy': '6566f24b14a3b6d4df41c747',
-//                 'mobile': findData.phone,
-//                 'jobTitle': null,
-//                 'organisationId': orgId,
-//                 'isActive': true
-//             };
-//             val = await registerUser(auth, obj);
-//         } else {
+exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgId) => {
+    try {
+        const findData = await query.findOne(leadContactModel, { _id, isActive: true });
+        if (!findData) {
+            return {
+                success: false,
+                message: 'Lead Contact not found.'
+            };
+        }
 
-//         }
-//         if (data) {
-//             return {
-//                 success: true,
-//                 message: 'Lead contact updated successfully.',
-//                 data
-//             };
-//         }
-//     } catch (error) {
-//         logger.error(LOG_ID, `Error updating Lead: ${error}`);
-//         return {
-//             success: false,
-//             message: 'Something went wrong'
-//         };
-//     }
-// };
+        let val;
+        if (isCustomerAccess) {
+            const pass = `EMPUSER@${Math.floor(999 + Math.random() * 99)}`;
+            let obj = {
+                'name': findData.name,
+                'email': findData.email,
+                'employeeId': `EMP-CUST-${Math.floor(10 + Math.random() * 90)}`,
+                'role': rolesKeys['1'],
+                'password': pass,
+                'createdBy': '6566f24b14a3b6d4df41c747',
+                'mobile': findData.phone,
+                'jobTitle': null,
+                'organisationId': orgId,
+                'isActive': true
+            };
+            val = await registerUser(auth, obj);
+            if (!val.success) {
+                return val;
+            }
+            const mailDetails = {
+                leadContactId: findData._id,
+                leadId: findData.leadId,
+                type: 'leadContactCustomerLoginAccess'
+            };
+            sendMailFun(
+                findData.email,
+                'Welcome To ERPWISE',
+                giveLeadContactLoginAccess(findData.name, process.env.FRONTEND_URL, process.env.EMAIL1),
+                mailDetails
+            );
+        } else {
+            const findUser = await userModel.findOneAndUpdate({ email: findData.email }, { isDeleted: true }, { new: true, runValidators: true });
+            if (!findUser) {
+                return {
+                    success: false,
+                    message: `Error removing customer login access.`
+                };
+            }
+        }
+        const data = await leadContactModel.findByIdAndUpdate(_id, { isCustomerAccess }, { new: true, runValidators: true });
+        if (data && val.success) {
+            return {
+                success: true,
+                message: 'Lead contact updated successfully.',
+                data
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error updating Lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Function to send mail.
+ *
+ * @param {string} to - Send email to.
+ * @param {string} subject - Send email subject.
+ * @param {string} body - email body.
+ * @param {object} mailDetailData - email extra details.
+ * @returns {Promise<void>} - A Promise that resolves after operation.
+ */
+async function sendMailFun(to, subject, body, mailDetailData) {
+    try {
+        const mailCred = {
+            email: process.env.EMAIL1,
+            password: process.env.PASS1,
+            host: process.env.HOST,
+            port: 465,
+            secure: true
+        };
+        const mailDetails = {
+            to,
+            cc: '',
+            subject,
+            body,
+            attachments: []
+        };
+        const nodemailerResponse = await sendMail(mailCred, mailDetails);
+        await query.create(mailLogsModel, {
+            to,
+            from: mailCred.email,
+            subject,
+            body,
+            documents: [],
+            mailDetails: mailDetailData,
+            nodemailerResponse
+        });
+    } catch (error) {
+        logger.error(LOG_ID, `Error while sending mail TYPE:- (${mailDetailData.type}) : ${error}`);
+    }
+}

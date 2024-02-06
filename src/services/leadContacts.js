@@ -207,7 +207,7 @@ exports.leadContactCustomerAccess = async (auth, _id, { isCustomerAccess }, orgI
             const name = findData.name.split(' ');
             let obj = {
                 'fname': name[0],
-                'lname': name[1] || '',
+                'lname': name[1] || '-',
                 'email': findData.email,
                 'employeeId': `EMP-CUST-${Math.floor(10 + Math.random() * 90)}`,
                 'role': rolesKeys['1'],

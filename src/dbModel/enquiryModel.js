@@ -37,6 +37,40 @@ const userActionSchema = new Schema(
 );
 
 /**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const ReminderSchema = new Schema(
+    {
+        subject: {
+            type: String,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: true
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        createdByName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
+/**
  * @typedef {object} Enquiry
  * @property {string} companyName - The name of the company associated with the enquiry.
  * @property {string} Id - The unique identifier for the enquiry.
@@ -435,6 +469,7 @@ const enquirySchema = new Schema(
             type: Boolean,
             default: false
         },
+        reminders: [ReminderSchema],
         supplierPOId: [
             {
                 type: Schema.Types.ObjectId,

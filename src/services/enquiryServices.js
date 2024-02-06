@@ -869,6 +869,54 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
     }
 };
 
+/**
+ * Add enquiryQuote reminder.
+ *
+ * @param {string} enquiryQuoteId - Id of enquiryQuote (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiryQuote data.
+ */
+exports.addQuoteReminder = async (enquiryQuoteId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiryQuote = await query.findOne(enquiryQuoteModel, { _id: enquiryQuoteId, isDeleted: false });
+        if (!findenquiryQuote) {
+            return {
+                success: false,
+                message: 'Enquiry quote not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry quote reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiryQuote = await enquiryQuoteModel.findByIdAndUpdate(
+            enquiryQuoteId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiryQuote) {
+            return {
+                success: true,
+                message: 'Enquiry quote reminder added successfully.',
+                data: updatedenquiryQuote
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiryQuote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= PI ============================= //
 
 

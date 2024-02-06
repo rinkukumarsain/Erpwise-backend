@@ -427,6 +427,22 @@ router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (r
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${piPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addPIReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Sales Order ============================= //
 
 let soPreFix = '/so';
@@ -509,6 +525,22 @@ router.get(`${soPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while deleting enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${soPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

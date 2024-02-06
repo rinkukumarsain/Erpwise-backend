@@ -1226,6 +1226,54 @@ exports.sendMailForEnquiryPI = async (updateData, file) => {
     }
 };
 
+/**
+ * Add enquiryPI reminder.
+ *
+ * @param {string} enquiryId - Id of enquiryPI (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiryPI data.
+ */
+exports.addPIReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiryPI = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isPiCreated: true });
+        if (!findenquiryPI) {
+            return {
+                success: false,
+                message: 'Enquiry PI not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry PI reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiryPI = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { Activity: obj, 'proformaInvoice.reminders': body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiryPI) {
+            return {
+                success: true,
+                message: 'Enquiry PI reminder added successfully.',
+                data: updatedenquiryPI
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry PI: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= Sales Order ============================= //
 
 
@@ -1480,6 +1528,54 @@ exports.deleteSO = async (enquiryId, auth) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during deleting sales order: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Add enquirySO reminder.
+ *
+ * @param {string} enquiryId - Id of enquirySO (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquirySO data.
+ */
+exports.addSOReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquirySO = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isPiCreated: true, isSalesOrderCreated: true });
+        if (!findenquirySO) {
+            return {
+                success: false,
+                message: 'Enquiry SO not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry SO reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquirySO = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { Activity: obj, 'salesOrder.reminders': body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquirySO) {
+            return {
+                success: true,
+                message: 'Enquiry SO reminder added successfully.',
+                data: updatedenquirySO
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry SO: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

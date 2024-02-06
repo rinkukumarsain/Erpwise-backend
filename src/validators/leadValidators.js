@@ -8,7 +8,7 @@ exports.createLead = {
         email: Joi.string().required(),
         phone: Joi.string().required(),
         address: Joi.string().required(),
-        note: Joi.string().required(),
+        note: Joi.string().allow(''),
         currency: Joi.string().required(),
         dueDate: Joi.string().required(),
         isActive: Joi.boolean().required()
@@ -86,7 +86,7 @@ exports.createProspect = {
         email: Joi.string().required(),
         phone: Joi.string().required(),
         address: Joi.string().required(),
-        note: Joi.string().required(),
+        note: Joi.string().allow(''),
         currency: Joi.string().required(),
         dueDate: Joi.string().optional(),
         qualifymeta: Joi.object({
@@ -111,5 +111,13 @@ exports.addLeadFinance = {
 exports.changePipelineStage = {
     body: Joi.object({
         pipelineName: Joi.string().required()
+    })
+};
+
+exports.addReminder = {
+    body: Joi.object({
+        subject: Joi.string().required(),
+        date: Joi.string().required(),
+        comment: Joi.string().required()
     })
 };

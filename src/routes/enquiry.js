@@ -12,6 +12,7 @@ const { enquiryValidators: {
     getAllEnquiry,
     deleteEnquiryDocument,
     updateEnquiryById,
+    addReminder,
     // ==Quote== //
     createQuote,
     // ==PI== //
@@ -22,7 +23,12 @@ const { enquiryValidators: {
     createSupplierPO,
     editSupplierPO,
     // ==OT== //
-    createShipment
+    createShipment,
+    editShipment,
+    readyForDispatch,
+    shipmentDelivered,
+    shipmentDispatched,
+    warehouseGoodsOut
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -190,6 +196,22 @@ router.get('/maillogs/:type/:enquiryId', jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post('/addreminder/:id', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= QUOTE ============================= //
 
 let preFix = '/quote';
@@ -285,6 +307,22 @@ router.post(`${preFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (req
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during enquiry${preFix}/sendMail : ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry quote reminder.
+ */
+router.post(`${preFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addQuoteReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry quote reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
@@ -389,6 +427,22 @@ router.post(`${piPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (r
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${piPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addPIReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Sales Order ============================= //
 
 let soPreFix = '/so';
@@ -471,6 +525,22 @@ router.get(`${soPreFix}/delete/:enquiryId`, jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while deleting enquiry sales order: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post(`${soPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
@@ -559,6 +629,22 @@ router.post(`${spoPreFix}/sendMail`, jwtVerify, uploadS3.single('file'), async (
     }
 });
 
+/**
+ * Route for Adding enquiry supplier PO reminder.
+ */
+router.post(`${spoPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.addSupplierPOReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry supplier PO reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Order Tracking ============================= //
 
 const otPreFix = '/ot';
@@ -593,6 +679,102 @@ router.get(`${otPreFix}${ship}/get/:enquiryId`, jwtVerify, async (req, res) => {
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while getting All Supplier With Items And Po With Shipments: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id.
+ */
+router.post(`${otPreFix}${ship}/update/:enquiryId/:shipmentId`, jwtVerify, validate(editShipment), async (req, res) => {
+    try {
+        const result = await enquiryServices.editShipment(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while editing enquiry item shipment by id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for deleting enquiry item shipment by id.
+ */
+router.get(`${otPreFix}${ship}/delete/:enquiryId/:shipmentId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.deleteShipment(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while deleting enquiry item shipment by id.: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to Ready For Dispatch.
+ */
+router.post(`${otPreFix}${ship}/rod/:enquiryId/:shipmentId`, jwtVerify, validate(readyForDispatch), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentReadyForDispatch(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to Ready For Dispatch: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to Shipment Dispatched.
+ */
+router.post(`${otPreFix}${ship}/sd/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDispatched), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentShipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to Shipment Dispatched: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id, update status to warehouse Goods Out.
+ */
+router.post(`${otPreFix}${ship}/wgo/:enquiryId/:shipmentId`, jwtVerify, validate(warehouseGoodsOut), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentWarehouseGoodsOut(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id update status to warehouse Goods Out: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry item shipment by id update status to shipment delivered.
+ */
+router.post(`${otPreFix}${ship}/sde/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDelivered), async (req, res) => {
+    try {
+        const result = await enquiryServices.shipmentShipmentDelivered(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while enquiry item shipment by id, update status to shipment delivered: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

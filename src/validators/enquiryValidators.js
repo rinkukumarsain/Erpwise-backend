@@ -241,11 +241,75 @@ exports.createShipment = {
         totalPrice: Joi.number().required(),
         supplierAddressId: Joi.string().required(),
         supplierAddress: Joi.string().required(),
-        shipToCustomer: Joi.string().allow(''),
-        leadAddressId: Joi.string().allow(''),
-        shipToWarehouse: Joi.string().allow(''),
-        warehouseId: Joi.string().allow(''),
+        shipToCustomer: Joi.string().allow(null),
+        leadAddressId: Joi.string().allow(null),
+        shipToWarehouse: Joi.string().allow(null),
+        warehouseId: Joi.string().allow(null),
         deliveryDate: Joi.string().required(),
-        notes: Joi.string().optional()
+        notes: Joi.string().allow(null)
     })
 };
+
+exports.editShipment = {
+    body: Joi.object({
+        shipTo: Joi.string().optional(),
+        supplierAddressId: Joi.string().optional(),
+        supplierAddress: Joi.string().optional(),
+        shipToCustomer: Joi.string().allow(null),
+        leadAddressId: Joi.string().allow(null),
+        shipToWarehouse: Joi.string().allow(null),
+        warehouseId: Joi.string().allow(null),
+        deliveryDate: Joi.string().optional(),
+        notes: Joi.string().allow(null)
+    })
+};
+
+exports.readyForDispatch = {
+    body: Joi.object({
+        date: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.shipmentDispatched = {
+    body: Joi.object({
+        carrier: Joi.string().allow(null),
+        trackingNumber: Joi.string().allow(null),
+        numOfBoxes: Joi.number().allow(null),
+        dispatchDate: Joi.string().required(),
+        expectedGoodsInDate: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.warehouseGoodsOut = {
+    body: Joi.object({
+        carrier: Joi.string().required(),
+        trackingNumber: Joi.string().required(),
+        numOfBoxes: Joi.number().allow(null),
+        goodsOutDate: Joi.string().required(),
+        packingCharges: Joi.number().allow(null),
+        freightCharges: Joi.number().allow(null),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.shipmentDelivered = {
+    body: Joi.object({
+        deliveryDate: Joi.string().required(),
+        notes: Joi.string().allow(null),
+        document: Joi.string().allow(null)
+    })
+};
+
+exports.addReminder = {
+    body: Joi.object({
+        subject: Joi.string().required(),
+        date: Joi.string().required(),
+        comment: Joi.string().required()
+    })
+};
+

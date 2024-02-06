@@ -17,7 +17,7 @@ const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
 const { generateId } = require('../utils/generateId');
-const { CRMlevelEnum } = require('../../config/default.json');
+const { CRMlevelEnum, shipmentLevel } = require('../../config/default.json');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -436,6 +436,54 @@ exports.getMailLogs = async (type, enquiryId) => {
     }
 };
 
+/**
+ * Add enquiry reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.addReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiry = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false });
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Enquiry not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiry = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiry) {
+            return {
+                success: true,
+                message: 'Enquiry reminder added successfully.',
+                data: updatedenquiry
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 
 // ========================= QUOTE ============================= //
 
@@ -821,6 +869,56 @@ exports.sendMailForEnquiryQuote = async (updateData, file) => {
     }
 };
 
+/**
+ * Add enquiryQuote reminder.
+ *
+ * @param {string} enquiryQuoteId - Id of enquiryQuote (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiryQuote data.
+ */
+exports.addQuoteReminder = async (enquiryQuoteId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiryQuote = await query.findOne(enquiryQuoteModel, { _id: enquiryQuoteId, isDeleted: false });
+        if (!findenquiryQuote) {
+            return {
+                success: false,
+                message: 'Enquiry quote not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry quote reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiryQuote = await enquiryQuoteModel.findByIdAndUpdate(
+            enquiryQuoteId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiryQuote) {
+            updatedenquiryQuote._doc.quoterReminder = updatedenquiryQuote._doc.reminders;
+            delete updatedenquiryQuote._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry quote reminder added successfully.',
+                data: updatedenquiryQuote
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiryQuote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= PI ============================= //
 
 
@@ -1130,6 +1228,56 @@ exports.sendMailForEnquiryPI = async (updateData, file) => {
     }
 };
 
+/**
+ * Add enquiryPI reminder.
+ *
+ * @param {string} enquiryId - Id of enquiryPI (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiryPI data.
+ */
+exports.addPIReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiryPI = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isPiCreated: true });
+        if (!findenquiryPI) {
+            return {
+                success: false,
+                message: 'Enquiry PI not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry PI reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquiryPI = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { Activity: obj, 'proformaInvoice.reminders': body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquiryPI) {
+            updatedenquiryPI._doc.piReminder = updatedenquiryPI._doc.proformaInvoice.reminders;
+            delete updatedenquiryPI._doc.proformaInvoice.reminders;
+            return {
+                success: true,
+                message: 'Enquiry PI reminder added successfully.',
+                data: updatedenquiryPI
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry PI: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= Sales Order ============================= //
 
 
@@ -1384,6 +1532,56 @@ exports.deleteSO = async (enquiryId, auth) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during deleting sales order: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Add enquirySO reminder.
+ *
+ * @param {string} enquiryId - Id of enquirySO (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquirySO data.
+ */
+exports.addSOReminder = async (enquiryId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquirySO = await query.findOne(enquiryModel, { _id: enquiryId, isDeleted: false, isPiCreated: true, isSalesOrderCreated: true });
+        if (!findenquirySO) {
+            return {
+                success: false,
+                message: 'Enquiry SO not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Enquiry SO reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updatedenquirySO = await enquiryModel.findByIdAndUpdate(
+            enquiryId,
+            { $push: { Activity: obj, 'salesOrder.reminders': body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquirySO) {
+            updatedenquirySO._doc.soReminder = updatedenquirySO._doc.salesOrder.reminders;
+            delete updatedenquirySO._doc.salesOrder.reminders;
+            return {
+                success: true,
+                message: 'Enquiry SO reminder added successfully.',
+                data: updatedenquirySO
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry SO: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -1657,6 +1855,62 @@ exports.sendMailForEnquirySupplierPO = async (updateData, file) => {
     }
 };
 
+/**
+ * Add enquiry SupplierPO reminder.
+ *
+ * @param {string} supplierPOId - Id of enquiry SupplierPO (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the enquiry SupplierPO data.
+ */
+exports.addSupplierPOReminder = async (supplierPOId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findEnquirySupplierPO = await query.findOne(enquirySupplierPOModel, { _id: supplierPOId, isDeleted: false, isActive: true });
+        if (!findEnquirySupplierPO) {
+            return {
+                success: false,
+                message: 'Enquiry supplier po not found'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+
+        const updatedenquirySupplierPO = await enquirySupplierPOModel.findByIdAndUpdate(
+            supplierPOId,
+            { $push: { reminders: body } },
+            { new: true, runValidators: true }
+        );
+
+        if (updatedenquirySupplierPO) {
+            const obj = {
+                performedBy: _id,
+                performedByEmail: email,
+                actionName: `Enquiry supplier PO reminder (Id: ${updatedenquirySupplierPO.Id}) added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+            };
+            await enquiryModel.findByIdAndUpdate(
+                updatedenquirySupplierPO.enquiryId,
+                {
+                    $push: { Activity: obj }
+                },
+                { new: true, runValidators: true });
+            updatedenquirySupplierPO._doc.poReminder = updatedenquirySupplierPO._doc.reminders;
+            delete updatedenquirySupplierPO._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry supplier PO reminder added successfully.',
+                data: updatedenquirySupplierPO
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry supplier PO: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= Order Tracking ============================= //
 
 /**
@@ -1763,6 +2017,319 @@ exports.getAllSupplierWithItemsAndPoWithShipments = async (enquiryId, orgId) => 
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during get All Supplier With Items And Po With Shipments: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} updateData - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.editShipment = async (enquiryId, shipmentId, orgId, updateData, auth) => {
+    try {
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 0) {
+            return {
+                success: false,
+                message: `The order tracking has already begun therefore, you cannot edit the shipment now.`
+            };
+        }
+        updateData.updatedBy = auth._id;
+        const updateShipment = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, updateData, { new: true, runValidators: true });
+        if (updateShipment) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) updated successfully.`,
+                data: updateShipment
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}).`,
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Delete enquiry item shipment by id.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.deleteShipment = async (enquiryId, shipmentId, orgId) => {
+    try {
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level > 0) {
+            return {
+                success: false,
+                message: `The order tracking has already begun therefore, you cannot delete the shipment now.`
+            };
+        }
+        const deleteShipment = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { isDeleted: true }, { new: true, runValidators: true });
+        if (deleteShipment) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) deleted successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while deleting shipment(${findShipment.Id}).`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while deleting shippment from Enquiry supplier po: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to Ready For Dispatch.
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentReadyForDispatch = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level >= 1) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { readyForDispatch: body, level: 1, stageName: 'Shipment_Dispatched' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) is ready to dispatch now.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to ready for dispatch.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to Ready For Dispatch: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to Shipment Dispatched
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level >= 2) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if (!findShipment.readyForDispatch) {
+            return {
+                success: false,
+                message: 'First please update the shipment status to ready to dispatch.'
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Shipment(${findShipment.Id}) is dispatched successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to shipment dispatch.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to shipment dispatch: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to warehouse Goods Out
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level >= 3) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if (!findShipment.shipmentDispatched) {
+            return {
+                success: false,
+                message: 'First please update the shipment status to shipment dispatched.'
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { warehouseGoodsOut: body, level: 3, stageName: 'Shipment_Delivered' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `Warehouse Goods Out for Shipment(${findShipment.Id}) successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to Warehouse Goods Out.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to Warehouse Goods Out: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Edit enquiry item shipment by id update status to shipment delivered
+ *
+ * @param {string} enquiryId - enquiry id.
+ * @param {string} shipmentId - shipment id.
+ * @param {string} orgId - organisation id.
+ * @param {object} body - req body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results.
+ */
+exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, auth) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+        if (!findShipment) {
+            return {
+                success: false,
+                message: 'Enquiry shipment not found.'
+            };
+        }
+        if (findShipment.level >= 4) {
+            const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+            return {
+                success: false,
+                message: `The order tracking has already begun, the current status is '${text}'`
+            };
+        }
+        if ((findShipment.shipTo == 'warehouse' && !findShipment.warehouseGoodsOut) || (findShipment.shipTo == 'customer' && !findShipment.shipmentDispatched)) {
+            return {
+                success: false,
+                message: `First please update the shipment status to ${findShipment.shipTo == 'warehouse' ? 'warehouse goods Out' : 'shipment dispatched'}.`
+            };
+        }
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        body.createdByRole = role;
+        const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDelivered: body, level: 4, stageName: 'Create_Supplier_Bill' }, { new: true, runValidators: true });
+        if (update) {
+            return {
+                success: true,
+                message: `shipment delivered for Shipment(${findShipment.Id}) successfully.`
+            };
+        }
+        return {
+            success: false,
+            message: `Error while updating shipment(${findShipment.Id}) status to shipment dselivered.`
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to shipment dselivered: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

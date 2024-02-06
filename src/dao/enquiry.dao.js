@@ -2339,7 +2339,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                     '$quoteData.agentTotalCommission',
                 addedSupplierFinalTotal:
                     '$quoteData.addedSupplierFinalTotal',
-                quote_ID: '$quoteData.Id'
+                quote_ID: '$quoteData.Id',
+                quoterReminder: '$quoteData.reminders'
             }
         },
         {
@@ -2365,7 +2366,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 stageName: 1,
                 isQuoteCreated: 1,
                 Activity: 1,
-                totalSuppliers: 1
+                totalSuppliers: 1,
+                quoterReminder: 1
 
             }
         }
@@ -2668,6 +2670,7 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
                 quoteId: '$quoteData.Id',
                 pi_Id: '$proformaInvoice._id',
                 piId: '$proformaInvoice.Id',
+                piReminder: '$proformaInvoice.reminders',
                 companyName: 1,
                 contactPerson: 1,
                 invoiceDate: '$proformaInvoice.invoiceDate',
@@ -3099,6 +3102,7 @@ exports.getAllSalesOrderPipeline = (orgId, { isActive, page, perPage, sortBy, so
                 piId: '$proformaInvoice.Id',
                 so_Id: '$salesOrder._id',
                 soId: '$salesOrder.Id',
+                soReminder: '$salesOrder.reminders',
                 customerPORefNo:
                     '$salesOrder.customerPORefNo',
                 margin: '$quoteData.margin',
@@ -3681,7 +3685,8 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                         '$poData.financeMeta.packingChargesConverted',
                         '$poData.financeMeta.supplierTotalConverted'
                     ]
-                }
+                },
+                poReminder: '$poData.reminders'
             }
         },
         {
@@ -3920,6 +3925,18 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                                                 '$enquiryId',
                                                                 '$$enquiryId'
                                                             ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isDeleted',
+                                                                false
+                                                            ]
+                                                        },
+                                                        {
+                                                            $eq: [
+                                                                '$isActive',
+                                                                true
+                                                            ]
                                                         }
                                                     ]
                                                 }
@@ -3971,6 +3988,11 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
                                             '$totalShipQuantity'
                                         ]
                                     }
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    'enquiryitemshipments.remaningShipQuantity': '$remaningShipQuantity'
                                 }
                             }
                         ],

@@ -176,7 +176,7 @@ exports.delete = async (auth, _id) => {
             let updateObj = { Activity: findLead.Activity };
             const findContactData = await query.find(leadContactModel, { leadId: findLead._id, isDeleted: false });
             if (findContactData.length == 0) updateObj.isContactAdded = false;
-            await leadModel.updateOne({ _id: findLead._id }, obj);
+            await leadModel.updateOne({ _id: findLead._id }, updateObj);
             return {
                 success: true,
                 message: 'Lead contact deleted successfully.',

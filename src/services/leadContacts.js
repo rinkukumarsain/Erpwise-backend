@@ -31,10 +31,10 @@ exports.createLeadContact = async (auth, leadContactData) => {
             };
         }
 
-        if (!findLead.isActive) {
+        if(!findLead.isActive){
             return {
-                success: false,
-                message: 'Lead is not active right now, please activate the lead first to proceed further.'
+                success:false,
+                message:'Lead is not active right now, please activate the lead first to proceed further.'
             };
         }
 

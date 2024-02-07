@@ -131,6 +131,9 @@ exports.delete = async (auth, _id) => {
         findLead.Activity.push(obj);
         const data = await leadAddressModel.findByIdAndUpdate(_id, { isDeleted: true }, { new: true, runValidators: true });
         if (data) {
+            let updateObj = { Activity: findLead.Activity };
+            const findAddressData = await query.find(leadAddressModel, { leadId: findLead._id, isDeleted: false });
+            if (findAddressData.length == 0) updateObj.isAddressAdded = false;
             await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity });
             return {
                 success: true,

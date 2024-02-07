@@ -31,10 +31,10 @@ exports.createLeadContact = async (auth, leadContactData) => {
             };
         }
 
-        if(!findLead.isActive){
+        if (!findLead.isActive) {
             return {
-                success:false,
-                message:'Lead is not active right now, please activate the lead first to proceed further.'
+                success: false,
+                message: 'Lead is not active right now, please activate the lead first to proceed further.'
             };
         }
 
@@ -173,7 +173,10 @@ exports.delete = async (auth, _id) => {
         findLead.Activity.push(obj);
         const data = await leadContactModel.findByIdAndUpdate(_id, { isDeleted: true }, { new: true, runValidators: true });
         if (data) {
-            await leadModel.updateOne({ _id: findLead._id }, { Activity: findLead.Activity });
+            let updateObj = { Activity: findLead.Activity };
+            const findContactData = await query.find(leadContactModel, { leadId: findLead._id, isDeleted: false });
+            if (findContactData.length == 0) updateObj.isContactAdded = false;
+            await leadModel.updateOne({ _id: findLead._id }, obj);
             return {
                 success: true,
                 message: 'Lead contact deleted successfully.',

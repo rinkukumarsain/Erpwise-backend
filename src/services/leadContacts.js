@@ -22,12 +22,19 @@ exports.createLeadContact = async (auth, leadContactData) => {
     try {
         const { email, _id } = auth;
 
-        const findLead = await query.findOne(leadModel, { _id: leadContactData.leadId, isActive: true });
+        const findLead = await query.findOne(leadModel, { _id: leadContactData.leadId, isDeleted: false });
         // console.log('findLead>>>>>>>>>>>>>', findLead);
         if (!findLead) {
             return {
                 success: false,
                 message: 'Lead not found.'
+            };
+        }
+
+        if(!findLead.isActive){
+            return {
+                success:false,
+                message:'Lead is not active right now, please activate the lead first to proceed further.'
             };
         }
 

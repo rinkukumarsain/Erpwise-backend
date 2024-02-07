@@ -209,7 +209,7 @@ exports.updateSupplierById = async (auth, supplierId, updatedData, orgId) => {
             return {
                 success: true,
                 message: 'Supplier updated successfully.',
-                data: supplierData
+                data: supplierData.length == 1 ? supplierData[0] : {}
             };
         }
     } catch (error) {

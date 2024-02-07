@@ -556,11 +556,13 @@ exports.getLeadDashBoardCount = async (orgId) => {
  * Get lead pipeline data.
  *
  * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all leads.
  * @returns {object} - An object with the results, including the lead pipeline data.
  */
-exports.getPipelineData = async (orgId) => {
+exports.getPipelineData = async (orgId, queryObj) => {
     try {
-        const find = await query.aggregation(leadModel, leadDao.getPipelineData(orgId));
+        const { search } = queryObj;
+        const find = await query.aggregation(leadModel, leadDao.getPipelineData(orgId, { search }));
         // console.log('find', find);
         if (find.length > 0) {
             return {

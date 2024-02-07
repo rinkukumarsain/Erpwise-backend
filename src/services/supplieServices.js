@@ -203,17 +203,15 @@ exports.updateSupplierById = async (auth, supplierId, updatedData, orgId) => {
             actionName: `Supplier updated by ${auth.fname} ${auth.lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
         updatedData['$push'] = { Activity: obj };
-        const updatedSupplier = await supplierModel.findByIdAndUpdate(
-            supplierId,
-            updatedData,
-            { new: true, runValidators: true }
-        );
-
-        return {
-            success: true,
-            message: 'Supplier updated successfully.',
-            data: updatedSupplier
-        };
+        const updatedSupplier = await supplierModel.findByIdAndUpdate(supplierId, updatedData, { runValidators: true });
+        if (updatedSupplier) {
+            const supplierData = await query.aggregation(supplierModel, supplierDao.getSupplierByIdPipeline(orgId, supplierId));
+            return {
+                success: true,
+                message: 'Supplier updated successfully.',
+                data: supplierData
+            };
+        }
     } catch (error) {
         logger.error(LOG_ID, `Error updating Supplier: ${error}`);
         return {

@@ -86,6 +86,10 @@ exports.createQuote = {
         agentTotalCommissionValue: Joi.number().allow(null),
         subTotal: Joi.number().required(),
         currencyExchangeRate: Joi.number().allow(null),
+        paymentOption: Joi.string().required(),
+        deliveryTerm: Joi.number().required(),
+        paymentTermsId: Joi.string().allow(null),
+        paymentTermsValue: Joi.number().allow(null),
         AgentCommission: Joi.array().items(
             Joi.object({
                 agentId: Joi.string().required(),
@@ -113,8 +117,8 @@ exports.createPI = {
         countryOrigin: Joi.string().required(),
         countryDestination: Joi.string().required(),
         transactionCurrency: Joi.string().allow(null),
-        paymentOption: Joi.string().allow(null),
-        deliveryTerm: Joi.string().allow(null),
+        paymentOption: Joi.string().required(),
+        deliveryTerm: Joi.number().required(),
         vatGroupId: Joi.string().required(),
         vatGroup: Joi.number().required(),
         shippingDesciption: Joi.string().required(),

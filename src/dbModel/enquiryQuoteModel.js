@@ -234,6 +234,23 @@ const enquiryQuoteSchema = new Schema(
             type: mongoose.Types.ObjectId,
             default: null
         },
+        paymentOption: {
+            type: String,
+            required: true
+        },
+        deliveryTerm: {
+            type: Number,
+            required: true
+        },
+        paymentTermsId: {
+            type: Schema.Types.ObjectId,
+            ref: 'PaymentTerms',
+            default: null
+        },
+        paymentTermsValue: {
+            type: Number,
+            default: 0
+        },
         reminders: [ReminderSchema],
         isActive: {
             type: Boolean,

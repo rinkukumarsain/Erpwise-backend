@@ -256,11 +256,20 @@ const enquirySchema = new Schema(
                     },
                     paymentOption: {
                         type: String,
-                        default: null
+                        required: true
                     },
                     deliveryTerm: {
                         type: String,
+                        required: true
+                    },
+                    paymentTermsId: {
+                        type: Schema.Types.ObjectId,
+                        ref: 'PaymentTerms',
                         default: null
+                    },
+                    paymentTermsValue: {
+                        type: Number,
+                        default: 0
                     },
                     vatGroupId: {
                         type: Schema.Types.ObjectId,

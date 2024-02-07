@@ -119,6 +119,8 @@ exports.createPI = {
         transactionCurrency: Joi.string().allow(null),
         paymentOption: Joi.string().required(),
         deliveryTerm: Joi.number().required(),
+        paymentTermsId: Joi.string().allow(null),
+        paymentTermsValue: Joi.number().allow(null),
         vatGroupId: Joi.string().required(),
         vatGroup: Joi.number().required(),
         shippingDesciption: Joi.string().required(),

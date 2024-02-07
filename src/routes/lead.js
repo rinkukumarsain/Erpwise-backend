@@ -178,9 +178,9 @@ router.get('/getDashboardCount', jwtVerify, authorizeRoleAccess, async (req, res
 /**
  * Route for getting all lead pipeline data.
  */
-router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, async (req, res) => {
+router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, validate(getAllLead), async (req, res) => {
     try {
-        const result = await leadServices.getPipelineData(req.headers['x-org-type']);
+        const result = await leadServices.getPipelineData(req.headers['x-org-type'], req.query);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

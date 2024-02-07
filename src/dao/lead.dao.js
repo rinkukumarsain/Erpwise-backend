@@ -278,143 +278,159 @@ exports.getLeadDashBoardCount = (orgId) => [
  * Generate an aggregation pipeline to fetch lead pipeline section data.
  *
  * @param {string} orgId - The ID of the organisation.
+ * @param {object} root0 - The ID of the organisation.
+ * @param {string} root0.search - The ID of the organisation.
  * @returns {Array} - An array representing the aggregation pipeline.
  */
-exports.getPipelineData = (orgId) => [
-    {
-        $match: {
-            organisationId: new mongoose.Types.ObjectId(orgId),
-            level: 2,
-            isDeleted: false
-        }
-    },
-    {
-        $lookup: {
-            from: 'currencies',
-            let: {
-                currencyId: '$currency'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $eq: ['$_id', '$$currencyId']
+exports.getPipelineData = (orgId, { search }) => {
+    let pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                level: 2,
+                isDeleted: false
+            }
+        },
+        {
+            $lookup: {
+                from: 'currencies',
+                let: {
+                    currencyId: '$currency'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $eq: ['$_id', '$$currencyId']
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            createdAt: 0,
+                            updatedAt: 0
                         }
                     }
+                ],
+                as: 'result'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'salesPerson',
+                foreignField: '_id',
+                as: 'userDetails'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'updatedBy',
+                foreignField: '_id',
+                as: 'updatedByName'
+            }
+        },
+        {
+            $addFields: {
+                result: {
+                    $arrayElemAt: ['$result', 0]
                 },
-                {
-                    $project: {
-                        createdAt: 0,
-                        updatedAt: 0
-                    }
+                userDetails: {
+                    $arrayElemAt: ['$userDetails', 0]
+                },
+                updatedByName: {
+                    $arrayElemAt: ['$updatedByName', 0]
                 }
-            ],
-            as: 'result'
-        }
-    },
-    {
-        $lookup: {
-            from: 'users',
-            localField: 'salesPerson',
-            foreignField: '_id',
-            as: 'userDetails'
-        }
-    },
-    {
-        $lookup: {
-            from: 'users',
-            localField: 'updatedBy',
-            foreignField: '_id',
-            as: 'updatedByName'
-        }
-    },
-    {
-        $addFields: {
-            result: {
-                $arrayElemAt: ['$result', 0]
-            },
-            userDetails: {
-                $arrayElemAt: ['$userDetails', 0]
-            },
-            updatedByName: {
-                $arrayElemAt: ['$updatedByName', 0]
+            }
+        },
+        {
+            $addFields: {
+                currencyText: {
+                    $concat: [
+                        '$result.currencyShortForm',
+                        ' (',
+                        '$result.currencySymbol',
+                        ')'
+                    ]
+                },
+                salesPersonName: {
+                    $concat: [
+                        '$userDetails.fname',
+                        ' ',
+                        '$userDetails.lname'
+                    ]
+                },
+                updatedByName: {
+                    $concat: [
+                        '$updatedByName.fname',
+                        ' ',
+                        '$updatedByName.lname'
+                    ]
+                }
+            }
+        },
+        {
+            $project: {
+                result: 0,
+                userDetails: 0,
+                email: 0,
+                phone: 0,
+                salesPerson: 0,
+                address: 0,
+                // isQualified: 0,
+                isActive: 0,
+                documents: 0,
+                // isContactAdded: 0,
+                isAddressAdded: 0,
+                isFinanceAdded: 0,
+                createdBy: 0
+            }
+        },
+        // {
+        //   $lookup: {
+        //     from: "leadcontacts",
+        //     localField: "_id",
+        //     foreignField: "leadId",
+        //     as: "leadContacts",
+        //   },
+        // }
+        // {
+        //   $lookup: {
+        //     from: "leadaddresses",
+        //     localField: "_id",
+        //     foreignField: "leadId",
+        //     as: "leadAddresses",
+        //   },
+        // }
+        {
+            $group: {
+                _id: '$qualifymeta.pipelineName',
+                data: {
+                    $push: '$$ROOT'
+                },
+                count: {
+                    $sum: 1
+                },
+                total: {
+                    $sum: '$qualifymeta.orderValue'
+                }
             }
         }
-    },
-    {
-        $addFields: {
-            currencyText: {
-                $concat: [
-                    '$result.currencyShortForm',
-                    ' (',
-                    '$result.currencySymbol',
-                    ')'
-                ]
-            },
-            salesPersonName: {
-                $concat: [
-                    '$userDetails.fname',
-                    ' ',
-                    '$userDetails.lname'
-                ]
-            },
-            updatedByName: {
-                $concat: [
-                    '$updatedByName.fname',
-                    ' ',
-                    '$updatedByName.lname'
-                ]
-            }
-        }
-    },
-    {
-        $project: {
-            result: 0,
-            userDetails: 0,
-            email: 0,
-            phone: 0,
-            salesPerson: 0,
-            address: 0,
-            // isQualified: 0,
-            isActive: 0,
-            documents: 0,
-            // isContactAdded: 0,
-            isAddressAdded: 0,
-            isFinanceAdded: 0,
-            createdBy: 0
-        }
-    },
-    // {
-    //   $lookup: {
-    //     from: "leadcontacts",
-    //     localField: "_id",
-    //     foreignField: "leadId",
-    //     as: "leadContacts",
-    //   },
-    // }
-    // {
-    //   $lookup: {
-    //     from: "leadaddresses",
-    //     localField: "_id",
-    //     foreignField: "leadId",
-    //     as: "leadAddresses",
-    //   },
-    // }
-    {
-        $group: {
-            _id: '$qualifymeta.pipelineName',
-            data: {
-                $push: '$$ROOT'
-            },
-            count: {
-                $sum: 1
-            },
-            total: {
-                $sum: '$qualifymeta.orderValue'
-            }
-        }
+    ];
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { companyName: { $regex: `${search}.*`, $options: 'i' } },
+            { address: { $regex: `${search}.*`, $options: 'i' } },
+            { salesPersonName: { $regex: `${search}.*`, $options: 'i' } }
+            // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+            // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+            // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        ];
     }
-];
+    return pipeline;
+};
 
 /**
  *

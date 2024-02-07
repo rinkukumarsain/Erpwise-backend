@@ -282,6 +282,19 @@ exports.qualifyLeadById = async (auth, leadId, updateData, orgId) => {
             };
         }
 
+        if (!data.isFinanceAdded) {
+            return {
+                success: false,
+                message: 'Lead finance not added.'
+            };
+        }
+
+        if (!data.isAddressAdded) {
+            return {
+                success: false,
+                message: 'Lead address not added.'
+            };
+        }
         if (!data.isContactAdded && !data.isQualified) {
             return {
                 success: false,

@@ -185,7 +185,7 @@ router.post('/itemsSheetBySupplerUpload/:id?', jwtVerify, upload.single('file'),
     try {
         logger.info(LOG_ID, `File to read all item's | File Path :- ${req.file.path}`);
         console.log('req.file', req.file);
-        const result = await enquiryItemService.itemSheetBySupplerUpload(req.auth, req.file.path);
+        const result = await enquiryItemService.itemSheetBySupplerUpload(req.auth, req.file.path, req.file.filename);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

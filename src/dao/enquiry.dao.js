@@ -1409,14 +1409,36 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                         '$itemsSheet'
                     ]
                 },
+                // supplierTotal: {
+                //     $toDouble: '$supplierTotal'
+                // },
+                // freightCharges: {
+                //     $toDouble: '$freightCharges'
+                // },
+                // packingCharges: {
+                //     $toDouble: '$packingCharges'
+                // }
                 supplierTotal: {
-                    $toDouble: '$supplierTotal'
+                    $cond: {
+                        if: { $eq: ['$supplierTotal', 'null'] },
+                        then: 0, // or any default value you prefer
+                        else: { $toDouble: '$supplierTotal' }
+                    }
+                    // $toDouble: "$supplierTotal",
                 },
                 freightCharges: {
-                    $toDouble: '$freightCharges'
+                    $cond: {
+                        if: { $eq: ['$freightCharges', 'null'] },
+                        then: 0, // or any default value you prefer
+                        else: { $toDouble: '$freightCharges' }
+                    }
                 },
                 packingCharges: {
-                    $toDouble: '$packingCharges'
+                    $cond: {
+                        if: { $eq: ['$packingCharges', 'null'] },
+                        then: 0, // or any default value you prefer
+                        else: { $toDouble: '$packingCharges' }
+                    }
                 }
             }
         },

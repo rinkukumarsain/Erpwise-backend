@@ -48,7 +48,7 @@ exports.addFinanceDetailsSuppler = {
         supplierTotal: Joi.string().required(),
         freightCharges: Joi.string().required(),
         packingCharges: Joi.string().required(),
-        currency: Joi.string().required(),
+        currency: Joi.string().allow(null),
         vatGroupValue: Joi.number().allow(null),
         vatGroupValueConverted: Joi.number().allow(null),
         supplierTotalConverted: Joi.number().required(),

@@ -829,6 +829,7 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
                 message: 'This enquiry item is not associated with the any supplier and their item.'
             };
         }
+        const findITems = await query.find(enquiryItemModel, { enquiryId, isActive: true, isDeleted: false });
         const IteamsSpllierResponse = await query.aggregation(enquirySupplierSelectedItemsModel, enquiryDao.CompareSuppliersAndItemsAsPerSuppliersQuotes(enquiryId, queryObj));
         if (IteamsSpllierResponse.length > 0) {
             return {
@@ -836,7 +837,9 @@ exports.CompareSuppliersAndItemsAsPerSuppliersQuotes = async (enquiryId, queryOb
                 message: 'Supplier quotes fetched successfully.',
                 data: IteamsSpllierResponse,
                 isItemShortListed: findenquiry.isItemShortListed,
-                stageName: findenquiry.stageName
+                stageName: findenquiry.stageName,
+                totalItems: findITems.length,
+                totalQuantity: findITems.reduce((acc, ele) => acc += Number(ele.quantity) || 0, 0)
 
             };
         }

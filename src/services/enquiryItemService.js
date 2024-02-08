@@ -656,9 +656,10 @@ exports.sendMailForEnquirySupplierSelectedItem = async (updateData, file) => {
  *
  * @param {object} auth - Data of logedin user.
  * @param {string} path - path of uploaded file.
+ * @param {string} filename - filename of uploaded file.
  * @returns {object} - An object with the results.
  */
-exports.itemSheetBySupplerUpload = async (auth, path) => {
+exports.itemSheetBySupplerUpload = async (auth, path, filename) => {
     try {
         const { _id } = auth;
         const constData = ['_id', 'partNumber', 'partDesc', 'quantity', 'hscode', 'unitPrice', 'delivery', 'notes'];
@@ -680,7 +681,7 @@ exports.itemSheetBySupplerUpload = async (auth, path) => {
             documentsToSave.push(obj);
         }
         if (documentsToSave.length == jsonData.length - 1) {
-            updateDataToDbForEnquirySupplierSelectedItem(documentsToSave, path);
+            updateDataToDbForEnquirySupplierSelectedItem(documentsToSave, filename);
             return {
                 success: true,
                 message: 'Supplier sheet uploaded successfully'
@@ -942,10 +943,10 @@ exports.enquirySupplierSelectedItemMailLogs = async (enquiryId, supplierId) => {
  * Updates data for selected items in the Enquiry Supplier.
  *
  * @param {Array} data - An array of items to be updated.
- * @param {string} path - The path to the items sheet.
+ * @param {string} filename - The filename to the items sheet.
  * @returns {Promise<void>} - A Promise that resolves after the update operation.
  */
-async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
+async function updateDataToDbForEnquirySupplierSelectedItem(data, filename) {
     try {
         // console.log('path:::::::::::', path);
         let supplierTotal = 0;
@@ -955,7 +956,7 @@ async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
             delete ele._id;
             // console.log('ele:>>>', ele);
             // const update = 
-            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: path.split('\\')[1] });
+            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: filename });
             // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
             // console.log('update>>>>>>>', update);
         }

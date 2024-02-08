@@ -955,7 +955,7 @@ async function updateDataToDbForEnquirySupplierSelectedItem(data, path) {
             delete ele._id;
             // console.log('ele:>>>', ele);
             // const update = 
-            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: path });
+            await enquirySupplierSelectedItemsModel.updateOne({ _id }, { finalItemDetails: ele, financeMeta: { supplierTotal }, itemsSheet: path.split('\\')[1] });
             // const find = await query.findOne(enquirySupplierSelectedItemsModel, { _id: _id });
             // console.log('update>>>>>>>', update);
         }

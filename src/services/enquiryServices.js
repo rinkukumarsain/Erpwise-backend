@@ -2338,6 +2338,38 @@ exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, a
 };
 
 /**
+ * Get Data For Creating Supplier Bill
+ *
+ * @param {string} supplierPOId - enquiry supplier po id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.getDataForCreateSupplierBill = async (supplierPOId, orgId) => {
+    try {
+        const findData = await query.aggregation(enquirySupplierPOModel, enquiryDao.getDataForCreateSupplierBillPipeline(supplierPOId, orgId));
+        if (findData.length == 1) {
+            return {
+                success: true,
+                message: 'Data for creating supplier bill fetched successfully.',
+                data: findData[0]
+            };
+        }
+
+        return {
+            success: false,
+            message: 'Error while fetching data for creating supplier bill.',
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while getting Data For Create Supplier Bill: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

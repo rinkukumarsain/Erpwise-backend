@@ -4076,3 +4076,232 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
         }
     }
 ];
+
+/**
+ * get Data For Create Supplier Bill Pipeline
+ *
+ * @param {string} supplierPOId - The enquiry supplierPO id unique identifier.
+ * @param {string} orgId - org id.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
+    {
+        $match: {
+            _id: new mongoose.Types.ObjectId(supplierPOId),
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            isActive: true,
+            isDeleted: false
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiryitemshippments',
+            let: {
+                id: '$_id'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$supplierPoId',
+                                        '$$id'
+                                    ]
+                                },
+                                {
+                                    $gte: ['$level', 2]
+                                },
+                                {
+                                    $eq: ['$isActive', true]
+                                },
+                                {
+                                    $eq: ['$isDeleted', false]
+                                },
+                                {
+                                    $eq: ['$isSupplierBillCreated', false]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'shipments'
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiries',
+            localField: 'enquiryId',
+            foreignField: '_id',
+            as: 'enquiryData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$enquiryData'
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            localField: 'supplierId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'salesPerson',
+                        foreignField: '_id',
+                        as: 'data'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$data'
+                    }
+                },
+                {
+                    $project: {
+                        Id: 1,
+                        companyName: 1,
+                        salesPerson: 1,
+                        salesPersonName: {
+                            $concat: [
+                                '$data.fname',
+                                ' ',
+                                '$data.lname'
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'supplierData'
+        }
+    },
+    {
+        $addFields: {
+            supplierID: {
+                $arrayElemAt: ['$supplierData.Id', 0]
+            },
+            supplierCompanyName: {
+                $arrayElemAt: [
+                    '$supplierData.companyName',
+                    0
+                ]
+            },
+            supplierSalesPersonName: {
+                $arrayElemAt: [
+                    '$supplierData.salesPersonName',
+                    0
+                ]
+            },
+            supplierSalesPerson: {
+                $arrayElemAt: [
+                    '$supplierData.salesPerson',
+                    0
+                ]
+            },
+            supplierData: null
+        }
+    },
+    {
+        $lookup: {
+            from: 'supplieraddresses',
+            localField: 'supplierId',
+            foreignField: 'supplierId',
+            pipeline: [
+                {
+                    $match: {
+                        isDeleted: false,
+                        addresstype: 'Shipping'
+                    }
+                }
+            ],
+            as: 'shippingAddress'
+        }
+    },
+    {
+        $lookup: {
+            from: 'supplieraddresses',
+            localField: 'supplierId',
+            foreignField: 'supplierId',
+            pipeline: [
+                {
+                    $match: {
+                        isDeleted: false,
+                        addresstype: 'Billing'
+                    }
+                }
+            ],
+            as: 'billingAddress'
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisations',
+            localField: 'organisationId',
+            foreignField: '_id',
+            as: 'orgData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$orgData',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'organisationaddresses',
+            let: {
+                organisationId: '$organisationId'
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $eq: [
+                                        '$organisationId',
+                                        '$$organisationId'
+                                    ]
+                                },
+                                {
+                                    $eq: [
+                                        '$addresstype',
+                                        'Billing'
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            as: 'organisationAddress'
+        }
+    },
+    {
+        $project: {
+            supplierPO_id: '$_id',
+            supplierPOId: '$Id',
+            enquiryId: 1,
+            supplierId: 1,
+            organisationId: 1,
+            financeMeta: 1,
+            shipments: 1,
+            organisationAddress: 1,
+            orgData: 1,
+            shippingAddress: 1,
+            billingAddress: 1,
+            supplierSalesPerson: 1,
+            supplierSalesPersonName: 1,
+            supplierCompanyName: 1,
+            supplierID: 1,
+            supplierAddress: 1,
+            supplierAddressId: 1
+        }
+    }
+];

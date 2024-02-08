@@ -363,9 +363,18 @@ const enquiryitemshippmentSchema = new Schema(
             ref: 'User',
             default: null
         },
+        supplierBillId: {
+            type: mongoose.Types.ObjectId,
+            ref: '',
+            default: null
+        },
         isActive: {
             type: Boolean,
             default: true
+        },
+        isSupplierBillCreated: {
+            type: Boolean,
+            default: false
         },
         isDeleted: {
             type: Boolean,

@@ -224,7 +224,7 @@ exports.editSupplierPO = {
         paymentTerms: Joi.number().optional(),
         documents: Joi.array().items(Joi.string().required()).optional(),
         supplierOrderConfirmation: Joi.string().optional(),
-        notes: Joi.string().optional(),
+        notes: Joi.string().allow(''),
         additionalNotes: Joi.string().optional()
     })
 };

@@ -4325,5 +4325,47 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
             supplierAddress: 1,
             supplierAddressId: 1
         }
+    },
+    {
+        $lookup: {
+            from: 'vats',
+            localField: 'financeMeta.vatGroupId',
+            foreignField: '_id',
+            as: 'financeMeta.vatGroup'
+        }
+    },
+    {
+        $unwind: {
+            path: '$financeMeta.vatGroup',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'currencies',
+            localField: 'financeMeta.currency',
+            foreignField: '_id',
+            as: 'financeMeta.currencyLogo'
+        }
+    },
+    {
+        $unwind: {
+            path: '$financeMeta.currencyLogo',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields:{
+            'financeMeta.vatGroup':
+                '$financeMeta.vatGroup.percentage',
+            'financeMeta.currencyLogo': {
+                $concat: [
+                    '$financeMeta.currencyLogo.currencyShortForm',
+                    '(',
+                    '$financeMeta.currencyLogo.currencySymbol',
+                    ')'
+                ]
+            }
+        }
     }
 ];

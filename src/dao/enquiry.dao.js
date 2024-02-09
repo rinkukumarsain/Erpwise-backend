@@ -2435,6 +2435,16 @@ exports.getPiByIdPipeline = (enquiryId) => [
         }
     },
     {
+        $addFields: {
+            piReminder: '$proformaInvoice.reminders'
+        }
+    },
+    {
+        $project: {
+            'proformaInvoice.reminders': 0
+        }
+    },
+    {
         $lookup: {
             from: 'leads',
             localField: 'leadId',
@@ -2760,6 +2770,11 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
             }
         },
         {
+            $addFields: {
+                soReminder: '$salesOrder.reminders'
+            }
+        },
+        {
             $project: {
                 proformaInvoice: 1,
                 organisationId: 1,
@@ -2778,6 +2793,11 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 contactPerson: 1,
                 salesOrderId: '$salesOrder.Id',
                 salesOrder: 1
+            }
+        },
+        {
+            $project: {
+                'salesOrder.reminders': 0
             }
         },
         {
@@ -4355,7 +4375,7 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             'financeMeta.vatGroup':
                 '$financeMeta.vatGroup.percentage',
             'financeMeta.currencyLogo': {

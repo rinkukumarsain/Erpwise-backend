@@ -779,4 +779,20 @@ router.post(`${otPreFix}${ship}/sde/:enquiryId/:shipmentId`, jwtVerify, validate
     }
 });
 
+/**
+ * Route for getting data for create supplier bill.
+ */
+router.get(`${otPreFix}/supplierBill/:supplierPoId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getDataForCreateSupplierBill(req.params.supplierPoId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting data for create supplier bill: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

@@ -3432,6 +3432,16 @@ exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
                                         ]
                                     }
                                 }
+                            },
+                            {
+                                $addFields: {
+                                    poReminder: '$reminders'
+                                }
+                            },
+                            {
+                                $project: {
+                                    'reminders': 0
+                                }
                             }
                         ],
                         as: 'poData'

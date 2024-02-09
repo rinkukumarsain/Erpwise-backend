@@ -376,6 +376,10 @@ const enquiryitemshippmentSchema = new Schema(
             type: Boolean,
             default: false
         },
+        supplierBillTotalNetWt: {
+            type: Number,
+            default: 0
+        },
         isDeleted: {
             type: Boolean,
             default: false

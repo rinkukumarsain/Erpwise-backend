@@ -2792,7 +2792,8 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 companyName: 1,
                 contactPerson: 1,
                 salesOrderId: '$salesOrder.Id',
-                salesOrder: 1
+                salesOrder: 1,
+                soReminder: 1
             }
         },
         {

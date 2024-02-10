@@ -319,3 +319,45 @@ exports.addReminder = {
     })
 };
 
+exports.createSupplierBill = {
+    body: Joi.object({
+        enquiryId: Joi.string().required(),
+        supplierId: Joi.string().required(),
+        leadId: Joi.string().required(),
+        supplierPoId: Joi.string().required(),
+        supplierRefNo: Joi.string().required(),
+        billDate: Joi.string().required(),
+        billDueDate: Joi.string().required(),
+        billingAddressId: Joi.string().required(),
+        billingAddress: Joi.string().required(),
+        shippingAddressId: Joi.string().required(),
+        shippingAddress: Joi.string().required(),
+        partialDelivery: Joi.boolean().optional(),
+        countryOrigin: Joi.string().required(),
+        countryDestination: Joi.string().required(),
+        transactionCurrency: Joi.string().required(),
+        paymentOption: Joi.string().required(),
+        deliveryTerm: Joi.string().required(),
+        paymentTermsId: Joi.string().allow(null),
+        paymentTermsValue: Joi.number().allow(null),
+        vatGroupId: Joi.string().required(),
+        vatGroup: Joi.number().required(),
+        shipmentTrackingID: Joi.string().required(),
+        shippingDesciption: Joi.string().required(),
+        shipmentIds: Joi.array().items(Joi.object({
+            _id: Joi.string().required(),
+            netWeight: Joi.number().allow(null)
+        })).required(),
+        freightCharges: Joi.number().required(),
+        packingCharges: Joi.number().required(),
+        vatGroupValue: Joi.number().required(),
+        totalAmountBeforeVat: Joi.number().required(),
+        totalAmountAfterVat: Joi.number().required(),
+        notes: Joi.string().allow(null),
+        additionalNotes: Joi.string().allow(null),
+        signatoryName: Joi.string().required(),
+        place: Joi.string().required(),
+        issueDate: Joi.string().required(),
+        currencyExchangeRate: Joi.number().allow(null)
+    })
+};

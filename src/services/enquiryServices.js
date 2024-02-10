@@ -10,7 +10,8 @@ const {
     mailLogsModel,
     enquirySupplierPOModel,
     userModel,
-    enquiryItemShippmentModel
+    enquiryItemShippmentModel,
+    enquirySupplierBillModel
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -2370,6 +2371,57 @@ exports.getDataForCreateSupplierBill = async (supplierPOId, orgId) => {
 };
 
 /**
+ * Creating Supplier Bill
+ *
+ * @param {string} orgId - organisation id.
+ * @param {object} auth - enquiry supplier po id.
+ * @param {object} body - enquiry supplier po id.
+ * @returns {object} - An object with the results.
+ */
+exports.createSupplierBill = async (orgId, auth, body) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        const findShipments = await query.find({
+            _id: { $in: body.shipmentIds },
+            isActive: true,
+            isDeleted: false,
+            isSupplierBillCreated: false,
+            level: { $gte: 2 },
+            enquiryId: body.enquiryId,
+            organisationId: orgId
+        });
+        if (findShipments.length != body.shipmentIds) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
+        body.Id = generateId('SB');
+        body.organisationId = orgId;
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.signature = `${fname} ${lname}`;
+        body.role = role;
+        const saveSupplierBill = await query.create(enquirySupplierBillModel, body);
+        if (saveSupplierBill) {
+            updateEnquiryItemShippments(shipmentIds, saveSupplierBill._id);
+            return {
+                success: true,
+                message: 'Supplier bill created successfully'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while creating Supplier Bill: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.
@@ -2419,5 +2471,25 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
         });
     } catch (error) {
         logger.error(LOG_ID, `Error while sending mail TYPE:- (${mailDetailData.type}) : ${error}`);
+    }
+}
+
+/**
+ * update Enquiry Item Shippments atfer the creation of supplier bill.
+ *
+ * @param {Array} shipmentIds - array of object with shipment id and netweight.
+ * @param {string} id - supplier bill id.
+ * @returns {Promise<void>} - A Promise that resolves after operation.
+ */
+async function updateEnquiryItemShippments(shipmentIds, id) {
+    for (let ele of shipmentIds) {
+        await enquiryItemShippmentModel.findByIdAndUpdate(
+            ele._id,
+            {
+                supplierBillId: id,
+                isSupplierBillCreated: true,
+                supplierBillTotalNetWt: Number(ele.netWeight) || 0
+            },
+            { runValidators: true });
     }
 }

@@ -4354,7 +4354,8 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
             supplierCompanyName: 1,
             supplierID: 1,
             supplierAddress: 1,
-            supplierAddressId: 1
+            supplierAddressId: 1,
+            leadId: '$enquiryData.leadId'
         }
     },
     {

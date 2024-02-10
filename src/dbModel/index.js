@@ -21,3 +21,4 @@ exports.enquiryQuoteModel = require('./enquiryQuoteModel');
 exports.warehouseModel = require('./warehouseModel');
 exports.enquirySupplierPOModel = require('./enquirySupplierPO');
 exports.enquiryItemShippmentModel = require('./enquiryItemShippmentModel');
+exports.enquirySupplierBillModel = require('./enquirySupplierBill');

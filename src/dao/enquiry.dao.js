@@ -2435,6 +2435,16 @@ exports.getPiByIdPipeline = (enquiryId) => [
         }
     },
     {
+        $addFields: {
+            piReminder: '$proformaInvoice.reminders'
+        }
+    },
+    {
+        $project: {
+            'proformaInvoice.reminders': 0
+        }
+    },
+    {
         $lookup: {
             from: 'leads',
             localField: 'leadId',
@@ -2760,6 +2770,11 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
             }
         },
         {
+            $addFields: {
+                soReminder: '$salesOrder.reminders'
+            }
+        },
+        {
             $project: {
                 proformaInvoice: 1,
                 organisationId: 1,
@@ -2777,7 +2792,13 @@ exports.getSOByIdPipeline = (enquiryId, po) => {
                 companyName: 1,
                 contactPerson: 1,
                 salesOrderId: '$salesOrder.Id',
-                salesOrder: 1
+                salesOrder: 1,
+                soReminder: 1
+            }
+        },
+        {
+            $project: {
+                'salesOrder.reminders': 0
             }
         },
         {
@@ -3410,6 +3431,16 @@ exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
                                             }
                                         ]
                                     }
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    poReminder: '$reminders'
+                                }
+                            },
+                            {
+                                $project: {
+                                    'reminders': 0
                                 }
                             }
                         ],
@@ -4323,7 +4354,50 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
             supplierCompanyName: 1,
             supplierID: 1,
             supplierAddress: 1,
-            supplierAddressId: 1
+            supplierAddressId: 1,
+            leadId: '$enquiryData.leadId'
+        }
+    },
+    {
+        $lookup: {
+            from: 'vats',
+            localField: 'financeMeta.vatGroupId',
+            foreignField: '_id',
+            as: 'financeMeta.vatGroup'
+        }
+    },
+    {
+        $unwind: {
+            path: '$financeMeta.vatGroup',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'currencies',
+            localField: 'financeMeta.currency',
+            foreignField: '_id',
+            as: 'financeMeta.currencyLogo'
+        }
+    },
+    {
+        $unwind: {
+            path: '$financeMeta.currencyLogo',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            'financeMeta.vatGroup':
+                '$financeMeta.vatGroup.percentage',
+            'financeMeta.currencyLogo': {
+                $concat: [
+                    '$financeMeta.currencyLogo.currencyShortForm',
+                    '(',
+                    '$financeMeta.currencyLogo.currencySymbol',
+                    ')'
+                ]
+            }
         }
     }
 ];

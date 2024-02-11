@@ -2347,7 +2347,8 @@ exports.shipmentShipmentDelivered = async (enquiryId, shipmentId, orgId, body, a
  */
 exports.getDataForCreateSupplierBill = async (supplierPOId, orgId) => {
     try {
-        const findData = await query.aggregation(enquirySupplierPOModel, enquiryDao.getDataForCreateSupplierBillPipeline(supplierPOId, orgId));
+        const level = 2;
+        const findData = await query.aggregation(enquirySupplierPOModel, enquiryDao.getDataForCreateSupplierBillPipeline(supplierPOId, orgId, level));
         if (findData.length == 1) {
             return {
                 success: true,
@@ -2414,6 +2415,39 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error while creating Supplier Bill: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Get Data For Creating Invoice Bill
+ *
+ * @param {string} supplierPOId - enquiry supplier po id.
+ * @param {string} orgId - organisation id.
+ * @returns {object} - An object with the results.
+ */
+exports.getDataForCreateInvoiceBill = async (supplierPOId, orgId) => {
+    try {
+        const level = 4;
+        const findData = await query.aggregation(enquirySupplierPOModel, enquiryDao.getDataForCreateSupplierBillPipeline(supplierPOId, orgId, level));
+        if (findData.length == 1) {
+            return {
+                success: true,
+                message: 'Data for creating invoice bill fetched successfully.',
+                data: findData[0]
+            };
+        }
+
+        return {
+            success: false,
+            message: 'Error while fetching data for invoice supplier bill.',
+            data: {}
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error while getting Data For Create invoice Bill: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

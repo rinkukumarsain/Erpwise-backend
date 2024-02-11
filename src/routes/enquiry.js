@@ -811,4 +811,20 @@ router.post(`${otPreFix}/create/supplierBill`, jwtVerify, async (req, res) => {
     }
 });
 
+/**
+ * Route for getting data for create invoice bill.
+ */
+router.get(`${otPreFix}/invoiceBill/:supplierPoId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await enquiryServices.getDataForCreateInvoiceBill(req.params.supplierPoId, req.headers['x-org-type']);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting data for create invoice bill: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

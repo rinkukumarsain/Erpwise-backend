@@ -4355,7 +4355,8 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
             supplierID: 1,
             supplierAddress: 1,
             supplierAddressId: 1,
-            leadId: '$enquiryData.leadId'
+            leadId: '$enquiryData.leadId',
+            leadCompanyName: '$enquiryData.companyName'
         }
     },
     {
@@ -4397,6 +4398,35 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
                     '$financeMeta.currencyLogo.currencySymbol',
                     ')'
                 ]
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'leadaddresses',
+            localField: 'leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$addresstype', 'Shipping']
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        isDefault: -1
+                    }
+                }
+            ],
+            as: 'leadAddresses'
+        }
+    },
+    {
+        $addFields: {
+            leadAddresses: {
+                $arrayElemAt: ['$leadAddresses', 0]
             }
         }
     }

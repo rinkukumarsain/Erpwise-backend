@@ -4644,7 +4644,10 @@ exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy,
                 companyName: '$enquiryData.companyName',
                 Id: '$enquiryData.Id',
                 leadID: '$leadData.Id',
-                invoiceDueDate: '$enquiryData.proformaInvoice.invoiceDueDate'
+                invoiceDueDate: '$enquiryData.proformaInvoice.invoiceDueDate',
+                totalShipments : {
+                    $add :[ '$totalShipToCustomer', '$totalShipToWarehouse' ]
+                }
             }
         },
         {
@@ -4662,7 +4665,8 @@ exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy,
                     { companyName: { $regex: `${search}.*`, $options: 'i' } },
                     { Id: { $regex: `${search}.*`, $options: 'i' } },
                     { leadID: { $regex: `${search}.*`, $options: 'i' } },
-                    { invoiceDueDate: { $regex: `${search}.*`, $options: 'i' } }
+                    { invoiceDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalShipments: { $regex: `${search}.*`, $options: 'i' } }
                 ]
             }
         };

@@ -4437,7 +4437,7 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId, level) => {
                 }
             }
         ];
-        pipeline[6]['$lookup'] =  {
+        pipeline[6]['$lookup'] = {
             from: 'leadaddresses',
             localField: 'enquiryData.leadId',
             foreignField: 'leadId',
@@ -4502,5 +4502,178 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId, level) => {
     }
     // console.log(':::::::::::::', JSON.stringify(pipeline[1]['$lookup']['pipeline']));
     // console.log('>>>>>>>>>:::::::::::::', JSON.stringify(pipeline));
+    return pipeline;
+};
+
+/**
+ * Generates an aggregation pipeline to retrieve order tracking data.
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                $expr: {
+                    $and: [
+                        {
+                            $eq: ['$organisationId', new mongoose.Types.ObjectId(orgId)]
+                        },
+                        {
+                            $eq: ['$isDeleted', false]
+                        },
+                        {
+                            $eq: ['$isActive', true]
+                        },
+                        {
+                            $eq: ['$isSupplierBillCreated', false]
+                        },
+                        {
+                            $eq: ['$isInvoiceBillCreated', false]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            $sort: {
+                'updatedAt': -1
+            }
+        },
+        {
+            $group: {
+                _id: '$enquiryId',
+                shipments: {
+                    $push: '$$ROOT'
+                },
+                totalShipQuantity: {
+                    $sum: '$shipQuantity'
+                },
+                totalPrice: {
+                    $sum: '$totalPrice'
+                }
+            }
+        },
+        {
+            $addFields: {
+                totalShipToWarehouse: {
+                    $reduce: {
+                        input: '$shipments',
+                        initialValue: 0,
+                        in: {
+                            $cond: {
+                                if: {
+                                    $eq: [
+                                        '$$this.shipTo',
+                                        'warehouse'
+                                    ]
+                                },
+                                then: {
+                                    $add: ['$$value', 1]
+                                },
+                                else: {
+                                    $add: ['$$value', 0]
+                                }
+                            }
+                        }
+                    }
+                },
+                totalShipToCustomer: {
+                    $reduce: {
+                        input: '$shipments',
+                        initialValue: 0,
+                        in: {
+                            $cond: {
+                                if: {
+                                    $eq: [
+                                        '$$this.shipTo',
+                                        'customer'
+                                    ]
+                                },
+                                then: {
+                                    $add: ['$$value', 1]
+                                },
+                                else: {
+                                    $add: ['$$value', 0]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiries',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'enquiryData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'leads',
+                localField: 'enquiryData.leadId',
+                foreignField: '_id',
+                as: 'leadData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$leadData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                companyName: '$enquiryData.companyName',
+                Id: '$enquiryData.Id',
+                leadID: '$leadData.Id'
+            }
+        },
+        {
+            $project: {
+                leadData: 0,
+                enquiryData: 0
+            }
+        }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { Id: { $regex: `${search}.*`, $options: 'i' } },
+                    { leadID: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+    // console.log('::::', JSON.stringify(pipeline));
     return pipeline;
 };

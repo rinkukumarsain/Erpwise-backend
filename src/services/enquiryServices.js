@@ -1959,7 +1959,8 @@ exports.createShipment = async (body, orgId, auth) => {
             enquiryId: body.enquiryId,
             supplierPoId: body.supplierPoId,
             supplierId: body.supplierId,
-            enquiryFinalItemId: body.enquiryFinalItemId
+            enquiryFinalItemId: body.enquiryFinalItemId,
+            isDeleted: false
         });
         let totalQuantityOrdered = +body.shipQuantity;
         console.log(findEnquiryItemShippmentModel.length);

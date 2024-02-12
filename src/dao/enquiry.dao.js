@@ -4437,6 +4437,34 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId, level) => {
                 }
             }
         ];
+        pipeline[6]['$lookup'] =  {
+            from: 'leadaddresses',
+            localField: 'enquiryData.leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isDeleted: false,
+                        addresstype: 'Shipping'
+                    }
+                }
+            ],
+            as: 'shippingAddress'
+        };
+        pipeline[7]['$lookup'] = {
+            from: 'leadaddresses',
+            localField: 'enquiryData.leadId',
+            foreignField: 'leadId',
+            pipeline: [
+                {
+                    $match: {
+                        isDeleted: false,
+                        addresstype: 'Billing'
+                    }
+                }
+            ],
+            as: 'billingAddress'
+        };
 
         pipeline.push(
             {

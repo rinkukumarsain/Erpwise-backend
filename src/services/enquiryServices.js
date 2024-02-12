@@ -2509,6 +2509,46 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
 };
 
 /**
+ * Gets all enquiry supplier po for dashboard of sales.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all Enquiry supplier po.
+ */
+exports.getOrderTrackingDashboardData = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const enquiryData = await query.aggregation(enquiryItemShippmentModel, enquiryDao.getOrderTrackingDashboradDataPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
+        return {
+            success: true,
+            message: `Enquiry order tracking data fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryData.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching Enquiry order tracking data fetched successfully: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

@@ -11,7 +11,8 @@ const {
     enquirySupplierPOModel,
     userModel,
     enquiryItemShippmentModel,
-    enquirySupplierBillModel
+    enquirySupplierBillModel,
+    enquiryInvoiceBillModel
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -2407,7 +2408,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         body.role = role;
         const saveSupplierBill = await query.create(enquirySupplierBillModel, body);
         if (saveSupplierBill) {
-            updateEnquiryItemShippments(shipmentIds, saveSupplierBill._id);
+            updateEnquiryItemShippments(shipmentIds, saveSupplierBill._id, 2);
             return {
                 success: true,
                 message: 'Supplier bill created successfully'
@@ -2448,6 +2449,58 @@ exports.getDataForCreateInvoiceBill = async (supplierPOId, orgId) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while getting Data For Create invoice Bill: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Creating Invoice Bill
+ *
+ * @param {string} orgId - organisation id.
+ * @param {object} auth - enquiry suplier po id.
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results.
+ */
+exports.createInvoiceBill = async (orgId, auth, body) => {
+    try {
+        const { _id, fname, lname, role } = auth;
+        const shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        const findShipments = await query.find({
+            _id: { $in: body.shipmentIds },
+            isActive: true,
+            isDeleted: false,
+            // isSupplierBillCreated: true,
+            isInvoiceBillCreated: false,
+            level: { $gte: 4 },
+            enquiryId: body.enquiryId,
+            organisationId: orgId
+        });
+        if (findShipments.length != body.shipmentIds) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
+        body.Id = generateId('CB');
+        body.organisationId = orgId;
+        body.createdBy = _id;
+        body.updatedBy = _id;
+        body.signature = `${fname} ${lname}`;
+        body.role = role;
+        const saveInvoiceBill = await query.create(enquiryInvoiceBillModel, body);
+        if (saveInvoiceBill) {
+            updateEnquiryItemShippments(shipmentIds, saveInvoiceBill._id, 4);
+            return {
+                success: true,
+                message: 'Invoice bill created successfully.'
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error while creating Invoice Bill: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -2517,13 +2570,24 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  */
 async function updateEnquiryItemShippments(shipmentIds, id) {
     for (let ele of shipmentIds) {
-        await enquiryItemShippmentModel.findByIdAndUpdate(
-            ele._id,
-            {
-                supplierBillId: id,
-                isSupplierBillCreated: true,
-                supplierBillTotalNetWt: Number(ele.netWeight) || 0
-            },
-            { runValidators: true });
+        if (id == 2) {
+            await enquiryItemShippmentModel.findByIdAndUpdate(
+                ele._id,
+                {
+                    supplierBillId: id,
+                    isSupplierBillCreated: true,
+                    supplierBillTotalNetWt: Number(ele.netWeight) || 0
+                },
+                { runValidators: true });
+        } else if (id == 4) {
+            await enquiryItemShippmentModel.findByIdAndUpdate(
+                ele._id,
+                {
+                    invoiceBillId: id,
+                    isInvoiceBillCreated: true,
+                    invoiceBillTotalNetWt: Number(ele.netWeight) || 0
+                },
+                { runValidators: true });
+        }
     }
 }

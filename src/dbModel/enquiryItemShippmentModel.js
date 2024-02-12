@@ -382,7 +382,7 @@ const enquiryitemshippmentSchema = new Schema(
         },
         invoiceBillId: {
             type: mongoose.Types.ObjectId,
-            ref: 'enquirySupplierBill',
+            ref: 'enquiryInvoiceBill',
             default: null
         },
         isInvoiceBillCreated: {

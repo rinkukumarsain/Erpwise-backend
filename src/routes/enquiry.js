@@ -28,7 +28,9 @@ const { enquiryValidators: {
     readyForDispatch,
     shipmentDelivered,
     shipmentDispatched,
-    warehouseGoodsOut
+    warehouseGoodsOut,
+    createSupplierBill,
+    createInvoiceBill
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -798,7 +800,7 @@ router.get(`${otPreFix}/supplierBill/:supplierPoId`, jwtVerify, async (req, res)
 /**
  * Route for creating supplier bill.
  */
-router.post(`${otPreFix}/create/supplierBill`, jwtVerify, async (req, res) => {
+router.post(`${otPreFix}/create/supplierBill`, jwtVerify, validate(createSupplierBill), async (req, res) => {
     try {
         const result = await enquiryServices.createSupplierBill(req.headers['x-org-type'], req.auth, req.body);
         if (result.success) {
@@ -823,6 +825,22 @@ router.get(`${otPreFix}/invoiceBill/:supplierPoId`, jwtVerify, async (req, res) 
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while getting data for create invoice bill: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for creating invoice bill.
+ */
+router.post(`${otPreFix}/create/invoiceBill`, jwtVerify, validate(createInvoiceBill), async (req, res) => {
+    try {
+        const result = await enquiryServices.createInvoiceBill(req.headers['x-org-type'], req.auth, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while creating invoice bill: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

@@ -3819,7 +3819,8 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
             contactPerson: 1,
             salesOrderId: '$salesOrder.Id',
             isSupplierPOCreated: 1,
-            totalSuppliers: 1
+            totalSuppliers: 1,
+            invoiceDueDate: '$proformaInvoice.invoiceDueDate'
         }
     },
     {

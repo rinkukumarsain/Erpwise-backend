@@ -519,7 +519,8 @@ exports.searchIteamForEnquiry = (orgId, searchString, exactMatch) => {
                 organisationId: new mongoose.Types.ObjectId(orgId),
                 partNumberCode: {
                     $regex: new RegExp(searchString, 'i')
-                }
+                },
+                isDeleted: false
             }
         },
         {

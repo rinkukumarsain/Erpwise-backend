@@ -20,6 +20,7 @@ const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
 const { generateId } = require('../utils/generateId');
 const { CRMlevelEnum, shipmentLevel } = require('../../config/default.json');
+const { default: mongoose } = require('mongoose');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -2386,7 +2387,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for (let ele of shipmentIds) body.shipmentIds.push(ele._id);
+        for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,
@@ -2472,7 +2473,7 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for (let ele of shipmentIds) body.shipmentIds.push(ele._id);
+        for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,

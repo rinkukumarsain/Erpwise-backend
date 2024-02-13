@@ -1545,6 +1545,18 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                         },
                         2 // Number of decimal places
                     ]
+                },
+                itemTotalQuantity: {
+                    $reduce: {
+                        input: '$items',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                { $toDouble: '$$this.quantity' }
+                            ]
+                        }
+                    }
                 }
             }
         },

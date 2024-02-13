@@ -79,16 +79,16 @@ const EnquirySupplierSelectedItemSchema = new Schema(
                         default: null
                     },
                     supplierTotal: {
-                        type: String,
+                        type: Number,
                         required: true
                     },
                     freightCharges: {
-                        type: String,
-                        default: '0'
+                        type: Number,
+                        default: 0
                     },
                     packingCharges: {
-                        type: String,
-                        default: '0'
+                        type: Number,
+                        default: 0
                     },
                     vatGroupValue: {
                         type: Number,

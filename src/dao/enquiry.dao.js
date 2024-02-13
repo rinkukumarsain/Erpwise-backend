@@ -1420,7 +1420,13 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                 // }
                 supplierTotal: {
                     $cond: {
-                        if: { $eq: ['$supplierTotal', 'null'] },
+                        if: {
+                            $or: [
+                                { $eq: ['$supplierTotal', 'null'] },
+                                { $eq: ['$supplierTotal', ''] },
+                                { $eq: ['$supplierTotal', null] }
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$supplierTotal' }
                     }
@@ -1428,14 +1434,26 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                 },
                 freightCharges: {
                     $cond: {
-                        if: { $eq: ['$freightCharges', 'null'] },
+                        if: {
+                            $or: [
+                                { $eq: ['$freightCharges', 'null'] },
+                                { $eq: ['$freightCharges', ''] },
+                                { $eq: ['$freightCharges', null] }
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$freightCharges' }
                     }
                 },
                 packingCharges: {
                     $cond: {
-                        if: { $eq: ['$packingCharges', 'null'] },
+                        if: {
+                            $or: [
+                                { $eq: ['$packingCharges', 'null'] },
+                                { $eq: ['$packingCharges', ''] },
+                                { $eq: ['$packingCharges', null] }
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$packingCharges' }
                     }
@@ -1527,6 +1545,18 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                         },
                         2 // Number of decimal places
                     ]
+                },
+                itemTotalQuantity: {
+                    $reduce: {
+                        input: '$items',
+                        initialValue: 0,
+                        in: {
+                            $add: [
+                                '$$value',
+                                { $toDouble: '$$this.quantity' }
+                            ]
+                        }
+                    }
                 }
             }
         },
@@ -1577,15 +1607,43 @@ exports.getIteamsSupplierResponseCalculation = (enquiryId) => [
     {
         $addFields: {
             supplierTotal: {
-                $toDouble: '$financeMeta.supplierTotal'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.supplierTotal', 'null'] },
+                            { $eq: ['$financeMeta.supplierTotal', ''] },
+                            { $eq: ['$financeMeta.supplierTotal', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.supplierTotal' }
+                }
             },
             freightCharges: {
-                $toDouble:
-                    '$financeMeta.freightCharges'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.freightCharges', 'null'] },
+                            { $eq: ['$financeMeta.freightCharges', ''] },
+                            { $eq: ['$financeMeta.freightCharges', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.freightCharges' }
+                }
             },
             packingCharges: {
-                $toDouble:
-                    '$financeMeta.packingCharges'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.packingCharges', 'null'] },
+                            { $eq: ['$financeMeta.packingCharges', ''] },
+                            { $eq: ['$financeMeta.packingCharges', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.packingCharges' }
+                }
             }
         }
     },
@@ -3819,7 +3877,8 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
             contactPerson: 1,
             salesOrderId: '$salesOrder.Id',
             isSupplierPOCreated: 1,
-            totalSuppliers: 1
+            totalSuppliers: 1,
+            invoiceDueDate: '$proformaInvoice.invoiceDueDate'
         }
     },
     {
@@ -4135,135 +4194,312 @@ exports.getAllSupplierWithItemsAndPoWithShipmentsPipeline = (enquiryId, orgId) =
  *
  * @param {string} supplierPOId - The enquiry supplierPO id unique identifier.
  * @param {string} orgId - org id.
+ * @param {number} level - level of shippments.
  * @returns {Array} - An aggregation pipeline
  */
-exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
-    {
-        $match: {
-            _id: new mongoose.Types.ObjectId(supplierPOId),
-            organisationId: new mongoose.Types.ObjectId(orgId),
-            isActive: true,
-            isDeleted: false
-        }
-    },
-    {
-        $lookup: {
-            from: 'enquiryitemshippments',
-            let: {
-                id: '$_id'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
-                                    $eq: [
-                                        '$supplierPoId',
-                                        '$$id'
-                                    ]
-                                },
-                                {
-                                    $gte: ['$level', 2]
-                                },
-                                {
-                                    $eq: ['$isActive', true]
-                                },
-                                {
-                                    $eq: ['$isDeleted', false]
-                                },
-                                {
-                                    $eq: ['$isSupplierBillCreated', false]
-                                }
-                            ]
+exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId, level) => {
+    let pipeline = [
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(supplierPOId),
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                isActive: true,
+                isDeleted: false
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquiryitemshippments',
+                let: {
+                    id: '$_id'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            '$supplierPoId',
+                                            '$$id'
+                                        ]
+                                    },
+                                    {
+                                        $gte: ['$level', level]
+                                    },
+                                    {
+                                        $eq: ['$isActive', true]
+                                    },
+                                    {
+                                        $eq: ['$isDeleted', false]
+                                    },
+                                    {
+                                        $eq: ['$isSupplierBillCreated', false]
+                                    }
+                                ]
+                            }
                         }
                     }
-                }
-            ],
-            as: 'shipments'
-        }
-    },
-    {
-        $lookup: {
-            from: 'enquiries',
-            localField: 'enquiryId',
-            foreignField: '_id',
-            as: 'enquiryData'
-        }
-    },
-    {
-        $unwind: {
-            path: '$enquiryData'
-        }
-    },
-    {
-        $lookup: {
-            from: 'suppliers',
-            localField: 'supplierId',
-            foreignField: '_id',
-            pipeline: [
-                {
-                    $lookup: {
-                        from: 'users',
-                        localField: 'salesPerson',
-                        foreignField: '_id',
-                        as: 'data'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$data'
-                    }
-                },
-                {
-                    $project: {
-                        Id: 1,
-                        companyName: 1,
-                        salesPerson: 1,
-                        salesPersonName: {
-                            $concat: [
-                                '$data.fname',
-                                ' ',
-                                '$data.lname'
-                            ]
+                ],
+                as: 'shipments'
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquiries',
+                localField: 'enquiryId',
+                foreignField: '_id',
+                as: 'enquiryData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryData'
+            }
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                localField: 'supplierId',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'users',
+                            localField: 'salesPerson',
+                            foreignField: '_id',
+                            as: 'data'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$data'
+                        }
+                    },
+                    {
+                        $project: {
+                            Id: 1,
+                            companyName: 1,
+                            salesPerson: 1,
+                            salesPersonName: {
+                                $concat: [
+                                    '$data.fname',
+                                    ' ',
+                                    '$data.lname'
+                                ]
+                            }
                         }
                     }
+                ],
+                as: 'supplierData'
+            }
+        },
+        {
+            $addFields: {
+                supplierID: {
+                    $arrayElemAt: ['$supplierData.Id', 0]
+                },
+                supplierCompanyName: {
+                    $arrayElemAt: [
+                        '$supplierData.companyName',
+                        0
+                    ]
+                },
+                supplierSalesPersonName: {
+                    $arrayElemAt: [
+                        '$supplierData.salesPersonName',
+                        0
+                    ]
+                },
+                supplierSalesPerson: {
+                    $arrayElemAt: [
+                        '$supplierData.salesPerson',
+                        0
+                    ]
+                },
+                supplierData: null
+            }
+        },
+        {
+            $lookup: {
+                from: 'supplieraddresses',
+                localField: 'supplierId',
+                foreignField: 'supplierId',
+                pipeline: [
+                    {
+                        $match: {
+                            isDeleted: false,
+                            addresstype: 'Shipping'
+                        }
+                    }
+                ],
+                as: 'shippingAddress'
+            }
+        },
+        {
+            $lookup: {
+                from: 'supplieraddresses',
+                localField: 'supplierId',
+                foreignField: 'supplierId',
+                pipeline: [
+                    {
+                        $match: {
+                            isDeleted: false,
+                            addresstype: 'Billing'
+                        }
+                    }
+                ],
+                as: 'billingAddress'
+            }
+        },
+        {
+            $lookup: {
+                from: 'organisations',
+                localField: 'organisationId',
+                foreignField: '_id',
+                as: 'orgData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$orgData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'organisationaddresses',
+                let: {
+                    organisationId: '$organisationId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            '$organisationId',
+                                            '$$organisationId'
+                                        ]
+                                    },
+                                    {
+                                        $eq: [
+                                            '$addresstype',
+                                            'Billing'
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: 'organisationAddress'
+            }
+        },
+        {
+            $project: {
+                supplierPO_id: '$_id',
+                supplierPOId: '$Id',
+                enquiryId: 1,
+                supplierId: 1,
+                organisationId: 1,
+                financeMeta: 1,
+                shipments: 1,
+                organisationAddress: 1,
+                orgData: 1,
+                shippingAddress: 1,
+                billingAddress: 1,
+                supplierSalesPerson: 1,
+                supplierSalesPersonName: 1,
+                supplierCompanyName: 1,
+                supplierID: 1,
+                supplierAddress: 1,
+                supplierAddressId: 1,
+                leadId: '$enquiryData.leadId',
+                leadCompanyName: '$enquiryData.companyName'
+            }
+        },
+        {
+            $lookup: {
+                from: 'vats',
+                localField: 'financeMeta.vatGroupId',
+                foreignField: '_id',
+                as: 'financeMeta.vatGroup'
+            }
+        },
+        {
+            $unwind: {
+                path: '$financeMeta.vatGroup',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'currencies',
+                localField: 'financeMeta.currency',
+                foreignField: '_id',
+                as: 'financeMeta.currencyLogo'
+            }
+        },
+        {
+            $unwind: {
+                path: '$financeMeta.currencyLogo',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                'financeMeta.vatGroup':
+                    '$financeMeta.vatGroup.percentage',
+                'financeMeta.currencyLogo': {
+                    $concat: [
+                        '$financeMeta.currencyLogo.currencyShortForm',
+                        '(',
+                        '$financeMeta.currencyLogo.currencySymbol',
+                        ')'
+                    ]
                 }
-            ],
-            as: 'supplierData'
+            }
         }
-    },
-    {
-        $addFields: {
-            supplierID: {
-                $arrayElemAt: ['$supplierData.Id', 0]
-            },
-            supplierCompanyName: {
-                $arrayElemAt: [
-                    '$supplierData.companyName',
-                    0
-                ]
-            },
-            supplierSalesPersonName: {
-                $arrayElemAt: [
-                    '$supplierData.salesPersonName',
-                    0
-                ]
-            },
-            supplierSalesPerson: {
-                $arrayElemAt: [
-                    '$supplierData.salesPerson',
-                    0
-                ]
-            },
-            supplierData: null
-        }
-    },
-    {
-        $lookup: {
-            from: 'supplieraddresses',
-            localField: 'supplierId',
-            foreignField: 'supplierId',
+    ];
+
+    if (level == 4) {
+        pipeline[1]['$lookup']['pipeline'] = [
+            {
+                $match: {
+                    $expr: {
+                        $and: [
+                            {
+                                $eq: [
+                                    '$supplierPoId',
+                                    '$$id'
+                                ]
+                            },
+                            {
+                                $gte: ['$level', level]
+                            },
+                            {
+                                $eq: ['$isActive', true]
+                            },
+                            {
+                                $eq: ['$isDeleted', false]
+                            },
+                            {
+                                $eq: ['$isSupplierBillCreated', true]
+                            },
+                            {
+                                $eq: ['$isInvoiceBillCreated', false]
+                            }
+                        ]
+                    }
+                }
+            }
+        ];
+        pipeline[6]['$lookup'] = {
+            from: 'leadaddresses',
+            localField: 'enquiryData.leadId',
+            foreignField: 'leadId',
             pipeline: [
                 {
                     $match: {
@@ -4273,13 +4509,11 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
                 }
             ],
             as: 'shippingAddress'
-        }
-    },
-    {
-        $lookup: {
-            from: 'supplieraddresses',
-            localField: 'supplierId',
-            foreignField: 'supplierId',
+        };
+        pipeline[7]['$lookup'] = {
+            from: 'leadaddresses',
+            localField: 'enquiryData.leadId',
+            foreignField: 'leadId',
             pipeline: [
                 {
                     $match: {
@@ -4289,115 +4523,222 @@ exports.getDataForCreateSupplierBillPipeline = (supplierPOId, orgId) => [
                 }
             ],
             as: 'billingAddress'
-        }
-    },
-    {
-        $lookup: {
-            from: 'organisations',
-            localField: 'organisationId',
-            foreignField: '_id',
-            as: 'orgData'
-        }
-    },
-    {
-        $unwind: {
-            path: '$orgData',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'organisationaddresses',
-            let: {
-                organisationId: '$organisationId'
-            },
-            pipeline: [
-                {
-                    $match: {
-                        $expr: {
-                            $and: [
-                                {
+        };
+
+        pipeline.push(
+            {
+                $lookup: {
+                    from: 'leadaddresses',
+                    localField: 'leadId',
+                    foreignField: 'leadId',
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ['$addresstype', 'Shipping']
+                                }
+                            }
+                        },
+                        {
+                            $sort: {
+                                isDefault: -1
+                            }
+                        }
+                    ],
+                    as: 'leadAddresses'
+                }
+            }
+        );
+        pipeline.push(
+            {
+                $addFields: {
+                    leadAddresses: {
+                        $arrayElemAt: ['$leadAddresses', 0]
+                    }
+                }
+            }
+        );
+    }
+    // console.log(':::::::::::::', JSON.stringify(pipeline[1]['$lookup']['pipeline']));
+    // console.log('>>>>>>>>>:::::::::::::', JSON.stringify(pipeline));
+    return pipeline;
+};
+
+/**
+ * Generates an aggregation pipeline to retrieve order tracking data.
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                $expr: {
+                    $and: [
+                        {
+                            $eq: ['$organisationId', new mongoose.Types.ObjectId(orgId)]
+                        },
+                        {
+                            $eq: ['$isDeleted', false]
+                        },
+                        {
+                            $eq: ['$isActive', true]
+                        },
+                        {
+                            $eq: ['$isSupplierBillCreated', false]
+                        },
+                        {
+                            $eq: ['$isInvoiceBillCreated', false]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            $sort: {
+                'updatedAt': -1
+            }
+        },
+        {
+            $group: {
+                _id: '$enquiryId',
+                shipments: {
+                    $push: '$$ROOT'
+                },
+                totalShipQuantity: {
+                    $sum: '$shipQuantity'
+                },
+                totalPrice: {
+                    $sum: '$totalPrice'
+                }
+            }
+        },
+        {
+            $addFields: {
+                totalShipToWarehouse: {
+                    $reduce: {
+                        input: '$shipments',
+                        initialValue: 0,
+                        in: {
+                            $cond: {
+                                if: {
                                     $eq: [
-                                        '$organisationId',
-                                        '$$organisationId'
+                                        '$$this.shipTo',
+                                        'warehouse'
                                     ]
                                 },
-                                {
-                                    $eq: [
-                                        '$addresstype',
-                                        'Billing'
-                                    ]
+                                then: {
+                                    $add: ['$$value', 1]
+                                },
+                                else: {
+                                    $add: ['$$value', 0]
                                 }
-                            ]
+                            }
+                        }
+                    }
+                },
+                totalShipToCustomer: {
+                    $reduce: {
+                        input: '$shipments',
+                        initialValue: 0,
+                        in: {
+                            $cond: {
+                                if: {
+                                    $eq: [
+                                        '$$this.shipTo',
+                                        'customer'
+                                    ]
+                                },
+                                then: {
+                                    $add: ['$$value', 1]
+                                },
+                                else: {
+                                    $add: ['$$value', 0]
+                                }
+                            }
                         }
                     }
                 }
-            ],
-            as: 'organisationAddress'
-        }
-    },
-    {
-        $project: {
-            supplierPO_id: '$_id',
-            supplierPOId: '$Id',
-            enquiryId: 1,
-            supplierId: 1,
-            organisationId: 1,
-            financeMeta: 1,
-            shipments: 1,
-            organisationAddress: 1,
-            orgData: 1,
-            shippingAddress: 1,
-            billingAddress: 1,
-            supplierSalesPerson: 1,
-            supplierSalesPersonName: 1,
-            supplierCompanyName: 1,
-            supplierID: 1,
-            supplierAddress: 1,
-            supplierAddressId: 1,
-            leadId: '$enquiryData.leadId'
-        }
-    },
-    {
-        $lookup: {
-            from: 'vats',
-            localField: 'financeMeta.vatGroupId',
-            foreignField: '_id',
-            as: 'financeMeta.vatGroup'
-        }
-    },
-    {
-        $unwind: {
-            path: '$financeMeta.vatGroup',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $lookup: {
-            from: 'currencies',
-            localField: 'financeMeta.currency',
-            foreignField: '_id',
-            as: 'financeMeta.currencyLogo'
-        }
-    },
-    {
-        $unwind: {
-            path: '$financeMeta.currencyLogo',
-            preserveNullAndEmptyArrays: true
-        }
-    },
-    {
-        $addFields: {
-            'financeMeta.vatGroup':
-                '$financeMeta.vatGroup.percentage',
-            'financeMeta.currencyLogo': {
-                $concat: [
-                    '$financeMeta.currencyLogo.currencyShortForm',
-                    '(',
-                    '$financeMeta.currencyLogo.currencySymbol',
-                    ')'
-                ]
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiries',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'enquiryData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: 'leads',
+                localField: 'enquiryData.leadId',
+                foreignField: '_id',
+                as: 'leadData'
+            }
+        },
+        {
+            $unwind: {
+                path: '$leadData',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                companyName: '$enquiryData.companyName',
+                Id: '$enquiryData.Id',
+                leadID: '$leadData.Id',
+                invoiceDueDate: '$enquiryData.proformaInvoice.invoiceDueDate',
+                totalShipments: {
+                    $add: ['$totalShipToCustomer', '$totalShipToWarehouse']
+                }
+            }
+        },
+        {
+            $project: {
+                leadData: 0,
+                enquiryData: 0
             }
         }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { Id: { $regex: `${search}.*`, $options: 'i' } },
+                    { leadID: { $regex: `${search}.*`, $options: 'i' } },
+                    { invoiceDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalShipments: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
     }
-];
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+    // console.log('::::', JSON.stringify(pipeline));
+    return pipeline;
+};

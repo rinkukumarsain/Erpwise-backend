@@ -1420,7 +1420,13 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                 // }
                 supplierTotal: {
                     $cond: {
-                        if: { $eq: ['$supplierTotal', 'null'] },
+                        if: {
+                            $or: [
+                                { $eq: ['$supplierTotal', 'null'] },
+                                { $eq: ['$supplierTotal', ''] },
+                                { $eq: ['$supplierTotal', null] }
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$supplierTotal' }
                     }
@@ -1428,14 +1434,26 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                 },
                 freightCharges: {
                     $cond: {
-                        if: { $eq: ['$freightCharges', 'null'] },
+                        if: {
+                            $or: [
+                                { $eq: ['$freightCharges', 'null'] },
+                                { $eq: ['$freightCharges', ''] },
+                                { $eq: ['$freightCharges', null] }
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$freightCharges' }
                     }
                 },
                 packingCharges: {
                     $cond: {
-                        if: { $eq: ['$packingCharges', 'null'] },
+                        if: { 
+                            $or:[
+                                {$eq: ['$packingCharges', 'null']},
+                                {$eq: ['$packingCharges', '']},
+                                {$eq: ['$packingCharges', null]}
+                            ]
+                        },
                         then: 0, // or any default value you prefer
                         else: { $toDouble: '$packingCharges' }
                     }
@@ -4645,8 +4663,8 @@ exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy,
                 Id: '$enquiryData.Id',
                 leadID: '$leadData.Id',
                 invoiceDueDate: '$enquiryData.proformaInvoice.invoiceDueDate',
-                totalShipments : {
-                    $add :[ '$totalShipToCustomer', '$totalShipToWarehouse' ]
+                totalShipments: {
+                    $add: ['$totalShipToCustomer', '$totalShipToWarehouse']
                 }
             }
         },

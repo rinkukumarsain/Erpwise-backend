@@ -380,6 +380,19 @@ const enquiryitemshippmentSchema = new Schema(
             type: Number,
             default: 0
         },
+        invoiceBillId: {
+            type: mongoose.Types.ObjectId,
+            ref: 'enquiryInvoiceBill',
+            default: null
+        },
+        isInvoiceBillCreated: {
+            type: Boolean,
+            default: false
+        },
+        invoiceBillTotalNetWt: {
+            type: Number,
+            default: 0
+        },
         isDeleted: {
             type: Boolean,
             default: false

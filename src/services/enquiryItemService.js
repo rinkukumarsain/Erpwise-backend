@@ -739,6 +739,16 @@ exports.addFinanceDetailsSuppler = async (auth, enquiryId, supplierId, body) => 
         }
         body.createdBy = _id;
         body.updatedBy = _id;
+
+        if(body.freightCharges) body.freightCharges = Number(body.freightCharges) || 0;
+        else body.freightCharges = 0;
+
+        if(body.packingCharges) body.packingCharges = Number(body.packingCharges) || 0;
+        else body.packingCharges = 0;
+
+        if(body.supplierTotal) body.supplierTotal = Number(body.supplierTotal) || 0;
+        else body.supplierTotal = 0;
+
         const updatedData = await enquirySupplierSelectedItemsModel.updateMany({ enquiryId, supplierId }, { financeMeta: body });
         // console.log('updatedData:::::::::::::::', updatedData);
         if (updatedData) {

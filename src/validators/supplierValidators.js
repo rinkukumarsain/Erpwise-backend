@@ -25,7 +25,7 @@ exports.updateSupplierById = {
         note: Joi.string().optional(),
         businessAddress: Joi.string().optional(),
         salesPerson: Joi.string().optional(),
-        // currency: Joi.string().optional(),
+        currency: Joi.string().allow(''),
         isActive: Joi.boolean().optional()
     })
 };

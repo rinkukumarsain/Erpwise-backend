@@ -2386,8 +2386,8 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
-        const findShipments = await query.find(enquiryItemShippmentModel,{
+        for (let ele of shipmentIds) body.shipmentIds.push(ele._id);
+        const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,
@@ -2409,6 +2409,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         body.signature = `${fname} ${lname}`;
         body.role = role;
         const saveSupplierBill = await query.create(enquirySupplierBillModel, body);
+        // console.log('saveSupplierBill', saveSupplierBill);
         if (saveSupplierBill) {
             updateEnquiryItemShippments(shipmentIds, saveSupplierBill._id, 2);
             return {
@@ -2471,8 +2472,8 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
-        const findShipments = await query.find(enquiryItemShippmentModel,{
+        for (let ele of shipmentIds) body.shipmentIds.push(ele._id);
+        const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,
@@ -2609,11 +2610,12 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  *
  * @param {Array} shipmentIds - array of object with shipment id and netweight.
  * @param {string} id - supplier bill id.
+ * @param {number} level - supplier bill id.
  * @returns {Promise<void>} - A Promise that resolves after operation.
  */
-async function updateEnquiryItemShippments(shipmentIds, id) {
+async function updateEnquiryItemShippments(shipmentIds, id, level) {
     for (let ele of shipmentIds) {
-        if (id == 2) {
+        if (level == 2) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {
@@ -2622,7 +2624,7 @@ async function updateEnquiryItemShippments(shipmentIds, id) {
                     supplierBillTotalNetWt: Number(ele.netWeight) || 0
                 },
                 { runValidators: true });
-        } else if (id == 4) {
+        } else if (level == 4) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {

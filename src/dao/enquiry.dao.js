@@ -1447,11 +1447,11 @@ exports.getIteamsSupplierResponse = (enquiryId, isShortListed) => {
                 },
                 packingCharges: {
                     $cond: {
-                        if: { 
-                            $or:[
-                                {$eq: ['$packingCharges', 'null']},
-                                {$eq: ['$packingCharges', '']},
-                                {$eq: ['$packingCharges', null]}
+                        if: {
+                            $or: [
+                                { $eq: ['$packingCharges', 'null'] },
+                                { $eq: ['$packingCharges', ''] },
+                                { $eq: ['$packingCharges', null] }
                             ]
                         },
                         then: 0, // or any default value you prefer
@@ -1595,15 +1595,43 @@ exports.getIteamsSupplierResponseCalculation = (enquiryId) => [
     {
         $addFields: {
             supplierTotal: {
-                $toDouble: '$financeMeta.supplierTotal'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.supplierTotal', 'null'] },
+                            { $eq: ['$financeMeta.supplierTotal', ''] },
+                            { $eq: ['$financeMeta.supplierTotal', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.supplierTotal' }
+                }
             },
             freightCharges: {
-                $toDouble:
-                    '$financeMeta.freightCharges'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.freightCharges', 'null'] },
+                            { $eq: ['$financeMeta.freightCharges', ''] },
+                            { $eq: ['$financeMeta.freightCharges', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.freightCharges' }
+                }
             },
             packingCharges: {
-                $toDouble:
-                    '$financeMeta.packingCharges'
+                $cond: {
+                    if: {
+                        $or: [
+                            { $eq: ['$financeMeta.packingCharges', 'null'] },
+                            { $eq: ['$financeMeta.packingCharges', ''] },
+                            { $eq: ['$financeMeta.packingCharges', null] }
+                        ]
+                    },
+                    then: 0, // or any default value you prefer
+                    else: { $toDouble: '$financeMeta.packingCharges' }
+                }
             }
         }
     },

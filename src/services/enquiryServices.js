@@ -2386,7 +2386,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = body.shipmentIds.filter(ele => ele._id);
         body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
-        const findShipments = await query.find({
+        const findShipments = await query.find(enquiryItemShippmentModel,{
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,
@@ -2470,7 +2470,7 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = body.shipmentIds.filter(ele => ele._id);
         body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
-        const findShipments = await query.find({
+        const findShipments = await query.find(enquiryItemShippmentModel,{
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,

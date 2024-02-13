@@ -2384,8 +2384,9 @@ exports.getDataForCreateSupplierBill = async (supplierPOId, orgId) => {
 exports.createSupplierBill = async (orgId, auth, body) => {
     try {
         const { _id, fname, lname, role } = auth;
-        const shipmentIds = body.shipmentIds.filter(ele => ele._id);
-        body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
+        body.shipmentIds = [];
+        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
         const findShipments = await query.find(enquiryItemShippmentModel,{
             _id: { $in: body.shipmentIds },
             isActive: true,
@@ -2395,7 +2396,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
             enquiryId: body.enquiryId,
             organisationId: orgId
         });
-        if (findShipments.length != body.shipmentIds) {
+        if (findShipments.length != shipmentIds.length) {
             return {
                 success: false,
                 message: 'Shipment not found.'
@@ -2468,8 +2469,9 @@ exports.getDataForCreateInvoiceBill = async (supplierPOId, orgId) => {
 exports.createInvoiceBill = async (orgId, auth, body) => {
     try {
         const { _id, fname, lname, role } = auth;
-        const shipmentIds = body.shipmentIds.filter(ele => ele._id);
-        body.shipmentIds = body.shipmentIds.filter(ele => ele._id);
+        const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
+        body.shipmentIds = [];
+        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
         const findShipments = await query.find(enquiryItemShippmentModel,{
             _id: { $in: body.shipmentIds },
             isActive: true,
@@ -2480,7 +2482,7 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
             enquiryId: body.enquiryId,
             organisationId: orgId
         });
-        if (findShipments.length != body.shipmentIds) {
+        if (findShipments.length != shipmentIds.length) {
             return {
                 success: false,
                 message: 'Shipment not found.'

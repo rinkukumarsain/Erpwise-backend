@@ -2554,6 +2554,86 @@ exports.getOrderTrackingDashboardData = async (orgId, queryObj) => {
 };
 
 /**
+ * Gets all enquiry invoice bill for dashboard (invoices & billing).
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all invoice bills
+ */
+exports.getAllInvoiceBillsForDashboard = async(orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllInvoiceBillsForDashboardPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
+        return {
+            success: true,
+            message: `Enquiry invoice bill data fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryData.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching Enquiry invoice bill data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all enquiry supplier bill for dashboard (invoices & billing).
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all supplier bills
+ */
+exports.getAllSupplierBillsForDashboard = async(orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierBillsForDashboardPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
+        return {
+            success: true,
+            message: `Enquiry supplier bill data fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryData.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching Enquiry supplier bill data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.

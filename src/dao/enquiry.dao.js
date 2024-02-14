@@ -4742,3 +4742,300 @@ exports.getOrderTrackingDashboradDataPipeline = (orgId, { page, perPage, sortBy,
     // console.log('::::', JSON.stringify(pipeline));
     return pipeline;
 };
+
+// ========================= Invoice & Billing ============================= //
+
+/**
+ * Generates an aggregation pipeline to retrieve all invoice bills for dashboard
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllInvoiceBillsForDashboardPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                isSupplierPOCreated: true,
+                isDeleted: false,
+                isActive: true,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquiryinvoicebills',
+                localField: '_id',
+                foreignField: 'enquiryId',
+                as: 'invoicebills'
+            }
+        },
+        {
+            $addFields: {
+                invoicebillsLen: {
+                    $size: '$invoicebills'
+                }
+            }
+        },
+        {
+            $match: {
+                invoicebillsLen: {
+                    $gt: 0
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                leadId: 1,
+                Id: 1,
+                companyName: 1,
+                salesPersonName: 1,
+                salesPerson: 1,
+                invoicebillsLen: 1,
+                invoicebills: 1,
+                xeroPayment: '$proformaInvoice.xeroPayment',
+                paymentStatus: '$proformaInvoice.paymentStatus',
+                xeroInvNumber: '$proformaInvoice.xeroInvNumber',
+                xeroInvoice: '$proformaInvoice.xeroInvoice',
+                isXeroCreated: '$proformaInvoice.createXero'
+            }
+        },
+        {
+            $unwind: {
+                path: '$invoicebills'
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiryitemshippments',
+                localField: 'invoicebills.shipmentIds',
+                foreignField: '_id',
+                as: 'shippments'
+            }
+        },
+        {
+            $addFields: {
+                invoiceDueDate: '$invoicebills.invoiceDueDate',
+                shipmentIds: '$invoicebills.shipmentIds',
+                invoice_id: '$invoicebills._id',
+                invoiceId: '$invoicebills.Id',
+                supplierPOId: '$invoicebills.supplierPoId',
+                totalAmountBeforeVat: '$invoicebills.totalAmountBeforeVat',
+                totalAmountAfterVat: '$invoicebills.totalAmountAfterVat'
+            }
+        },
+        {
+            $project: {
+                invoicebills: 0
+            }
+        }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { invoiceId: { $regex: `${search}.*`, $options: 'i' } },
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { salesPersonName: { $regex: `${search}.*`, $options: 'i' } },
+                    { invoiceDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalAmountBeforeVat: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalAmountAfterVat: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+    return pipeline;
+};
+
+/**
+ * Generates an aggregation pipeline to retrieve all supplier bills for dashboard
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllSupplierBillsForDashboardPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                isSupplierPOCreated: true,
+                isDeleted: false,
+                isActive: true,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $lookup: {
+                from: 'enquirysupplierbills',
+                localField: '_id',
+                foreignField: 'enquiryId',
+                as: 'supplierbills'
+            }
+        },
+        {
+            $addFields: {
+                supplierbillsLen: {
+                    $size: '$supplierbills'
+                }
+            }
+        },
+        {
+            $match: {
+                supplierbillsLen: {
+                    $gt: 0
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                leadId: 1,
+                Id: 1,
+                companyName: 1,
+                salesPersonName: 1,
+                salesPerson: 1,
+                supplierbillsLen: 1,
+                supplierbills: 1,
+                xeroPayment: '$proformaInvoice.xeroPayment',
+                paymentStatus: '$proformaInvoice.paymentStatus',
+                xeroInvNumber: '$proformaInvoice.xeroInvNumber',
+                xeroInvoice: '$proformaInvoice.xeroInvoice',
+                isXeroCreated: '$proformaInvoice.createXero'
+            }
+        },
+        {
+            $unwind: {
+                path: '$supplierbills'
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiryitemshippments',
+                localField: 'supplierbills.shipmentIds',
+                foreignField: '_id',
+                as: 'shippments'
+            }
+        },
+        {
+            $addFields: {
+                billDueDate: '$supplierbills.billDueDate',
+                shipmentIds: '$supplierbills.shipmentIds',
+                supplierBill_id: '$supplierbills._id',
+                supplierBillId: '$supplierbills.Id',
+                supplierPOId: '$supplierbills.supplierPoId',
+                totalAmountBeforeVat: '$supplierbills.totalAmountBeforeVat',
+                totalAmountAfterVat: '$supplierbills.totalAmountAfterVat'
+            }
+        },
+        {
+            $lookup: {
+                from: 'suppliers',
+                let: {
+                    supplierId:
+                        '$supplierbills.supplierId'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {
+                                        $eq: [
+                                            '$_id',
+                                            '$$supplierId'
+                                        ]
+                                    },
+                                    {
+                                        $eq: [
+                                            '$isActive',
+                                            true
+                                        ]
+                                    },
+                                    {
+                                        $eq: [
+                                            '$isApproved',
+                                            true
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            companyName: 1
+                        }
+                    }
+                ],
+                as: 'suppleirCompanyName'
+            }
+        },
+        {
+            $project: {
+                supplierbills: 0
+            }
+        },
+        {
+            $unwind: {
+                path: '$suppleirCompanyName'
+            }
+        },
+        {
+            $addFields: {
+                supplierId: '$suppleirCompanyName._id',
+                suppleirCompanyName: '$suppleirCompanyName.companyName'
+            }
+        }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { supplierBillId: { $regex: `${search}.*`, $options: 'i' } },
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { salesPersonName: { $regex: `${search}.*`, $options: 'i' } },
+                    { suppleirCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { billDueDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalAmountBeforeVat: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalAmountAfterVat: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+    return pipeline;
+};

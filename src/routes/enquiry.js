@@ -861,4 +861,40 @@ router.get(`${otPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req,
     }
 });
 
+// ========================= Invoice & Billing ============================= //
+
+const Ibprefix = '/ib';
+
+/**
+ * Route for getting all data of invoice bills for dashboard.
+ */
+router.get(`${Ibprefix}/incvoicebills/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllInvoiceBillsForDashboard(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all data of invoice bills: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all data of supplier bills for dashboard.
+ */
+router.get(`${Ibprefix}/supplierbills/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllSupplierBillsForDashboard(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all data of supplier bills: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

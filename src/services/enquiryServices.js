@@ -43,7 +43,16 @@ exports.enquiryDashboardCount = async (orgId) => {
             7: 0
         };
         if (findCount.length > 0) for (let ele of findCount) obj[ele._id] = ele.count;
-        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false });
+        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
+        obj[6] = await enquiryItemShippmentModel.countDocuments({
+            isDeleted: false,
+            isActive: true,
+            isSupplierBillCreated: false,
+            isInvoiceBillCreated: false,
+            organisationId: orgId
+        });
+        obj[7] = await enquirySupplierBillModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
+        obj[7] += await enquiryInvoiceBillModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
         return {
             success: true,
             message: 'Sales dashboard count.',
@@ -2560,7 +2569,7 @@ exports.getOrderTrackingDashboardData = async (orgId, queryObj) => {
  * @param {object} queryObj - filters for getting all Enquiry.
  * @returns {object} - An object with the results, including all invoice bills
  */
-exports.getAllInvoiceBillsForDashboard = async(orgId, queryObj) => {
+exports.getAllInvoiceBillsForDashboard = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {
@@ -2600,7 +2609,7 @@ exports.getAllInvoiceBillsForDashboard = async(orgId, queryObj) => {
  * @param {object} queryObj - filters for getting all Enquiry.
  * @returns {object} - An object with the results, including all supplier bills
  */
-exports.getAllSupplierBillsForDashboard = async(orgId, queryObj) => {
+exports.getAllSupplierBillsForDashboard = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {

@@ -11,12 +11,8 @@ const {
     enquirySupplierPOModel,
     userModel,
     enquiryItemShippmentModel,
-<<<<<<< HEAD
     enquirySupplierBillModel,
     enquiryInvoiceBillModel
-=======
-    enquirySupplierBillModel
->>>>>>> prod
 } = require('../dbModel');
 const { enquiryDao } = require('../dao');
 const { query } = require('../utils/mongodbQuery');
@@ -24,6 +20,7 @@ const { logger } = require('../utils/logger');
 const { sendMail } = require('../utils/sendMail');
 const { generateId } = require('../utils/generateId');
 const { CRMlevelEnum, shipmentLevel } = require('../../config/default.json');
+const { default: mongoose } = require('mongoose');
 
 const LOG_ID = 'services/enquiryService';
 
@@ -46,7 +43,16 @@ exports.enquiryDashboardCount = async (orgId) => {
             7: 0
         };
         if (findCount.length > 0) for (let ele of findCount) obj[ele._id] = ele.count;
-        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false });
+        obj[5] = await enquirySupplierPOModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
+        obj[6] = await enquiryItemShippmentModel.countDocuments({
+            isDeleted: false,
+            isActive: true,
+            isSupplierBillCreated: false,
+            isInvoiceBillCreated: false,
+            organisationId: orgId
+        });
+        obj[7] = await enquirySupplierBillModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
+        obj[7] += await enquiryInvoiceBillModel.countDocuments({ isActive: true, isDeleted: false, organisationId: orgId });
         return {
             success: true,
             message: 'Sales dashboard count.',
@@ -2183,7 +2189,7 @@ exports.shipmentReadyForDispatch = async (enquiryId, shipmentId, orgId, body, au
  * @param {object} auth - req auth.
  * @returns {object} - An object with the results.
  */
-exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
+exports.shipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
     try {
         const { _id, fname, lname, role } = auth;
         const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
@@ -2248,6 +2254,12 @@ exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, a
             return {
                 success: false,
                 message: 'Enquiry shipment not found.'
+            };
+        }
+        if (!findShipment.shipmentDispatched.isGoodsAccepted) {
+            return {
+                success: true,
+                message: 'Warehouse goods are not accepted yet.'
             };
         }
         if (findShipment.level >= 3) {
@@ -2390,8 +2402,8 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
-        const findShipments = await query.find(enquiryItemShippmentModel,{
+        for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
+        const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,
@@ -2413,6 +2425,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         body.signature = `${fname} ${lname}`;
         body.role = role;
         const saveSupplierBill = await query.create(enquirySupplierBillModel, body);
+        // console.log('saveSupplierBill', saveSupplierBill);
         if (saveSupplierBill) {
             updateEnquiryItemShippments(shipmentIds, saveSupplierBill._id, 2);
             return {
@@ -2475,8 +2488,8 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        for(let ele of shipmentIds) body.shipmentIds.push(ele._id);
-        const findShipments = await query.find(enquiryItemShippmentModel,{
+        for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
+        const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
             isActive: true,
             isDeleted: false,
@@ -2556,6 +2569,86 @@ exports.getOrderTrackingDashboardData = async (orgId, queryObj) => {
 };
 
 /**
+ * Gets all enquiry invoice bill for dashboard (invoices & billing).
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all invoice bills
+ */
+exports.getAllInvoiceBillsForDashboard = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllInvoiceBillsForDashboardPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
+        return {
+            success: true,
+            message: `Enquiry invoice bill data fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryData.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching Enquiry invoice bill data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all enquiry supplier bill for dashboard (invoices & billing).
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all supplier bills
+ */
+exports.getAllSupplierBillsForDashboard = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierBillsForDashboardPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
+        return {
+            success: true,
+            message: `Enquiry supplier bill data fetched successfully.`,
+            data: {
+                enquiryData,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: enquiryData.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching Enquiry supplier bill data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
  * Function to send mail.
  *
  * @param {string} to - Send email to.
@@ -2613,11 +2706,12 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  *
  * @param {Array} shipmentIds - array of object with shipment id and netweight.
  * @param {string} id - supplier bill id.
+ * @param {number} level - supplier bill id.
  * @returns {Promise<void>} - A Promise that resolves after operation.
  */
-async function updateEnquiryItemShippments(shipmentIds, id) {
+async function updateEnquiryItemShippments(shipmentIds, id, level) {
     for (let ele of shipmentIds) {
-        if (id == 2) {
+        if (level == 2) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {
@@ -2626,7 +2720,7 @@ async function updateEnquiryItemShippments(shipmentIds, id) {
                     supplierBillTotalNetWt: Number(ele.netWeight) || 0
                 },
                 { runValidators: true });
-        } else if (id == 4) {
+        } else if (level == 4) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {

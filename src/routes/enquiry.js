@@ -738,7 +738,7 @@ router.post(`${otPreFix}${ship}/rod/:enquiryId/:shipmentId`, jwtVerify, validate
  */
 router.post(`${otPreFix}${ship}/sd/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDispatched), async (req, res) => {
     try {
-        const result = await enquiryServices.shipmentShipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        const result = await enquiryServices.shipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }
@@ -857,6 +857,42 @@ router.get(`${otPreFix}/getAll`, jwtVerify, validate(getAllEnquiry), async (req,
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred while getting all data of order tracking: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+// ========================= Invoice & Billing ============================= //
+
+const Ibprefix = '/ib';
+
+/**
+ * Route for getting all data of invoice bills for dashboard.
+ */
+router.get(`${Ibprefix}/incvoicebills/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllInvoiceBillsForDashboard(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all data of invoice bills: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for getting all data of supplier bills for dashboard.
+ */
+router.get(`${Ibprefix}/supplierbills/getAll`, jwtVerify, validate(getAllEnquiry), async (req, res) => {
+    try {
+        const result = await enquiryServices.getAllSupplierBillsForDashboard(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all data of supplier bills: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

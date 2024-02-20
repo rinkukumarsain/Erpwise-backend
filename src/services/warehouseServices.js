@@ -1,5 +1,5 @@
 // Local Import
-const { warehouseModel } = require('../dbModel');
+const { warehouseModel, enquiryItemShippmentModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { generateId } = require('../utils/generateId');
@@ -167,6 +167,46 @@ exports.delete = async (id, orgId) => {
 
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during deleting warehouse by id: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all warehouse goods in for dashboard of warehouse.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all Enquiry.
+ * @returns {object} - An object with the results, including all warehouse goods in.
+ */
+exports.getAllGoodsIn = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const result = await query.aggregation(enquiryItemShippmentModel, warehouseDao.getAllGoodsInPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(result.length / perPage);
+        return {
+            success: true,
+            message: `Warehouse goods in data fetched successfully.`,
+            data: {
+                result,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: result.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching warehouse goods in data: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

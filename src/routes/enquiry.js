@@ -738,7 +738,7 @@ router.post(`${otPreFix}${ship}/rod/:enquiryId/:shipmentId`, jwtVerify, validate
  */
 router.post(`${otPreFix}${ship}/sd/:enquiryId/:shipmentId`, jwtVerify, validate(shipmentDispatched), async (req, res) => {
     try {
-        const result = await enquiryServices.shipmentShipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
+        const result = await enquiryServices.shipmentDispatched(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

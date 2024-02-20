@@ -2216,6 +2216,12 @@ exports.shipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) =>
         body.updatedBy = _id;
         body.createdByName = `${fname} ${lname}`;
         body.createdByRole = role;
+        body.warehouseComment = null;
+        body.warehouseDocument = null;
+        body.warehouseRecievedDate = null;
+        body.warehouseQtyRecieved = 0;
+        body.warehouseQtyDamagedReturn = 0;
+        body.isGoodsAccepted = false;
         const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
         if (update) {
             return {
@@ -2258,7 +2264,7 @@ exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, a
         }
         if (!findShipment.shipmentDispatched.isGoodsAccepted) {
             return {
-                success: true,
+                success: false,
                 message: 'Warehouse goods are not accepted yet.'
             };
         }

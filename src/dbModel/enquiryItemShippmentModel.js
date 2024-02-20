@@ -245,7 +245,32 @@ const enquiryitemshippmentSchema = new Schema(
                     createdByRole: {
                         type: String,
                         default: null
+                    },
+                    warehouseComment: {
+                        type: String,
+                        default: null
+                    },
+                    warehouseDocument: {
+                        type: String,
+                        default: null
+                    },
+                    warehouseRecievedDate: {
+                        type: Date,
+                        default: null
+                    },
+                    warehouseQtyRecieved: {
+                        type: Number,
+                        default: 0
+                    },
+                    warehouseQtyDamagedReturn: {
+                        type: Number,
+                        default: 0
+                    },
+                    isGoodsAccepted: {
+                        type: Boolean,
+                        default: false
                     }
+
                 },
                 {
                     timestamps: true,

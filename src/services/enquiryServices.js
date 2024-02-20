@@ -2189,7 +2189,7 @@ exports.shipmentReadyForDispatch = async (enquiryId, shipmentId, orgId, body, au
  * @param {object} auth - req auth.
  * @returns {object} - An object with the results.
  */
-exports.shipmentShipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
+exports.shipmentDispatched = async (enquiryId, shipmentId, orgId, body, auth) => {
     try {
         const { _id, fname, lname, role } = auth;
         const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
@@ -2254,6 +2254,12 @@ exports.shipmentWarehouseGoodsOut = async (enquiryId, shipmentId, orgId, body, a
             return {
                 success: false,
                 message: 'Enquiry shipment not found.'
+            };
+        }
+        if (!findShipment.shipmentDispatched.isGoodsAccepted) {
+            return {
+                success: true,
+                message: 'Warehouse goods are not accepted yet.'
             };
         }
         if (findShipment.level >= 3) {

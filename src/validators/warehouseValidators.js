@@ -35,3 +35,14 @@ exports.edit = {
         isActive: Joi.boolean().optional()
     })
 };
+
+exports.getAllGoodsIn = {
+    query: Joi.object({
+        id: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional(),
+        search: Joi.string().optional()
+    })
+};

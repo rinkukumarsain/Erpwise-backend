@@ -213,3 +213,66 @@ exports.getAllGoodsIn = async (orgId, queryObj) => {
         };
     }
 };
+
+// /**
+//  * Edit enquiry item shipment by id update status to Shipment Dispatched
+//  *
+//  * @param {string} enquiryId - enquiry id.
+//  * @param {string} shipmentId - shipment id.
+//  * @param {string} orgId - organisation id.
+//  * @param {object} body - req body.
+//  * @param {object} auth - req auth.
+//  * @returns {object} - An object with the results.
+//  */
+// exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
+//     try {
+//         const { _id, fname, lname, role } = auth;
+//         const findShipment = await query.findOne(enquiryItemShippmentModel, { _id: shipmentId, enquiryId, organisationId: orgId, isDeleted: false, isActive: true });
+//         if (!findShipment) {
+//             return {
+//                 success: false,
+//                 message: 'Enquiry shipment not found.'
+//             };
+//         }
+//         if (findShipment.level >= 2) {
+//             const text = shipmentLevel[findShipment.level]?.split('_').join(' ');
+//             return {
+//                 success: false,
+//                 message: `The order tracking has already begun, the current status is '${text}'`
+//             };
+//         }
+//         if (!findShipment.readyForDispatch) {
+//             return {
+//                 success: false,
+//                 message: 'First please update the shipment status to ready to dispatch.'
+//             };
+//         }
+//         body.createdBy = _id;
+//         body.updatedBy = _id;
+//         body.createdByName = `${fname} ${lname}`;
+//         body.createdByRole = role;
+//         body.warehouseComment = null;
+//         body.warehouseDocument = null;
+//         body.warehouseRecievedDate = null;
+//         body.warehouseQtyRecieved = 0;
+//         body.warehouseQtyDamagedReturn = 0;
+//         body.isGoodsAccepted = false;
+//         const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
+//         if (update) {
+//             return {
+//                 success: true,
+//                 message: `Shipment(${findShipment.Id}) is dispatched successfully.`
+//             };
+//         }
+//         return {
+//             success: false,
+//             message: `Error while updating shipment(${findShipment.Id}) status to shipment dispatch.`
+//         };
+//     } catch (error) {
+//         logger.error(LOG_ID, `Error while editing enquiry item shipment by id update status to shipment dispatch: ${error}`);
+//         return {
+//             success: false,
+//             message: 'Something went wrong'
+//         };
+//     }
+// };

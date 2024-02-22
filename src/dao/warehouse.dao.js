@@ -131,7 +131,13 @@ exports.getAllGoodsInPipeline = (orgId, { page, perPage, sortBy, sortOrder, sear
                 supplieCompanyName: '$supplierDetails.companyName',
                 shipQuantity: 1,
                 totalPrice: 1,
-                receivedDate: '$shipmentDispatched.updatedAt',
+                receivedDate: {
+                    $cond: {
+                        if: { $ne: ['$shipmentDispatched.warehouseRecievedDate', null] },
+                        then: '$shipmentDispatched.warehouseRecievedDate',
+                        else: null
+                    }
+                },
                 status: '$shipmentDispatched.isGoodsAccepted'
             }
         }

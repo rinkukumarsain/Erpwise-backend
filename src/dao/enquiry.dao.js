@@ -872,12 +872,7 @@ exports.getRecommendedSupplierWithItemsCount = (orgId, enquiryId) => [
     },
     {
         $addFields: {
-            enquiryId: {
-                $arrayElemAt: [
-                    '$totalItems.enquiryId',
-                    0
-                ]
-            }
+            enquiryId: new mongoose.Types.ObjectId(enquiryId)
         }
     },
     {

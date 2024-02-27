@@ -8,7 +8,7 @@ exports.create = {
         street: Joi.string().required(),
         area: Joi.string().required(),
         country: Joi.string().required(),
-        state: Joi.string().required(),
+        state: Joi.string().allow(''),
         city: Joi.string().required(),
         pincode: Joi.string().required()
     })

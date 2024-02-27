@@ -1114,6 +1114,7 @@ exports.updatePI = async (enquiryId, auth, body) => {
         }
         const { email, _id, fname, lname } = auth;
         body.updatedBy = _id;
+        body.Id = findEnquiry.proformaInvoice.Id;
         const obj = {
             performedBy: _id,
             performedByEmail: email,

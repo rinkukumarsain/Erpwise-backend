@@ -27,7 +27,7 @@ exports.getAllLeadPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrde
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
-                level: 1,
+                level: +level ? +level : 1,
                 isDeleted: false
             }
         },

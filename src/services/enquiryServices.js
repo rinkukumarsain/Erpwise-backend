@@ -1732,7 +1732,7 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
             obj['$or'] = [
                 { companyName: { $regex: `${search}.*`, $options: 'i' } },
                 { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
-                { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
+                // { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
                 { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
                 { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
                 { warehouseName: { $regex: `${search}.*`, $options: 'i' } }

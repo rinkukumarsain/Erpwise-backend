@@ -2465,7 +2465,7 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 '$or': [
                     { companyName: { $regex: `${search}.*`, $options: 'i' } },
                     { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
-                    { quoteId: { $regex: `${search}.*`, $options: 'i' } },
+                    { quote_ID: { $regex: `${search}.*`, $options: 'i' } },
                     { duedate: { $regex: `${search}.*`, $options: 'i' } }
                 ]
             }

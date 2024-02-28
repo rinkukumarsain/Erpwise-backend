@@ -787,26 +787,26 @@ exports.getAllQuote = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        let obj = {
-            organisationId: orgId,
-            isDeleted: false,
-            level: 2,
-            isQuoteCreated: true
-        };
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (search) {
-            obj['$or'] = [
-                // { Id: { $regex: `${search}.*`, $options: 'i' } },
-                { companyName: { $regex: `${search}.*`, $options: 'i' } },
-                { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
-                // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
-                // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
-                // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
-            ];
-        }
-        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
-        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        // let obj = {
+        //     organisationId: orgId,
+        //     isDeleted: false,
+        //     level: 2,
+        //     isQuoteCreated: true
+        // };
+        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        // if (search) {
+        //     obj['$or'] = [
+        //         // { Id: { $regex: `${search}.*`, $options: 'i' } },
+        //         { companyName: { $regex: `${search}.*`, $options: 'i' } },
+        //         { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+        //         // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+        //         // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+        //         // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        //     ];
+        // }
+        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllQuotePipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData.length / perPage);
         return {
             success: true,
             message: `Enquiry Quote fetched successfully.`,
@@ -815,7 +815,7 @@ exports.getAllQuote = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryListCount.length,
+                    totalChildrenCount: enquiryModel.length,
                     totalPages
                 }
             }

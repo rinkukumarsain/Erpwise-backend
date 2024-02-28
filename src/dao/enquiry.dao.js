@@ -2452,14 +2452,25 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
     }
 
     if (search) {
-        pipeline[0]['$match']['$or'] = [
-            // { Id: { $regex: `${search}.*`, $options: 'i' } },
-            { companyName: { $regex: `${search}.*`, $options: 'i' } },
-            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
-            // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
-            // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
-            // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
-        ];
+        // pipeline[0]['$match']['$or'] = [
+        //     // { Id: { $regex: `${search}.*`, $options: 'i' } },
+        //     { companyName: { $regex: `${search}.*`, $options: 'i' } },
+        //     { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+        //     // { contact_person: { $regex: `${search}.*`, $options: 'i' } },
+        //     // { quoteDueDate: { $regex: `${search}.*`, $options: 'i' } },
+        //     // { final_quote: { $regex: `${search}.*`, $options: 'i' } }
+        // ];
+        let obj = {
+            '$match': {
+                '$or': [
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+                    { quoteId: { $regex: `${search}.*`, $options: 'i' } },
+                    { duedate: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
     }
 
     if (sortBy && sortOrder) {

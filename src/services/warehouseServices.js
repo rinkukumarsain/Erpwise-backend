@@ -214,6 +214,36 @@ exports.getAllGoodsIn = async (orgId, queryObj) => {
     }
 };
 
+/**
+ * Gets warehouse goods in for dashboard of warehouse by id.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {string} shipmentId - Id of shipment.
+ * @returns {object} - An object with the results, including all warehouse goods in.
+ */
+exports.getGoodsInById = async (orgId, shipmentId) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const result = await query.aggregation(enquiryItemShippmentModel, warehouseDao.getGoodsInByIdPipeline(orgId, shipmentId));
+        return {
+            success: true,
+            message: `Warehouse goods in data fetched successfully.`,
+            data: result
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching warehouse goods in by id data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // /**
 //  * Edit enquiry item shipment by id update status to Shipment Dispatched
 //  *

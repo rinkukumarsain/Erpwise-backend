@@ -171,3 +171,187 @@ exports.getAllGoodsInPipeline = (orgId, { page, perPage, sortBy, sortOrder, sear
     // console.log('::::', JSON.stringify(pipeline));
     return pipeline;
 };
+
+/**
+ * Generates an aggregation pipeline to retrieve warehouse goods in data for dashboard by id.
+ *
+ * @param {string} orgId - org id.
+ * @param {string} shipmentId - org id.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            _id: new mongoose.Types.ObjectId(shipmentId),
+            isActive: true,
+            isDeleted: false,
+            shipTo: 'warehouse',
+            level: {
+                $eq: 2
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'suppliers',
+            localField: 'supplierId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        companyName: 1,
+                        Id: 1,
+                        email: 1,
+                        phone: 1
+                    }
+                }
+            ],
+            as: 'supplierDetails'
+        }
+    },
+    {
+        $unwind: {
+            path: '$supplierDetails',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiries',
+            localField: 'enquiryId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        companyName: 1,
+                        Id: 1,
+                        email: 1,
+                        phone: 1,
+                        leadId: 1
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'leads',
+                        localField: 'leadId',
+                        foreignField: '_id',
+                        pipeline: [
+                            {
+                                $project: {
+                                    address: 1
+                                }
+                            }
+                        ],
+                        as: 'address'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$address'
+                    }
+                },
+                {
+                    $addFields: {
+                        address: '$address.address'
+                    }
+                }
+            ],
+            as: 'enquiryDetails'
+        }
+    },
+    {
+        $unwind: {
+            path: '$enquiryDetails',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'warehouses',
+            localField: 'warehouseId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        email: 1,
+                        name: 1
+                    }
+                }
+            ],
+            as: 'warehouseName'
+        }
+    },
+    {
+        $unwind: {
+            path: '$warehouseName',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields:{
+            warehouseEmail: '$warehouseName.email',
+            warehouseName: '$warehouseName.name'
+        }
+    },
+    {
+        $lookup:{
+            from: 'enquirysupplierpos',
+            localField: 'supplierPoId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        Id: 1
+                    }
+                }
+            ],
+            as: 'supplierPoNo'
+        }
+    },
+    {
+        $addFields:{
+            supplierPoNo: {
+                $arrayElemAt: ['$supplierPoNo.Id', 0]
+            }
+        }
+    },
+    {
+        $lookup:{
+            from: 'enquirysupplierbills',
+            localField: 'supplierBillId',
+            foreignField: '_id',
+            as: 'supplierBillRefNo'
+        }
+    },
+    {
+        $addFields: {
+            supplierBillRefNoLen: {
+                $size: '$supplierBillRefNo'
+            }
+        }
+    },
+    {
+        $addFields:{
+            supplierBillRefNo: {
+                $cond: {
+                    if: {
+                        $eq: ['$supplierBillRefNoLen', 0]
+                    },
+                    then: null,
+                    else: {
+                        $arrayElemAt: [
+                            '$supplierBillRefNo.supplierRefNo',
+                            0
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        $project: {
+            supplierBillRefNoLen: 0
+        }
+    }
+];

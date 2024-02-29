@@ -278,7 +278,7 @@ exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
                 message: 'First please update the shipment status to ready to dispatch.'
             };
         }
-        body = { ...body, ...findShipment.shipmentDispatched, isGoodsAccepted: true, goodsAcceptedBy: _id };
+        body = { ...findShipment.shipmentDispatched, ...body, isGoodsAccepted: true, goodsAcceptedBy: _id };
         const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
         if (update) {
             return {

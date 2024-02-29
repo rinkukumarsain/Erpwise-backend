@@ -3675,12 +3675,6 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
             }
         },
         {
-            $skip: (page - 1) * perPage
-        },
-        {
-            $limit: perPage
-        },
-        {
             $project: {
                 organisationId: 1,
                 leadContactId: 1,
@@ -3805,6 +3799,12 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 },
                 poReminder: '$poData.reminders'
             }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
         },
         {
             $project: {

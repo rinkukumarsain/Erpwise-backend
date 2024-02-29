@@ -112,7 +112,7 @@ router.get(`/gi/get/:shipmentId`, jwtVerify, async (req, res) => {
 /**
  * Route for editing enquiry item shipment by id to accept warehouse goods for Shipment Dispatched
  */
-router.post(`gi/accept/:enquiryId/:shipmentId`, jwtVerify, validate(AcceptTheGoodsGI), async (req, res) => {
+router.post(`/gi/accept/:enquiryId/:shipmentId`, jwtVerify, validate(AcceptTheGoodsGI), async (req, res) => {
     try {
         const result = await warehouseServices.AcceptTheGoodsGI(req.params.enquiryId, req.params.shipmentId, req.headers['x-org-type'], req.body, req.auth);
         if (result.success) {

@@ -283,7 +283,8 @@ exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
         if (update) {
             return {
                 success: true,
-                message: `Warehouse goods accepted successfully.`
+                message: `Warehouse goods accepted successfully.`,
+                data: await query.aggregation(enquiryItemShippmentModel, warehouseDao.getGoodsInByIdPipeline(orgId, shipmentId))
             };
         }
         return {

@@ -260,15 +260,20 @@ const enquiryitemshippmentSchema = new Schema(
                     },
                     warehouseQtyRecieved: {
                         type: Number,
-                        default: 0
+                        default: null
                     },
                     warehouseQtyDamagedReturn: {
                         type: Number,
-                        default: 0
+                        default: null
                     },
                     isGoodsAccepted: {
                         type: Boolean,
                         default: false
+                    },
+                    goodsAcceptedBy: {
+                        type: mongoose.Types.ObjectId,
+                        ref: 'User',
+                        default: null
                     }
 
                 },

@@ -46,3 +46,13 @@ exports.getAllGoodsIn = {
         search: Joi.string().optional()
     })
 };
+
+exports.AcceptTheGoodsGI = {
+    query: Joi.object({
+        warehouseComment: Joi.string().allow(null),
+        warehouseDocument: Joi.string().allow(null),
+        warehouseRecievedDate: Joi.string().allow(null),
+        warehouseQtyRecieved: Joi.number().allow(null),
+        warehouseQtyDamagedReturn: Joi.number().allow(null)
+    })
+};

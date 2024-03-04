@@ -141,5 +141,21 @@ router.get(`/go/getAll`, jwtVerify, validate(getAllGoodsIn), async (req, res) =>
     }
 });
 
+/**
+ * Route for getting data of warehouse goods out for dashboard by id.
+ */
+router.get(`/go/get/:shipmentId`, jwtVerify, async (req, res) => {
+    try {
+        const result = await warehouseServices.getGoodsOutById(req.headers['x-org-type'], req.params.shipmentId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting data of warehouse goods out by id: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

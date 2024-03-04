@@ -289,13 +289,13 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             warehouseEmail: '$warehouseName.email',
             warehouseName: '$warehouseName.name'
         }
     },
     {
-        $lookup:{
+        $lookup: {
             from: 'enquirysupplierpos',
             localField: 'supplierPoId',
             foreignField: '_id',
@@ -310,14 +310,14 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             supplierPoNo: {
                 $arrayElemAt: ['$supplierPoNo.Id', 0]
             }
         }
     },
     {
-        $lookup:{
+        $lookup: {
             from: 'enquirysupplierbills',
             localField: 'supplierBillId',
             foreignField: '_id',
@@ -332,7 +332,7 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             supplierBillRefNo: {
                 $cond: {
                     if: {
@@ -355,3 +355,99 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     }
 ];
+
+/**
+ * Generates an aggregation pipeline to retrieve all warehouse goods out data for dashboard.
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the warehouse goods out retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllGoodsOutPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                isActive: true,
+                isDeleted: false,
+                shipTo: 'warehouse',
+                level: 3,
+                'shipmentDispatched.isGoodsAccepted': true
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiries',
+                localField: 'enquiryId',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $project: {
+                            companyName: 1,
+                            Id: 1
+                        }
+                    }
+                ],
+                as: 'enquiryDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryDetails',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                Id: 1,
+                enquiryId: 1,
+                supplierPoId: 1,
+                supplierId: 1,
+                warehouseId: 1,
+                shipToWarehouse: 1,
+                idEnquiry: '$enquiryDetails.Id',
+                enquiryCompanyName: '$enquiryDetails.companyName',
+                shipQuantity: 1,
+                totalPrice: 1,
+                unitPrice: 1,
+                deliveryDate: 1,
+                warehouseGoodsOut: 1
+            }
+        }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { Id: { $regex: `${search}.*`, $options: 'i' } },
+                    { shipToWarehouse: { $regex: `${search}.*`, $options: 'i' } },
+                    { idEnquiry: { $regex: `${search}.*`, $options: 'i' } },
+                    { enquiryCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { 'warehouseGoodsOut.goodsOutDate': { $regex: `${search}.*`, $options: 'i' } },
+                    { deliveryDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalPrice: Number(search) || 0 }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    return pipeline;
+};

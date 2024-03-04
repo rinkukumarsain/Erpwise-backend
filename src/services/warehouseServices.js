@@ -179,7 +179,7 @@ exports.delete = async (id, orgId) => {
  * Gets all warehouse goods in for dashboard of warehouse.
  *
  * @param {string} orgId - Id of logedin user organisation.
- * @param {object} queryObj - filters for getting all Enquiry.
+ * @param {object} queryObj - filters for getting all warehouse goods in.
  * @returns {object} - An object with the results, including all warehouse goods in.
  */
 exports.getAllGoodsIn = async (orgId, queryObj) => {
@@ -293,6 +293,46 @@ exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while accepting warehouse goods AcceptTheGoodsGI(): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all warehouse goods out for dashboard of warehouse.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all warehouse goods out.
+ * @returns {object} - An object with the results, including all warehouse goods out.
+ */
+exports.getAllGoodsOut = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const result = await query.aggregation(enquiryItemShippmentModel, warehouseDao.getAllGoodsOutPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(result.length / perPage);
+        return {
+            success: true,
+            message: `Warehouse goods out data fetched successfully.`,
+            data: {
+                result,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: result.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching warehouse goods out data: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

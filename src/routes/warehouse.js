@@ -125,5 +125,21 @@ router.post(`/gi/accept/:enquiryId/:shipmentId`, jwtVerify, validate(AcceptTheGo
     }
 });
 
+/**
+ * Route for getting all data of warehouse goods out for dashboard.
+ */
+router.get(`/go/getAll`, jwtVerify, validate(getAllGoodsIn), async (req, res) => {
+    try {
+        const result = await warehouseServices.getAllGoodsOut(req.headers['x-org-type'], req.query);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred while getting all data of warehouse goods out: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 
 module.exports = router;

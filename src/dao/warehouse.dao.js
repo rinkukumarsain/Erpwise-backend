@@ -18,32 +18,66 @@ const mongoose = require('mongoose');
  * Generates an aggregation pipeline to retrieve all warehouse.
  *
  * @param {string} orgId - The organissation unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
  * @returns {Array} - An aggregation pipeline
  */
-exports.getAllWarehousePipeline = (orgId) => [
-    {
-        $match: {
-            isDeleted: false,
-            organisationId: new mongoose.Types.ObjectId(orgId)
-        }
-    },
-    {
-        $lookup: {
-            from: 'users',
-            localField: 'managers',
-            foreignField: '_id',
-            pipeline: [
-                {
-                    $project: {
-                        password: 0,
-                        token: 0
+exports.getAllWarehousePipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                isDeleted: false,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'managers',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $project: {
+                            password: 0,
+                            token: 0
+                        }
                     }
-                }
-            ],
-            as: 'managers'
+                ],
+                as: 'managers'
+            }
         }
+    ];
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { name: { $regex: `${search}.*`, $options: 'i' } },
+            { email: { $regex: `${search}.*`, $options: 'i' } },
+            { mobile: { $regex: `${search}.*`, $options: 'i' } },
+            { area: { $regex: `${search}.*`, $options: 'i' } },
+            { country: { $regex: `${search}.*`, $options: 'i' } },
+            { state: { $regex: `${search}.*`, $options: 'i' } },
+            { city: { $regex: `${search}.*`, $options: 'i' } },
+            { pincode: { $regex: `${search}.*`, $options: 'i' } }
+        ];
     }
-];
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    return pipeline;
+};
 
 
 /**
@@ -176,7 +210,7 @@ exports.getAllGoodsInPipeline = (orgId, { page, perPage, sortBy, sortOrder, sear
  * Generates an aggregation pipeline to retrieve warehouse goods in data for dashboard by id.
  *
  * @param {string} orgId - org id.
- * @param {string} shipmentId - org id.
+ * @param {string} shipmentId - shipment id.
  * @returns {Array} - An aggregation pipeline
  */
 exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
@@ -289,13 +323,13 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             warehouseEmail: '$warehouseName.email',
             warehouseName: '$warehouseName.name'
         }
     },
     {
-        $lookup:{
+        $lookup: {
             from: 'enquirysupplierpos',
             localField: 'supplierPoId',
             foreignField: '_id',
@@ -310,14 +344,14 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
             supplierPoNo: {
                 $arrayElemAt: ['$supplierPoNo.Id', 0]
             }
         }
     },
     {
-        $lookup:{
+        $lookup: {
             from: 'enquirysupplierbills',
             localField: 'supplierBillId',
             foreignField: '_id',
@@ -332,7 +366,260 @@ exports.getGoodsInByIdPipeline = (orgId, shipmentId) => [
         }
     },
     {
-        $addFields:{
+        $addFields: {
+            supplierBillRefNo: {
+                $cond: {
+                    if: {
+                        $eq: ['$supplierBillRefNoLen', 0]
+                    },
+                    then: null,
+                    else: {
+                        $arrayElemAt: [
+                            '$supplierBillRefNo.supplierRefNo',
+                            0
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        $project: {
+            supplierBillRefNoLen: 0
+        }
+    }
+];
+
+/**
+ * Generates an aggregation pipeline to retrieve all warehouse goods out data for dashboard.
+ *
+ * @param {string} orgId - org id.
+ * @param {GetAllLeadOptions} options - Options to customize the warehouse goods out retrieval.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getAllGoodsOutPipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                organisationId: new mongoose.Types.ObjectId(orgId),
+                isActive: true,
+                isDeleted: false,
+                shipTo: 'warehouse',
+                level: 3,
+                'shipmentDispatched.isGoodsAccepted': true
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'enquiries',
+                localField: 'enquiryId',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $project: {
+                            companyName: 1,
+                            Id: 1
+                        }
+                    }
+                ],
+                as: 'enquiryDetails'
+            }
+        },
+        {
+            $unwind: {
+                path: '$enquiryDetails',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                Id: 1,
+                enquiryId: 1,
+                supplierPoId: 1,
+                supplierId: 1,
+                warehouseId: 1,
+                shipToWarehouse: 1,
+                idEnquiry: '$enquiryDetails.Id',
+                enquiryCompanyName: '$enquiryDetails.companyName',
+                shipQuantity: 1,
+                totalPrice: 1,
+                unitPrice: 1,
+                deliveryDate: 1,
+                warehouseGoodsOut: 1
+            }
+        }
+    ];
+
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { Id: { $regex: `${search}.*`, $options: 'i' } },
+                    { shipToWarehouse: { $regex: `${search}.*`, $options: 'i' } },
+                    { idEnquiry: { $regex: `${search}.*`, $options: 'i' } },
+                    { enquiryCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { 'warehouseGoodsOut.goodsOutDate': { $regex: `${search}.*`, $options: 'i' } },
+                    { deliveryDate: { $regex: `${search}.*`, $options: 'i' } },
+                    { totalPrice: Number(search) || 0 }
+                ]
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    return pipeline;
+};
+
+/**
+ * Generates an aggregation pipeline to retrieve warehouse goods out data for dashboard by id.
+ *
+ * @param {string} orgId - org id.
+ * @param {string} shipmentId - shipment id.
+ * @returns {Array} - An aggregation pipeline
+ */
+exports.getGoodsOutByIdPipeline = (orgId, shipmentId) => [
+    {
+        $match: {
+            organisationId: new mongoose.Types.ObjectId(orgId),
+            _id: new mongoose.Types.ObjectId(shipmentId),
+            isActive: true,
+            isDeleted: false,
+            shipTo: 'warehouse'
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquiries',
+            localField: 'enquiryId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        companyName: 1,
+                        Id: 1,
+                        email: 1,
+                        phone: 1,
+                        leadId: 1
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'leads',
+                        localField: 'leadId',
+                        foreignField: '_id',
+                        pipeline: [
+                            {
+                                $project: {
+                                    address: 1
+                                }
+                            }
+                        ],
+                        as: 'address'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$address'
+                    }
+                },
+                {
+                    $addFields: {
+                        address: '$address.address'
+                    }
+                }
+            ],
+            as: 'enquiryDetails'
+        }
+    },
+    {
+        $unwind: {
+            path: '$enquiryDetails',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $lookup: {
+            from: 'warehouses',
+            localField: 'warehouseId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        email: 1,
+                        name: 1
+                    }
+                }
+            ],
+            as: 'warehouseName'
+        }
+    },
+    {
+        $unwind: {
+            path: '$warehouseName',
+            preserveNullAndEmptyArrays: true
+        }
+    },
+    {
+        $addFields: {
+            warehouseEmail: '$warehouseName.email',
+            warehouseName: '$warehouseName.name'
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierpos',
+            localField: 'supplierPoId',
+            foreignField: '_id',
+            pipeline: [
+                {
+                    $project: {
+                        Id: 1
+                    }
+                }
+            ],
+            as: 'supplierPoNo'
+        }
+    },
+    {
+        $addFields: {
+            supplierPoNo: {
+                $arrayElemAt: ['$supplierPoNo.Id', 0]
+            }
+        }
+    },
+    {
+        $lookup: {
+            from: 'enquirysupplierbills',
+            localField: 'supplierBillId',
+            foreignField: '_id',
+            as: 'supplierBillRefNo'
+        }
+    },
+    {
+        $addFields: {
+            supplierBillRefNoLen: {
+                $size: '$supplierBillRefNo'
+            }
+        }
+    },
+    {
+        $addFields: {
             supplierBillRefNo: {
                 $cond: {
                     if: {

@@ -63,9 +63,10 @@ exports.create = async (auth, body, orgId) => {
  * Get all warehouse
  * 
  * @param {string} orgId - organisational id from headers
+ * @param {object} queryObj - filters for getting all warehouse goods in.
  * @returns {object} - An object
  */
-exports.getAll = async (orgId) => {
+exports.getAll = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {
@@ -73,7 +74,10 @@ exports.getAll = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId));
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(warehouseList.length / perPage);
+        
         if (warehouseList.length == 0) {
             return {
                 success: true,
@@ -84,7 +88,15 @@ exports.getAll = async (orgId) => {
         return {
             success: true,
             message: 'Warehouse fetched successfully!',
-            data: warehouseList
+            data: {
+                warehouseList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: warehouseList.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all warehouse: ${error}`);
@@ -179,7 +191,7 @@ exports.delete = async (id, orgId) => {
  * Gets all warehouse goods in for dashboard of warehouse.
  *
  * @param {string} orgId - Id of logedin user organisation.
- * @param {object} queryObj - filters for getting all Enquiry.
+ * @param {object} queryObj - filters for getting all warehouse goods in.
  * @returns {object} - An object with the results, including all warehouse goods in.
  */
 exports.getAllGoodsIn = async (orgId, queryObj) => {
@@ -278,12 +290,13 @@ exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
                 message: 'First please update the shipment status to ready to dispatch.'
             };
         }
-        body = { ...body, ...findShipment.shipmentDispatched, isGoodsAccepted: true, goodsAcceptedBy: _id };
+        body = { ...findShipment.shipmentDispatched, ...body, isGoodsAccepted: true, goodsAcceptedBy: _id };
         const update = await enquiryItemShippmentModel.findByIdAndUpdate(shipmentId, { shipmentDispatched: body, level: findShipment.shipTo == 'warehouse' ? 2 : 3, stageName: findShipment.shipTo == 'warehouse' ? 'Warehouse_Goods_Out_(GO)' : 'Shipment_Delivered' }, { new: true, runValidators: true });
         if (update) {
             return {
                 success: true,
-                message: `Warehouse goods accepted successfully.`
+                message: `Warehouse goods accepted successfully.`,
+                data: await query.aggregation(enquiryItemShippmentModel, warehouseDao.getGoodsInByIdPipeline(orgId, shipmentId))
             };
         }
         return {
@@ -292,6 +305,76 @@ exports.AcceptTheGoodsGI = async (enquiryId, shipmentId, orgId, body, auth) => {
         };
     } catch (error) {
         logger.error(LOG_ID, `Error while accepting warehouse goods AcceptTheGoodsGI(): ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets all warehouse goods out for dashboard of warehouse.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {object} queryObj - filters for getting all warehouse goods out.
+ * @returns {object} - An object with the results, including all warehouse goods out.
+ */
+exports.getAllGoodsOut = async (orgId, queryObj) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const result = await query.aggregation(enquiryItemShippmentModel, warehouseDao.getAllGoodsOutPipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(result.length / perPage);
+        return {
+            success: true,
+            message: `Warehouse goods out data fetched successfully.`,
+            data: {
+                result,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: result.length,
+                    totalPages
+                }
+            }
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching warehouse goods out data: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * Gets warehouse goods out for dashboard of warehouse by id.
+ *
+ * @param {string} orgId - Id of logedin user organisation.
+ * @param {string} shipmentId - Id of shipment.
+ * @returns {object} - An object with the results, including all warehouse goods out.
+ */
+exports.getGoodsOutById = async (orgId, shipmentId) => {
+    try {
+        if (!orgId) {
+            return {
+                success: false,
+                message: 'Organisation not found.'
+            };
+        }
+        const result = await query.aggregation(enquiryItemShippmentModel, warehouseDao.getGoodsOutByIdPipeline(orgId, shipmentId));
+        return {
+            success: true,
+            message: `Warehouse goods out data fetched successfully.`,
+            data: result
+        };
+    } catch (error) {
+        logger.error(LOG_ID, `Error fetching warehouse goods out by id data: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

@@ -34,7 +34,7 @@ router.post('/create', jwtVerify, validate(create), async (req, res) => {
  */
 router.get('/getAll', jwtVerify, async (req, res) => {
     try {
-        const result = await warehouseServices.getAll(req.headers['x-org-type']);
+        const result = await warehouseServices.getAll(req.headers['x-org-type'], req.query);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

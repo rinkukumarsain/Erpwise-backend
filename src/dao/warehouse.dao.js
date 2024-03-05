@@ -18,32 +18,66 @@ const mongoose = require('mongoose');
  * Generates an aggregation pipeline to retrieve all warehouse.
  *
  * @param {string} orgId - The organissation unique identifier.
+ * @param {GetAllLeadOptions} options - Options to customize the lead retrieval.
  * @returns {Array} - An aggregation pipeline
  */
-exports.getAllWarehousePipeline = (orgId) => [
-    {
-        $match: {
-            isDeleted: false,
-            organisationId: new mongoose.Types.ObjectId(orgId)
-        }
-    },
-    {
-        $lookup: {
-            from: 'users',
-            localField: 'managers',
-            foreignField: '_id',
-            pipeline: [
-                {
-                    $project: {
-                        password: 0,
-                        token: 0
+exports.getAllWarehousePipeline = (orgId, { page, perPage, sortBy, sortOrder, search }) => {
+    let pipeline = [
+        {
+            $match: {
+                isDeleted: false,
+                organisationId: new mongoose.Types.ObjectId(orgId)
+            }
+        },
+        {
+            $skip: (page - 1) * perPage
+        },
+        {
+            $limit: perPage
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'managers',
+                foreignField: '_id',
+                pipeline: [
+                    {
+                        $project: {
+                            password: 0,
+                            token: 0
+                        }
                     }
-                }
-            ],
-            as: 'managers'
+                ],
+                as: 'managers'
+            }
         }
+    ];
+
+    if (search) {
+        pipeline[0]['$match']['$or'] = [
+            { Id: { $regex: `${search}.*`, $options: 'i' } },
+            { name: { $regex: `${search}.*`, $options: 'i' } },
+            { email: { $regex: `${search}.*`, $options: 'i' } },
+            { mobile: { $regex: `${search}.*`, $options: 'i' } },
+            { area: { $regex: `${search}.*`, $options: 'i' } },
+            { country: { $regex: `${search}.*`, $options: 'i' } },
+            { state: { $regex: `${search}.*`, $options: 'i' } },
+            { city: { $regex: `${search}.*`, $options: 'i' } },
+            { pincode: { $regex: `${search}.*`, $options: 'i' } }
+        ];
     }
-];
+
+    if (sortBy && sortOrder) {
+        let obj = {
+            '$sort': {
+                [sortBy]: sortOrder === 'desc' ? -1 : 1
+            }
+        };
+        pipeline.push(obj);
+    }
+
+    return pipeline;
+};
 
 
 /**

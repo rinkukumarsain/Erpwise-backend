@@ -63,9 +63,10 @@ exports.create = async (auth, body, orgId) => {
  * Get all warehouse
  * 
  * @param {string} orgId - organisational id from headers
+ * @param {object} queryObj - filters for getting all warehouse goods in.
  * @returns {object} - An object
  */
-exports.getAll = async (orgId) => {
+exports.getAll = async (orgId, queryObj) => {
     try {
         if (!orgId) {
             return {
@@ -73,7 +74,10 @@ exports.getAll = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId));
+        const { page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
+        const warehouseList = await query.aggregation(warehouseModel, warehouseDao.getAllWarehousePipeline(orgId, { page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(warehouseList.length / perPage);
+        
         if (warehouseList.length == 0) {
             return {
                 success: true,
@@ -84,7 +88,15 @@ exports.getAll = async (orgId) => {
         return {
             success: true,
             message: 'Warehouse fetched successfully!',
-            data: warehouseList
+            data: {
+                warehouseList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: warehouseList.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all warehouse: ${error}`);

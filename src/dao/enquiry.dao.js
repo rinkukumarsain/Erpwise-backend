@@ -2799,11 +2799,22 @@ exports.getAllPorformaInvoicePipeline = (orgId, { isActive, page, perPage, sortB
     }
 
     if (search) {
-        pipeline[0]['$match']['$or'] = [
-            { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
-            { companyName: { $regex: `${search}.*`, $options: 'i' } },
-            { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
-        ];
+        // pipeline[0]['$match']['$or'] = [
+        //     { 'proformaInvoice.Id': { $regex: `${search}.*`, $options: 'i' } },
+        //     { companyName: { $regex: `${search}.*`, $options: 'i' } },
+        //     { contactPerson: { $regex: `${search}.*`, $options: 'i' } }
+        // ];
+        let obj = {
+            '$match': {
+                '$or': [
+                    { piId: { $regex: `${search}.*`, $options: 'i' } },
+                    { companyName: { $regex: `${search}.*`, $options: 'i' } },
+                    { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+                    { quoteId: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        pipeline.push(obj);
     }
 
     if (sortBy && sortOrder) {

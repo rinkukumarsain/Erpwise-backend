@@ -974,6 +974,49 @@ exports.addQuoteReminder = async (enquiryQuoteId, body, auth) => {
     }
 };
 
+/**
+ * edit enquiry reminder.
+ *
+ * @param {string} enquiryQuoteId - Id of enquiry quote (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editQuoteReminder = async (enquiryQuoteId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await enquiryQuoteModel.findOneAndUpdate(
+            { _id: enquiryQuoteId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Enquiry quote reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry quote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= PI ============================= //
 
 
@@ -1327,6 +1370,49 @@ exports.addPIReminder = async (enquiryId, body, auth) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry PI: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * edit enquiry reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editPIReminder = async (enquiryId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Enquiry reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -2762,14 +2848,16 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
 async function updateEnquiryItemShippments(shipmentIds, id, level) {
     for (let ele of shipmentIds) {
         if (level == 2) {
-            await enquiryItemShippmentModel.findByIdAndUpdate(
+            console.log('>>>>>>>>>>>>>>>>>>>>', level);
+            const dataaa = await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {
                     supplierBillId: id,
                     isSupplierBillCreated: true,
                     supplierBillTotalNetWt: Number(ele.netWeight) || 0
                 },
-                { runValidators: true });
+                { runValidators: true, new: true });
+            console.log('dataaa', dataaa);
         } else if (level == 4) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,

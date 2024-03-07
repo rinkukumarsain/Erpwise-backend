@@ -41,7 +41,8 @@ exports.create = async (auth, reqBody, orgId) => {
             $expr: {
                 $and: [
                     { $lte: [new Date(reqBody.startDate), '$endDate'] },
-                    { $gte: [new Date(reqBody.startDate), '$startDate'] }
+                    { $gte: [new Date(reqBody.startDate), '$startDate'] },
+                    { $eq: ['$isActive', true] }
                 ]
             }
         });
@@ -49,7 +50,8 @@ exports.create = async (auth, reqBody, orgId) => {
             $expr: {
                 $and: [
                     { $lte: [new Date(reqBody.endDate), '$endDate'] },
-                    { $gte: [new Date(reqBody.endDate), '$startDate'] }
+                    { $gte: [new Date(reqBody.endDate), '$startDate'] },
+                    { $eq: ['$isActive', true] }
                 ]
             }
         });
@@ -120,7 +122,8 @@ exports.updated = async (auth, reqBody, _id) => {
                     $and: [
                         { $ne: [new mongoose.Types.ObjectId(_id), '$_id'] },
                         { $lte: [new Date(reqBody.startDate), '$endDate'] },
-                        { $gte: [new Date(reqBody.startDate), '$startDate'] }
+                        { $gte: [new Date(reqBody.startDate), '$startDate'] },
+                        { $eq: ['$isActive', true] }
                     ]
                 }
             });
@@ -132,7 +135,8 @@ exports.updated = async (auth, reqBody, _id) => {
                     $and: [
                         { $ne: [new mongoose.Types.ObjectId(_id), '$_id'] },
                         { $lte: [new Date(reqBody.endDate), '$endDate'] },
-                        { $gte: [new Date(reqBody.endDate), '$startDate'] }
+                        { $gte: [new Date(reqBody.endDate), '$startDate'] },
+                        { $eq: ['$isActive', true] }
                     ]
                 }
             });

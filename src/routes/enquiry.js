@@ -214,6 +214,22 @@ router.post('/addreminder/:id', jwtVerify, validate(addReminder), async (req, re
     }
 });
 
+/**
+ * Route for Adding enquiry reminder.
+ */
+router.post('/editreminder/:id/:reminderId', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.editReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing enquiry reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= QUOTE ============================= //
 
 let preFix = '/quote';

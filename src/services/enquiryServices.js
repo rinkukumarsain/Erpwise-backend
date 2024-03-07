@@ -1604,10 +1604,11 @@ exports.updateSO = async (enquiryId, auth, body) => {
             performedByEmail: email,
             actionName: `Enquiry sales order(id: ${findEnquiry.salesOrder._id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        const updateData = { ...findEnquiry.salesOrder, ...body };
         const editQuote = await enquiryModel.findByIdAndUpdate(
             enquiryId,
             {
-                salesOrder: body,
+                salesOrder: updateData,
                 $push: { Activity: obj }
             },
             { new: true, runValidators: true });

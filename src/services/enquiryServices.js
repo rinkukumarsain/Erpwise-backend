@@ -2846,7 +2846,9 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  * @returns {Promise<void>} - A Promise that resolves after operation.
  */
 async function updateEnquiryItemShippments(shipmentIds, id, level) {
+    console.log('>>>>>>>>>>updateEnquiryItemShippments>>>>>>>>>>', level, shipmentIds);
     for (let ele of shipmentIds) {
+        console.log('>>>>>>>>>>>for (let ele of shipmentIds)>>>>>>>>>', level);
         if (level == 2) {
             console.log('>>>>>>>>>>>>>>>>>>>>', level);
             const dataaa = await enquiryItemShippmentModel.findByIdAndUpdate(

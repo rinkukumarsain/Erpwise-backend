@@ -2538,7 +2538,7 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        if (shipmentIds.length) {
+        if (shipmentIds.length == 0) {
             return {
                 success: false,
                 message: 'Shipment not found.'
@@ -2630,7 +2630,7 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
-        if (shipmentIds.length) {
+        if (shipmentIds.length == 0) {
             return {
                 success: false,
                 message: 'Shipment not found.'

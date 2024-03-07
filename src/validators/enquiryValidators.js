@@ -319,6 +319,14 @@ exports.addReminder = {
     })
 };
 
+exports.editReminder = {
+    body: Joi.object({
+        subject: Joi.string().required(),
+        date: Joi.string().required(),
+        comment: Joi.string().required()
+    })
+};
+
 exports.createSupplierBill = {
     body: Joi.object({
         enquiryId: Joi.string().required(),

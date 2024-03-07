@@ -506,25 +506,25 @@ exports.addReminder = async (enquiryId, body, auth) => {
  */
 exports.editReminder = async (enquiryId, reminderId, body) => {
     try {
-        // let obj = {};
-        // if (body.subject) {
-        //     obj['reminders.$.subject'] = body.subject;
-        // }
-        // if (body.date) {
-        //     obj['reminders.$.date'] = body.date;
-        // }
-        // if (body.comment) {
-        //     obj['reminders.$.comment'] = body.comment;
-        // }
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
         const result = await enquiryModel.findOneAndUpdate(
             { _id: enquiryId, 'reminders._id': reminderId },
-            { $set: body },
+            { $set: obj },
             { new: true, runValidators: true }
         );
 
         if (result) {
             return {
-                status: true,
+                success: true,
                 message: 'Enquiry reminder updated successfully.',
                 data: result
             };

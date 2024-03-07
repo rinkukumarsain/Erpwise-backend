@@ -2538,6 +2538,12 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
+        if (shipmentIds.length) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
         for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
@@ -2624,6 +2630,12 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
+        if (shipmentIds.length) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
         for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
@@ -2846,11 +2858,11 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  * @returns {Promise<void>} - A Promise that resolves after operation.
  */
 async function updateEnquiryItemShippments(shipmentIds, id, level) {
-    console.log('>>>>>>>>>>updateEnquiryItemShippments>>>>>>>>>>', level, shipmentIds);
+    // console.log('>>>>>>>>>>updateEnquiryItemShippments>>>>>>>>>>', level, shipmentIds);
     for (let ele of shipmentIds) {
-        console.log('>>>>>>>>>>>for (let ele of shipmentIds)>>>>>>>>>', level);
+        // console.log('>>>>>>>>>>>for (let ele of shipmentIds)>>>>>>>>>', level);
         if (level == 2) {
-            console.log('>>>>>>>>>>>>>>>>>>>>', level);
+            // console.log('>>>>>>>>>>>>>>>>>>>>', level);
             const dataaa = await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {

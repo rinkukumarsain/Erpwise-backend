@@ -506,25 +506,25 @@ exports.addReminder = async (enquiryId, body, auth) => {
  */
 exports.editReminder = async (enquiryId, reminderId, body) => {
     try {
-        // let obj = {};
-        // if (body.subject) {
-        //     obj['reminders.$.subject'] = body.subject;
-        // }
-        // if (body.date) {
-        //     obj['reminders.$.date'] = body.date;
-        // }
-        // if (body.comment) {
-        //     obj['reminders.$.comment'] = body.comment;
-        // }
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
         const result = await enquiryModel.findOneAndUpdate(
             { _id: enquiryId, 'reminders._id': reminderId },
-            { $set: body },
+            { $set: obj },
             { new: true, runValidators: true }
         );
 
         if (result) {
             return {
-                status: true,
+                success: true,
                 message: 'Enquiry reminder updated successfully.',
                 data: result
             };
@@ -974,6 +974,49 @@ exports.addQuoteReminder = async (enquiryQuoteId, body, auth) => {
     }
 };
 
+/**
+ * edit enquiry reminder.
+ *
+ * @param {string} enquiryQuoteId - Id of enquiry quote (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editQuoteReminder = async (enquiryQuoteId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await enquiryQuoteModel.findOneAndUpdate(
+            { _id: enquiryQuoteId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Enquiry quote reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry quote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= PI ============================= //
 
 
@@ -1334,6 +1377,49 @@ exports.addPIReminder = async (enquiryId, body, auth) => {
     }
 };
 
+/**
+ * edit enquiry reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editPIReminder = async (enquiryId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Enquiry reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= Sales Order ============================= //
 
 
@@ -1518,10 +1604,11 @@ exports.updateSO = async (enquiryId, auth, body) => {
             performedByEmail: email,
             actionName: `Enquiry sales order(id: ${findEnquiry.salesOrder._id}) edited by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}`
         };
+        const updateData = { ...findEnquiry.salesOrder, ...body };
         const editQuote = await enquiryModel.findByIdAndUpdate(
             enquiryId,
             {
-                salesOrder: body,
+                salesOrder: updateData,
                 $push: { Activity: obj }
             },
             { new: true, runValidators: true });
@@ -2452,6 +2539,12 @@ exports.createSupplierBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
+        if (shipmentIds.length == 0) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
         for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
@@ -2538,6 +2631,12 @@ exports.createInvoiceBill = async (orgId, auth, body) => {
         const { _id, fname, lname, role } = auth;
         const shipmentIds = JSON.parse(JSON.stringify(body.shipmentIds));
         body.shipmentIds = [];
+        if (shipmentIds.length == 0) {
+            return {
+                success: false,
+                message: 'Shipment not found.'
+            };
+        }
         for (let ele of shipmentIds) body.shipmentIds.push(new mongoose.Types.ObjectId(ele._id));
         const findShipments = await query.find(enquiryItemShippmentModel, {
             _id: { $in: body.shipmentIds },
@@ -2760,16 +2859,20 @@ async function sendMailFun(to, cc, subject, body, file, mailDetailData) {
  * @returns {Promise<void>} - A Promise that resolves after operation.
  */
 async function updateEnquiryItemShippments(shipmentIds, id, level) {
+    // console.log('>>>>>>>>>>updateEnquiryItemShippments>>>>>>>>>>', level, shipmentIds);
     for (let ele of shipmentIds) {
+        // console.log('>>>>>>>>>>>for (let ele of shipmentIds)>>>>>>>>>', level);
         if (level == 2) {
-            await enquiryItemShippmentModel.findByIdAndUpdate(
+            // console.log('>>>>>>>>>>>>>>>>>>>>', level);
+            const dataaa = await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,
                 {
                     supplierBillId: id,
                     isSupplierBillCreated: true,
                     supplierBillTotalNetWt: Number(ele.netWeight) || 0
                 },
-                { runValidators: true });
+                { runValidators: true, new: true });
+            console.log('dataaa', dataaa);
         } else if (level == 4) {
             await enquiryItemShippmentModel.findByIdAndUpdate(
                 ele._id,

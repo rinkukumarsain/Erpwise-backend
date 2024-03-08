@@ -86,3 +86,11 @@ exports.activateDeactivateSupplier = {
         isApproved: Joi.boolean().required()
     })
 };
+
+exports.addReminder = {
+    body: Joi.object({
+        subject: Joi.string().required(),
+        date: Joi.string().required(),
+        comment: Joi.string().required()
+    })
+};

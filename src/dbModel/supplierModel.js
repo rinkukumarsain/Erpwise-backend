@@ -38,6 +38,40 @@ const userActionSchema = new Schema(
 );
 
 /**
+ * Mongoose schema for user actions.
+ *
+ * @type {mongoose.Schema<UserAction>}
+ */
+const ReminderSchema = new Schema(
+    {
+        subject: {
+            type: String,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        comment: {
+            type: String,
+            required: true
+        },
+        createdBy: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User'
+        },
+        createdByName: {
+            type: String,
+            required: true
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false
+    }
+);
+
+/**
  * @typedef {object} FinanceMeta
  * @property {mongoose.Types.ObjectId} paymentTermsId - The ID of the payment terms (referenced from 'PaymentTerms' model).
  * @property {mongoose.Types.ObjectId} vatGroupId - The ID of the VAT group (referenced from 'vat' model).
@@ -215,7 +249,8 @@ const supplierSchema = new Schema(
                 { _id: false }
             )
         },
-        Activity: [userActionSchema]
+        Activity: [userActionSchema],
+        reminders: [ReminderSchema]
     },
     {
         timestamps: true,

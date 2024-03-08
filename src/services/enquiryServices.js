@@ -1378,7 +1378,7 @@ exports.addPIReminder = async (enquiryId, body, auth) => {
 };
 
 /**
- * edit enquiry reminder.
+ * edit enquiry proforma Invoice reminder.
  *
  * @param {string} enquiryId - Id of enquiry (req.params).
  * @param {string} reminderId - Id of reminder (req.params).
@@ -1389,30 +1389,32 @@ exports.editPIReminder = async (enquiryId, reminderId, body) => {
     try {
         let obj = {};
         if (body.subject) {
-            obj['reminders.$.subject'] = body.subject;
+            obj['proformaInvoice.reminders.$.subject'] = body.subject;
         }
         if (body.date) {
-            obj['reminders.$.date'] = body.date;
+            obj['proformaInvoice.reminders.$.date'] = body.date;
         }
         if (body.comment) {
-            obj['reminders.$.comment'] = body.comment;
+            obj['proformaInvoice.reminders.$.comment'] = body.comment;
         }
         const result = await enquiryModel.findOneAndUpdate(
-            { _id: enquiryId, 'reminders._id': reminderId },
+            { _id: enquiryId, 'proformaInvoice.reminders._id': reminderId },
             { $set: obj },
             { new: true, runValidators: true }
         );
 
         if (result) {
+            result._doc.piReminder = result._doc.proformaInvoice.reminders;
+            delete result._doc.proformaInvoice.reminders;
             return {
                 success: true,
-                message: 'Enquiry reminder updated successfully.',
+                message: 'Enquiry PI reminder updated successfully.',
                 data: result
             };
         }
 
     } catch (error) {
-        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry PI: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -1723,6 +1725,51 @@ exports.addSOReminder = async (enquiryId, body, auth) => {
                 data: updatedenquirySO
             };
         }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry SO: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * edit enquiry sales order reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editSOReminder = async (enquiryId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['salesOrder.reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['salesOrder.reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['salesOrder.reminders.$.comment'] = body.comment;
+        }
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'salesOrder.reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.soReminder = result._doc.salesOrder.reminders;
+            delete result._doc.salesOrder.reminders;
+            return {
+                success: true,
+                message: 'Enquiry SO reminder updated successfully.',
+                data: result
+            };
+        }
+
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry SO: ${error}`);
         return {
@@ -2047,6 +2094,51 @@ exports.addSupplierPOReminder = async (supplierPOId, body, auth) => {
         }
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry supplier PO: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * edit enquiry SupplierPO reminder.
+ *
+ * @param {string} supplierPOId - Id of enquiry SupplierPO (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editSupplierPOReminder = async (supplierPOId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await enquirySupplierPOModel.findOneAndUpdate(
+            { _id: supplierPOId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.poReminder = result._doc.reminders;
+            delete result._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry supplier PO reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

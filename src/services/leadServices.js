@@ -736,3 +736,46 @@ exports.addReminder = async (leadId, body, auth) => {
         };
     }
 };
+
+/**
+ * edit lead reminder.
+ *
+ * @param {string} leadId - Id of lead (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.editReminder = async (leadId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await leadModel.findOneAndUpdate(
+            { _id: leadId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Lead reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

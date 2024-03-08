@@ -255,5 +255,20 @@ router.post('/editreminder/:id/:reminderId', jwtVerify, authorizeRoleAccess, val
     }
 });
 
+/**
+ * Route for deleting lead reminder.
+ */
+router.get('/reminder/delete/:id/:reminderId', jwtVerify, authorizeRoleAccess, async (req, res) => {
+    try {
+        const result = await leadServices.deleteReminder(req.params.id, req.params.reminderId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing lead reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 module.exports = router;

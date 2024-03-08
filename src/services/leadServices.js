@@ -779,3 +779,35 @@ exports.editReminder = async (leadId, reminderId, body) => {
         };
     }
 };
+
+/**
+ * delete Lead reminder.
+ *
+ * @param {string} leadId - Id of Lead (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the Lead data.
+ */
+exports.deleteReminder = async (leadId, reminderId) => {
+    try {
+        const result = await leadModel.findOneAndUpdate(
+            { _id: leadId, 'reminders._id': reminderId },
+            { $pull: { reminders: { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Lead reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to Lead: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

@@ -345,6 +345,22 @@ router.post(`${preFix}/addreminder/:id`, jwtVerify, validate(addReminder), async
     }
 });
 
+/**
+ * Route for editing enquiry quote reminder.
+ */
+router.post(`${preFix}/editreminder/:id/:reminderId`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.editQuoteReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding enquiry quote reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= PI ============================= //
 
 let piPreFix = '/pi';
@@ -456,7 +472,23 @@ router.post(`${piPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), asy
         }
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
-        logger.error(LOG_ID, `Error occurred during adding enquiry reminder: ${err.message}`);
+        logger.error(LOG_ID, `Error occurred during adding enquiry pi reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry reminder.
+ */
+router.post(`${piPreFix}/editreminder/:id/:reminderId`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.editPIReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing enquiry pi reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });
@@ -563,6 +595,22 @@ router.post(`${soPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), asy
     }
 });
 
+/**
+ * Route for editing enquiry sales order reminder.
+ */
+router.post(`${soPreFix}/editreminder/:id/:reminderId`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.editSOReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing enquiry sales order reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 // ========================= Supplier po ============================= //
 
 const spoPreFix = '/spo';
@@ -659,6 +707,22 @@ router.post(`${spoPreFix}/addreminder/:id`, jwtVerify, validate(addReminder), as
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during adding enquiry supplier PO reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing enquiry supplier PO reminder.
+ */
+router.post(`${spoPreFix}/editreminder/:id/:reminderId`, jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await enquiryServices.editSupplierPOReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing enquiry supplier PO reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

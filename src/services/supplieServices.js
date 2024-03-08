@@ -652,3 +652,94 @@ exports.searchIteamForEnquiry = async (orgId, searchString, exactMatch) => {
         };
     }
 };
+
+/**
+ * Add supplier reminder.
+ *
+ * @param {string} supplierId - Id of supplier (req.params).
+ * @param {object} body - req.body.
+ * @param {object} auth - req auth.
+ * @returns {object} - An object with the results, including the supplier data.
+ */
+exports.addReminder = async (supplierId, body, auth) => {
+    try {
+        const { _id, email, fname, lname } = auth;
+        const findenquiry = await query.findOne(supplierModel, { _id: supplierId, isDeleted: false });
+        if (!findenquiry) {
+            return {
+                success: false,
+                message: 'Supplier not found.'
+            };
+        }
+        body.createdBy = _id;
+        body.createdByName = `${fname} ${lname}`;
+        const obj = {
+            performedBy: _id,
+            performedByEmail: email,
+            actionName: `Supplier reminder added by ${fname} ${lname} at ${moment().format('MMMM Do YYYY, h:mm:ss a')}.`
+        };
+
+        const updateData = await supplierModel.findByIdAndUpdate(
+            supplierId,
+            { $push: { reminders: body, Activity: obj } },
+            { new: true, runValidators: true }
+        );
+
+        if (updateData) {
+            return {
+                success: true,
+                message: 'Supplier reminder added successfully.',
+                data: updateData
+            };
+        }
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to supplier: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * edit supplier reminder.
+ *
+ * @param {string} supplierId - Id of supplier (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @param {object} body - req.body.
+ * @returns {object} - An object with the results, including the supplier data.
+ */
+exports.editReminder = async (supplierId, reminderId, body) => {
+    try {
+        let obj = {};
+        if (body.subject) {
+            obj['reminders.$.subject'] = body.subject;
+        }
+        if (body.date) {
+            obj['reminders.$.date'] = body.date;
+        }
+        if (body.comment) {
+            obj['reminders.$.comment'] = body.comment;
+        }
+        const result = await supplierModel.findOneAndUpdate(
+            { _id: supplierId, 'reminders._id': reminderId },
+            { $set: obj },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Supplier reminder updated successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during adding reminder to supplier: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

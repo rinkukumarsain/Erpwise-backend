@@ -539,6 +539,38 @@ exports.editReminder = async (enquiryId, reminderId, body) => {
     }
 };
 
+/**
+ * delete enquiry reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.deleteReminder = async (enquiryId, reminderId) => {
+    try {
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'reminders._id': reminderId },
+            { $pull: { reminders: { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Enquiry reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 
 // ========================= QUOTE ============================= //
 
@@ -1001,6 +1033,8 @@ exports.editQuoteReminder = async (enquiryQuoteId, reminderId, body) => {
         );
 
         if (result) {
+            result._doc.quoterReminder = result._doc.reminders;
+            delete result._doc.reminders;
             return {
                 success: true,
                 message: 'Enquiry quote reminder updated successfully.',
@@ -1010,6 +1044,40 @@ exports.editQuoteReminder = async (enquiryQuoteId, reminderId, body) => {
 
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry quote: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * delete enquiry quote reminder.
+ *
+ * @param {string} enquiryQuoteId - Id of enquiry quote (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.deleteQuoteReminder = async (enquiryQuoteId, reminderId) => {
+    try {
+        const result = await enquiryQuoteModel.findOneAndUpdate(
+            { _id: enquiryQuoteId, 'reminders._id': reminderId },
+            { $pull: { reminders: { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.quoterReminder = result._doc.reminders;
+            delete result._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry quote reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to enquiry quote: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -1422,6 +1490,40 @@ exports.editPIReminder = async (enquiryId, reminderId, body) => {
     }
 };
 
+/**
+ * delete enquiry PI reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.deletePIReminder = async (enquiryId, reminderId) => {
+    try {
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'proformaInvoice.reminders._id': reminderId },
+            { $pull: { 'proformaInvoice.reminders': { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.piReminder = result._doc.proformaInvoice.reminders;
+            delete result._doc.proformaInvoice.reminders;
+            return {
+                success: true,
+                message: 'Enquiry PI reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to enquiry PI: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
 // ========================= Sales Order ============================= //
 
 
@@ -1772,6 +1874,40 @@ exports.editSOReminder = async (enquiryId, reminderId, body) => {
 
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry SO: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * delete enquiry SO reminder.
+ *
+ * @param {string} enquiryId - Id of enquiry (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.deleteSOReminder = async (enquiryId, reminderId) => {
+    try {
+        const result = await enquiryModel.findOneAndUpdate(
+            { _id: enquiryId, 'salesOrder.reminders._id': reminderId },
+            { $pull: { 'salesOrder.reminders': { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.soReminder = result._doc.salesOrder.reminders;
+            delete result._doc.salesOrder.reminders;
+            return {
+                success: true,
+                message: 'Enquiry SO reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to enquiry SO: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'
@@ -2139,6 +2275,40 @@ exports.editSupplierPOReminder = async (supplierPOId, reminderId, body) => {
 
     } catch (error) {
         logger.error(LOG_ID, `Error occurred during adding reminder to enquiry: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};
+
+/**
+ * delete enquiry SupplierPO reminder.
+ *
+ * @param {string} supplierPOId - Id of enquiry SupplierPO (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the enquiry data.
+ */
+exports.deleteSupplierPOReminder = async (supplierPOId, reminderId) => {
+    try {
+        const result = await enquirySupplierPOModel.findOneAndUpdate(
+            { _id: supplierPOId, 'reminders._id': reminderId },
+            { $pull: { reminders: { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            result._doc.poReminder = result._doc.reminders;
+            delete result._doc.reminders;
+            return {
+                success: true,
+                message: 'Enquiry supplier PO reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to enquiry supplier PO: ${error}`);
         return {
             success: false,
             message: 'Something went wrong'

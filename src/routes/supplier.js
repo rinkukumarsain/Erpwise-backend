@@ -281,4 +281,20 @@ router.post('/editreminder/:id/:reminderId', jwtVerify, validate(addReminder), a
     }
 });
 
+/**
+ * Route for deleting supplier reminder.
+ */
+router.get('/reminder/delete/:id/:reminderId', jwtVerify, async (req, res) => {
+    try {
+        const result = await supplieServices.deleteReminder(req.params.id, req.params.reminderId);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during deleting suppier reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
 module.exports = router;

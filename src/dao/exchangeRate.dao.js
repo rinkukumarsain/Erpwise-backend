@@ -17,7 +17,8 @@ exports.getExchangeRatePipeline = ({ orgId, isActive }) => {
     condition.push({
         $match: {
             isActive: true,
-            orgId: new mongoose.Types.ObjectId(orgId)
+            orgId: new mongoose.Types.ObjectId(orgId),
+            isDeleted: false
         }
     });
     condition.push({

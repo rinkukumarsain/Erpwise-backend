@@ -743,3 +743,35 @@ exports.editReminder = async (supplierId, reminderId, body) => {
         };
     }
 };
+
+/**
+ * delete supplier reminder.
+ *
+ * @param {string} supplierId - Id of Supplier (req.params).
+ * @param {string} reminderId - Id of reminder (req.params).
+ * @returns {object} - An object with the results, including the Supplier data.
+ */
+exports.deleteReminder = async (supplierId, reminderId) => {
+    try {
+        const result = await supplierModel.findOneAndUpdate(
+            { _id: supplierId, 'reminders._id': reminderId },
+            { $pull: { reminders: { _id: reminderId } } },
+            { new: true, runValidators: true }
+        );
+
+        if (result) {
+            return {
+                success: true,
+                message: 'Supplier reminder deleted successfully.',
+                data: result
+            };
+        }
+
+    } catch (error) {
+        logger.error(LOG_ID, `Error occurred during deleting reminder to Supplier: ${error}`);
+        return {
+            success: false,
+            message: 'Something went wrong'
+        };
+    }
+};

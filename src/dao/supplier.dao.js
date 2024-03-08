@@ -95,6 +95,7 @@ exports.getAllSupplierPipeline = (orgId, { isActive, page, perPage, sortBy, sort
                 isItemAdded: 1,
                 isFinanceAdded: 1,
                 Activity: 1,
+                reminders: 1,
                 isActive: 1,
                 currencyText: 1,
                 createdAt: 1,

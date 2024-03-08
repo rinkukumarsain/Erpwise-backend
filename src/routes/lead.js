@@ -194,7 +194,7 @@ router.get('/getPipelineData', jwtVerify, authorizeRoleAccess, validate(getAllLe
 /**
  * Route for changing pipeline stage of lead.
  */
-router.post('/pipeline/changeStage/:id', jwtVerify, authorizeRoleAccess, validate(changePipelineStage),  async (req, res) => {
+router.post('/pipeline/changeStage/:id', jwtVerify, authorizeRoleAccess, validate(changePipelineStage), async (req, res) => {
     try {
         const result = await leadServices.changePipelineStage(req.params.id, req.headers['x-org-type'], req.body.pipelineName, req.auth);
         if (result.success) {
@@ -235,6 +235,22 @@ router.post('/addreminder/:id', jwtVerify, authorizeRoleAccess, validate(addRemi
         return handleResponse(res, statusCode.BAD_REQUEST, result);
     } catch (err) {
         logger.error(LOG_ID, `Error occurred during adding lead reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing lead reminder.
+ */
+router.post('/editreminder/:id/:reminderId', jwtVerify, authorizeRoleAccess, validate(addReminder), async (req, res) => {
+    try {
+        const result = await leadServices.editReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing lead reminder: ${err.message}`);
         handleErrorResponse(res, err.status, err.message, err);
     }
 });

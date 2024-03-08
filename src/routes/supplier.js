@@ -15,7 +15,8 @@ const { supplierValidators: {
     addSupplierFinance,
     deleteSupplierDocument,
     moveToPipeLine,
-    activateDeactivateSupplier
+    activateDeactivateSupplier,
+    addReminder
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -248,5 +249,36 @@ router.get('/searchIteamForEnquiry/:searchString/:exactMatch?', jwtVerify, async
     }
 });
 
+/**
+ * Route for Adding supplier reminder.
+ */
+router.post('/addreminder/:id', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await supplieServices.addReminder(req.params.id, req.body, req.auth);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during adding supplier reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
+
+/**
+ * Route for editing supplier reminder.
+ */
+router.post('/editreminder/:id/:reminderId', jwtVerify, validate(addReminder), async (req, res) => {
+    try {
+        const result = await supplieServices.editReminder(req.params.id, req.params.reminderId, req.body);
+        if (result.success) {
+            return handleResponse(res, statusCode.OK, result);
+        }
+        return handleResponse(res, statusCode.BAD_REQUEST, result);
+    } catch (err) {
+        logger.error(LOG_ID, `Error occurred during editing supplier reminder: ${err.message}`);
+        handleErrorResponse(res, err.status, err.message, err);
+    }
+});
 
 module.exports = router;

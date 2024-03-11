@@ -40,7 +40,7 @@ exports.updateLeadById = {
         email: Joi.string().optional(),
         phone: Joi.string().optional(),
         address: Joi.string().optional(),
-        note: Joi.string().optional(),
+        note: Joi.string().allow(''),
         dueDate: Joi.string().optional(),
         currency: Joi.string().optional(),
         isActive: Joi.boolean().optional(),

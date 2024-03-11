@@ -11,6 +11,13 @@ const LOG_ID = 'services/paymentTermsService';
  */
 exports.createPaymentTerms = async (paymentTermsData) => {
     try {
+        const checkName = await query.findOne(paymentTermsModel, { name: paymentTermsData.name });
+        if(checkName){
+            return {
+                success:false,
+                message:`Payment term of ${paymentTermsData.name} already exist.`
+            };
+        }
         const paymentTerms = await query.create(paymentTermsModel, paymentTermsData);
         return {
             success: true,

@@ -26,12 +26,6 @@ exports.getAllPaymentTermsForDashboardPipeline = ({ isActive, page, perPage, sor
             $match: {
                 isActive: (isActive && isActive === 'false') ? false : true
             }
-        },
-        {
-            $skip: (page - 1) * perPage
-        },
-        {
-            $limit: perPage
         }
     ];
 
@@ -60,5 +54,11 @@ exports.getAllPaymentTermsForDashboardPipeline = ({ isActive, page, perPage, sor
         };
         pipeline.push(obj);
     }
+    pipeline.push({
+        $skip: (page - 1) * perPage
+    });
+    pipeline.push({
+        $limit: perPage
+    });
     return pipeline;
 };

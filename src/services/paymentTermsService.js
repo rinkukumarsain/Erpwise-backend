@@ -1,6 +1,7 @@
 const { paymentTermsModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { paymentTermsDao } = require('../dao');
 
 const LOG_ID = 'services/paymentTermsService';
 
@@ -12,10 +13,10 @@ const LOG_ID = 'services/paymentTermsService';
 exports.createPaymentTerms = async (paymentTermsData) => {
     try {
         const checkName = await query.findOne(paymentTermsModel, { name: paymentTermsData.name });
-        if(checkName){
+        if (checkName) {
             return {
-                success:false,
-                message:`Payment term of ${paymentTermsData.name} already exist.`
+                success: false,
+                message: `Payment term of ${paymentTermsData.name} already exist.`
             };
         }
         const paymentTerms = await query.create(paymentTermsModel, paymentTermsData);
@@ -40,21 +41,21 @@ exports.createPaymentTerms = async (paymentTermsData) => {
  */
 exports.getAllPaymentTerms = async (queryParam) => {
     try {
-        const { isActive } = queryParam;
-        let obj = {};
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-
-        const paymentTermsList = await query.find(paymentTermsModel, obj);
-        if (!paymentTermsList.length) {
-            return {
-                success: false,
-                message: 'Payment term not found!'
-            };
-        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryParam;
+        const paymentTermsList = await query.aggregation(paymentTermsModel, paymentTermsDao.getAllPaymentTermsForDashboardPipeline({ isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(paymentTermsList.length / perPage);
         return {
             success: true,
             message: 'Payment term fetched successfully!',
-            data: paymentTermsList
+            data: {
+                paymentTermsList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: paymentTermsList.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all payment terms: ${error}`);

@@ -216,7 +216,7 @@ exports.getAllUsers = async (queryParam, orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder } = queryParam;
+        const { isActive, isRole, page = 1, perPage = 10, sortBy, sortOrder, search } = queryParam;
         let obj = {};
         if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
         // if (isRole == 'true') {
@@ -242,7 +242,7 @@ exports.getAllUsers = async (queryParam, orgId) => {
 
         const userListCount = await query.find(userModel, obj, { _id: 1 });
         const totalPages = Math.ceil(userListCount.length / perPage);
-        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole, sortBy, sortOrder }));
+        const userList = await query.aggregation(userModel, userDao.getAllUsersPipeline({ orgId, page: +page, perPage: +perPage, isActive, isRole, sortBy, sortOrder, search }));
         if (!userList.length) {
             return {
                 success: true,

@@ -32,6 +32,7 @@ exports.getAllUser = {
         page: Joi.string().optional(),
         perPage: Joi.string().optional(),
         sortBy: Joi.string().optional(),
+        search: Joi.string().optional(),
         sortOrder: Joi.string().optional()
 
     })

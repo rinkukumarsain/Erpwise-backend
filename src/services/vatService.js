@@ -12,6 +12,13 @@ const LOG_ID = 'services/vatService';
  */
 exports.createVat = async (vatData) => {
     try {
+        const checkName = await query.findOne(vatModel, { name: vatData.name });
+        if (checkName) {
+            return {
+                success: false,
+                message: `Vat of ${vatData.name} already exist.`
+            };
+        }
         const vat = await query.create(vatModel, vatData);
         return {
             success: true,

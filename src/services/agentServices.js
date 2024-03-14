@@ -3,6 +3,7 @@ const { agentModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
 const { generateId } = require('../utils/generateId');
+const { agentDao } = require('../dao');
 
 const LOG_ID = 'services/agentService';
 
@@ -63,9 +64,10 @@ exports.createAgent = async (auth, body, orgId) => {
  *  Read operation - Get all agents
  * 
  * @param {string} orgId - organisational id from headers
+ * @param {object} queryParam - optional parameter
  * @returns {object} - An object
  */
-exports.getAllAgent = async (orgId) => {
+exports.getAllAgent = async (orgId, queryParam) => {
     try {
         if (!orgId) {
             return {
@@ -73,18 +75,21 @@ exports.getAllAgent = async (orgId) => {
                 message: 'Organisation not found.'
             };
         }
-        const agentList = await query.find(agentModel, { organisationId: orgId, isActive: true, isDeleted: false });
-        if (agentList.length == 0) {
-            return {
-                success: true,
-                message: 'Agents not found!',
-                data: []
-            };
-        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryParam;
+        const agentList = await query.aggregation(agentModel, agentDao.getAllAgentPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(agentList.length / perPage);
         return {
             success: true,
             message: 'Agents fetched successfully!',
-            data: agentList
+            data: {
+                agentList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: agentList.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all agents: ${error}`);

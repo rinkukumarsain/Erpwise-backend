@@ -1,6 +1,7 @@
 const { vatModel } = require('../dbModel');
 const { query } = require('../utils/mongodbQuery');
 const { logger } = require('../utils/logger');
+const { vatDao } = require('../dao');
 
 const LOG_ID = 'services/vatService';
 
@@ -33,21 +34,21 @@ exports.createVat = async (vatData) => {
  */
 exports.getAllVat = async (queryParam) => {
     try {
-        const { isActive } = queryParam;
-        let obj = {};
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-
-        const vatList = await query.find(vatModel, obj);
-        if (!vatList.length) {
-            return {
-                success: false,
-                message: 'Vat not found!'
-            };
-        }
+        const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryParam;
+        const vatList = await query.aggregation(vatModel, vatDao.getAllVatPipeline({ isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(vatList.length / perPage);
         return {
             success: true,
             message: 'Vat fetched successfully!',
-            data: vatList
+            data: {
+                vatList,
+                pagination: {
+                    page,
+                    perPage,
+                    totalChildrenCount: vatList.length,
+                    totalPages
+                }
+            }
         };
     } catch (error) {
         logger.error(LOG_ID, `Error occurred while getting all vat: ${error}`);

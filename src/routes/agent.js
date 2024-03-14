@@ -8,7 +8,8 @@ const { handleResponse, handleErrorResponse } = require('../helpers/response');
 const { agentServices } = require('../services');
 const { agentValidators: {
     createAgent,
-    editAgent
+    editAgent,
+    getAllAgent
 } } = require('../validators');
 const { jwtVerify } = require('../middleware/auth');
 // const { authorizeRoleAccess } = require('../middleware/authorizationCheck');
@@ -35,9 +36,9 @@ router.post('/create', jwtVerify, validate(createAgent), async (req, res) => {
 /**
  * Route for getting all agent.
  */
-router.get('/getAll', jwtVerify, async (req, res) => {
+router.get('/getAll', jwtVerify, validate(getAllAgent), async (req, res) => {
     try {
-        const result = await agentServices.getAllAgent(req.headers['x-org-type']);
+        const result = await agentServices.getAllAgent(req.headers['x-org-type'], req.query);
         if (result.success) {
             return handleResponse(res, statusCode.OK, result);
         }

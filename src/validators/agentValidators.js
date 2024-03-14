@@ -36,3 +36,14 @@ exports.editAgent = {
         isActive: Joi.boolean().optional()
     })
 };
+
+exports.getAllAgent = {
+    query: Joi.object({
+        isActive: Joi.string().optional(),
+        page: Joi.string().optional(),
+        perPage: Joi.string().optional(),
+        sortBy: Joi.string().optional(),
+        sortOrder: Joi.string().optional(),
+        search: Joi.string().optional()
+    })
+};

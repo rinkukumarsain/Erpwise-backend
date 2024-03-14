@@ -5,3 +5,5 @@ exports.enquiryDao = require('./enquiry.dao');
 exports.orgDao = require('./org.dao');
 exports.warehouseDao = require('./warehouse.dao');
 exports.paymentTermsDao = require('./paymentTerms.dao');
+exports.vatDao = require('./vat.dao');
+exports.agentDao = require('./agent.dao');

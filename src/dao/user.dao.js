@@ -60,6 +60,7 @@ exports.userProfilePipeline = (userId) => [
  * @property {string} isRole - Filter users based on their role. Pass 'true' to filter by role.
  * @property {number} page - The current page for pagination.
  * @property {number} perPage - The number of users to display per page.
+ * @property {string} search - The number of users to display per page.
  */
 
 /**
@@ -68,7 +69,7 @@ exports.userProfilePipeline = (userId) => [
  * @param {GetAllUsersOptions} options - Options to customize the user retrieval.
  * @returns {Array} - An aggregation pipeline to retrieve a paginated list of users.
  */
-exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy, sortOrder }) => {
+exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy, sortOrder, search }) => {
     let arr = [
         {
             $match: {
@@ -100,6 +101,22 @@ exports.getAllUsersPipeline = ({ orgId, isActive, isRole, page, perPage, sortBy,
         } else if (isRole == 'warehouse') {
             arr[0]['$match']['role'] = 'warehouseManager';
         }
+    }
+    if (search) {
+        let obj = {
+            '$match': {
+                '$or': [
+                    { fname: { $regex: `${search}.*`, $options: 'i' } },
+                    { lname: { $regex: `${search}.*`, $options: 'i' } },
+                    { Id: { $regex: `${search}.*`, $options: 'i' } },
+                    { email: { $regex: `${search}.*`, $options: 'i' } },
+                    { mobile: { $regex: `${search}.*`, $options: 'i' } },
+                    { jobTitle: { $regex: `${search}.*`, $options: 'i' } },
+                    { role: { $regex: `${search}.*`, $options: 'i' } }
+                ]
+            }
+        };
+        arr.push(obj);
     }
     if (sortBy && sortOrder) {
         // delete arr[1]['$sort']['updatedAt'];

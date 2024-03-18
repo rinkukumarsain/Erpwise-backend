@@ -21,13 +21,7 @@
  * @returns {Array} - An aggregation pipeline
  */
 exports.getAllPaymentTermsForDashboardPipeline = ({ isActive, page, perPage, sortBy, sortOrder, search }) => {
-    let pipeline = [
-        {
-            $match: {
-                isActive: (isActive && isActive === 'false') ? false : true
-            }
-        }
-    ];
+    let pipeline = [];
 
     if (search) {
         let obj = {
@@ -40,7 +34,14 @@ exports.getAllPaymentTermsForDashboardPipeline = ({ isActive, page, perPage, sor
         };
         pipeline.push(obj);
     }
-
+    if (isActive) {
+        let obj = {
+            '$match': {
+                isActive: isActive === 'false' ? false : true
+            }
+        };
+        pipeline.push(obj);
+    }
     if (sortBy && sortOrder) {
         let obj = {
             '$sort': {

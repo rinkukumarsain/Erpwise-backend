@@ -890,7 +890,7 @@ exports.getAllQuote = async (orgId, queryObj) => {
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryModel.length,
+                    totalChildrenCount: enquiryData.length,
                     totalPages
                 }
             }

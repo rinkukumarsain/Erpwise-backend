@@ -8,7 +8,7 @@ exports.createAgent = {
         mobileCode: Joi.string().optional(),
         paymentTermsId: Joi.string().required(),
         vatGroupId: Joi.string().required(),
-        note: Joi.string().optional(),
+        note: Joi.string().allow(''),
         billingAdd1: Joi.string().required(),
         billingAdd2: Joi.string().optional(),
         city: Joi.string().required(),

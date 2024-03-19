@@ -2010,6 +2010,7 @@ exports.getAllSupplierPoOfEnquiry = async (enquiryId, orgId) => {
             };
         }
     } catch (error) {
+        console.log('>>>>>>>>>>>>>>>>..', error);
         logger.error(LOG_ID, `Error occurred during getting all supplier po of an enquiry: ${error}`);
         return {
             success: false,

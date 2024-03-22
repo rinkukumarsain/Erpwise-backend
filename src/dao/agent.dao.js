@@ -24,8 +24,7 @@ exports.getAllAgentPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
-                isDeleted: false,
-                isActive: (isActive && isActive === 'false') ? false : true
+                isDeleted: false
             }
         },
         {
@@ -81,6 +80,13 @@ exports.getAllAgentPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
         pipeline.push(obj);
     }
 
+    if (isActive) {
+        pipeline.push({
+            $match: {
+                isActive: isActive === 'false' ? false : true
+            }
+        });
+    }
     if (sortBy && sortOrder) {
         let obj = {
             '$sort': {

@@ -2033,35 +2033,35 @@ exports.getAllSupplierPO = async (orgId, queryObj) => {
             };
         }
         const { isActive, page = 1, perPage = 10, sortBy, sortOrder, search } = queryObj;
-        let obj = {
-            organisationId: orgId,
-            level: 5,
-            isSupplierPOCreated: true,
-            isDeleted: false
-        };
-        if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
-        if (search) {
-            obj['$or'] = [
-                { companyName: { $regex: `${search}.*`, $options: 'i' } },
-                { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
-                // { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
-                { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
-                { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
-                { warehouseName: { $regex: `${search}.*`, $options: 'i' } }
-            ];
-        }
-        const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
-        const totalPages = Math.ceil(enquiryListCount.length / perPage);
+        // let obj = {
+        //     organisationId: orgId,
+        //     level: 5,
+        //     isSupplierPOCreated: true,
+        //     isDeleted: false
+        // };
+        // if (isActive) obj['isActive'] = isActive === 'true' ? true : false;
+        // if (search) {
+        //     obj['$or'] = [
+        //         { companyName: { $regex: `${search}.*`, $options: 'i' } },
+        //         { contactPerson: { $regex: `${search}.*`, $options: 'i' } },
+        //         // { 'supplierPOId': { $regex: `${search}.*`, $options: 'i' } },
+        //         { 'salesOrderId': { $regex: `${search}.*`, $options: 'i' } },
+        //         { suppliersCompanyName: { $regex: `${search}.*`, $options: 'i' } },
+        //         { warehouseName: { $regex: `${search}.*`, $options: 'i' } }
+        //     ];
+        // }
+        // const enquiryListCount = await query.find(enquiryModel, obj, { _id: 1 });
         const enquiryData = await query.aggregation(enquiryModel, enquiryDao.getAllSupplierPoForDashboardPipeline(orgId, { isActive, page: +page, perPage: +perPage, sortBy, sortOrder, search }));
+        const totalPages = Math.ceil(enquiryData[0].count / perPage);
         return {
             success: true,
             message: `Enquiry supplier po fetched successfully.`,
             data: {
-                enquiryData,
+                enquiryData: enquiryData[0].data,
                 pagination: {
                     page,
                     perPage,
-                    totalChildrenCount: enquiryListCount.length,
+                    totalChildrenCount: enquiryData[0].count,
                     totalPages
                 }
             }

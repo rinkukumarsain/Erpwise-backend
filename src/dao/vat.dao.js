@@ -19,14 +19,15 @@
  * @returns {Array} - An aggregation pipeline
  */
 exports.getAllVatPipeline = ({ isActive, page, perPage, sortBy, sortOrder, search }) => {
-    let pipeline = [
-        {
-            $match: {
-                isActive: (isActive && isActive === 'false') ? false : true
+    let pipeline = [];
+    if (isActive) {
+        let obj = {
+            '$match': {
+                isActive: isActive === 'false' ? false : true
             }
-        }
-    ];
-
+        };
+        pipeline.push(obj);
+    }
     if (search) {
         let obj = {
             '$match': {

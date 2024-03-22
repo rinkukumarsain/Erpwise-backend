@@ -22,7 +22,7 @@ exports.updateSupplierById = {
         email: Joi.string().optional(),
         phone: Joi.string().optional(),
         industryType: Joi.string().optional(),
-        note: Joi.string().optional(),
+        note: Joi.string().allow(''),
         businessAddress: Joi.string().optional(),
         salesPerson: Joi.string().optional(),
         currency: Joi.string().allow(''),

@@ -3758,7 +3758,161 @@ exports.getAllSupplierPoOfEnquiryPipeline = (enquiryId, orgId) => [
  * @returns {Array} - An aggregation pipeline
  */
 exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage, sortBy, sortOrder, search }) => {
+    // const pipeline = [
+    //     {
+    //         $match: {
+    //             organisationId: new mongoose.Types.ObjectId(orgId),
+    //             level: 5,
+    //             isSupplierPOCreated: true,
+    //             isDeleted: false
+    //         }
+    //     },
+    //     {
+    //         $sort: {
+    //             'updatedAt': -1
+    //         }
+    //     },
+    //     {
+    //         $project: {
+    //             organisationId: 1,
+    //             leadContactId: 1,
+    //             leadId: 1,
+    //             companyName: 1,
+    //             contactPerson: 1,
+    //             Id: 1,
+    //             level: 1,
+    //             isItemAdded: 1,
+    //             isItemShortListed: 1,
+    //             isQuoteCreated: 1,
+    //             isPiCreated: 1,
+    //             isSalesOrderCreated: 1,
+    //             stageName: 1,
+    //             salesOrderId: '$salesOrder.Id',
+    //             isSupplierPOCreated: 1,
+    //             supplierPOId: 1
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'enquirysupplierpos',
+    //             localField: 'supplierPOId',
+    //             foreignField: '_id',
+    //             as: 'poData'
+    //         }
+    //     },
+    //     {
+    //         $unwind: {
+    //             path: '$poData',
+    //             preserveNullAndEmptyArrays: true
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'suppliers',
+    //             localField: 'poData.supplierId',
+    //             foreignField: '_id',
+    //             as: 'poData.suppliersCompanyName'
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'warehouses',
+    //             localField: 'poData.warehouseId',
+    //             foreignField: '_id',
+    //             as: 'poData.warehouseName'
+    //         }
+    //     },
+    //     {
+    //         $addFields: {
+    //             stageName: '$poData.stageName',
+    //             supplierPOId: '$poData.Id',
+    //             supplierPO_id: '$poData._id',
+    //             'poData.suppliersCompanyName': {
+    //                 $arrayElemAt: [
+    //                     '$poData.suppliersCompanyName',
+    //                     0
+    //                 ]
+    //             },
+    //             'poData.warehouseName': {
+    //                 $arrayElemAt: [
+    //                     '$poData.warehouseName',
+    //                     0
+    //                 ]
+    //             }
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'enquirysupplierselecteditems',
+    //             localField: 'poData.enquiryFinalItemId',
+    //             foreignField: '_id',
+    //             as: 'enquirysupplierselecteditems'
+    //         }
+    //     },
+    //     {
+    //         $addFields: {
+    //             suppliersCompanyName:
+    //                 '$poData.suppliersCompanyName.companyName',
+    //             warehouseName: {
+    //                 $cond: {
+    //                     if: {
+    //                         $and: [
+    //                             {
+    //                                 $ifNull: ['$poData', false]
+    //                             },
+    //                             {
+    //                                 $ifNull: [
+    //                                     '$poData.warehouseName',
+    //                                     false
+    //                                 ]
+    //                             }
+    //                         ]
+    //                     },
+    //                     then: '$poData.warehouseName.name',
+    //                     else: null
+    //                 }
+    //             },
+    //             totalItemQuantity: {
+    //                 $reduce: {
+    //                     input: '$enquirysupplierselecteditems',
+    //                     initialValue: 0,
+    //                     in: {
+    //                         $add: [
+    //                             '$$value',
+    //                             {
+    //                                 $toDouble:
+    //                                     '$$this.finalItemDetails.quantity'
+    //                             }
+    //                         ]
+    //                     }
+    //                 }
+    //             },
+    //             validTillDate: '$poData.validTillDate',
+    //             poValue: {
+    //                 $add: [
+    //                     '$poData.financeMeta.freightChargesConverted',
+    //                     '$poData.financeMeta.packingChargesConverted',
+    //                     '$poData.financeMeta.supplierTotalConverted'
+    //                 ]
+    //             },
+    //             poReminder: '$poData.reminders'
+    //         }
+    //     },
+    //     {
+    //         $skip: (page - 1) * perPage
+    //     },
+    //     {
+    //         $limit: perPage
+    //     },
+    //     {
+    //         $project: {
+    //             poData: 0
+    //         }
+    //     }
+    // ];
+
     const pipeline = [
+        // 0
         {
             $match: {
                 organisationId: new mongoose.Types.ObjectId(orgId),
@@ -3767,11 +3921,13 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 isDeleted: false
             }
         },
+        // 1
         {
             $sort: {
-                'updatedAt': -1
+                updatedAt: -1
             }
         },
+        // 2
         {
             $project: {
                 organisationId: 1,
@@ -3792,6 +3948,7 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 supplierPOId: 1
             }
         },
+        // 3
         {
             $lookup: {
                 from: 'enquirysupplierpos',
@@ -3800,113 +3957,139 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 as: 'poData'
             }
         },
+        // 4
         {
             $unwind: {
                 path: '$poData',
                 preserveNullAndEmptyArrays: true
             }
         },
+        // 5
         {
-            $lookup: {
-                from: 'suppliers',
-                localField: 'poData.supplierId',
-                foreignField: '_id',
-                as: 'poData.suppliersCompanyName'
-            }
-        },
-        {
-            $lookup: {
-                from: 'warehouses',
-                localField: 'poData.warehouseId',
-                foreignField: '_id',
-                as: 'poData.warehouseName'
-            }
-        },
-        {
-            $addFields: {
-                stageName: '$poData.stageName',
-                supplierPOId: '$poData.Id',
-                supplierPO_id: '$poData._id',
-                'poData.suppliersCompanyName': {
-                    $arrayElemAt: [
-                        '$poData.suppliersCompanyName',
-                        0
-                    ]
-                },
-                'poData.warehouseName': {
-                    $arrayElemAt: [
-                        '$poData.warehouseName',
-                        0
-                    ]
-                }
-            }
-        },
-        {
-            $lookup: {
-                from: 'enquirysupplierselecteditems',
-                localField: 'poData.enquiryFinalItemId',
-                foreignField: '_id',
-                as: 'enquirysupplierselecteditems'
-            }
-        },
-        {
-            $addFields: {
-                suppliersCompanyName:
-                    '$poData.suppliersCompanyName.companyName',
-                warehouseName: {
-                    $cond: {
-                        if: {
-                            $and: [
-                                {
-                                    $ifNull: ['$poData', false]
-                                },
-                                {
-                                    $ifNull: [
-                                        '$poData.warehouseName',
-                                        false
-                                    ]
+            $facet: {
+                data: [
+                    {
+                        $lookup: {
+                            from: 'suppliers',
+                            localField: 'poData.supplierId',
+                            foreignField: '_id',
+                            as: 'poData.suppliersCompanyName'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'warehouses',
+                            localField: 'poData.warehouseId',
+                            foreignField: '_id',
+                            as: 'poData.warehouseName'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            stageName: '$poData.stageName',
+                            supplierPOId: '$poData.Id',
+                            supplierPO_id: '$poData._id',
+                            'poData.suppliersCompanyName': {
+                                $arrayElemAt: [
+                                    '$poData.suppliersCompanyName',
+                                    0
+                                ]
+                            },
+                            'poData.warehouseName': {
+                                $arrayElemAt: [
+                                    '$poData.warehouseName',
+                                    0
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'enquirysupplierselecteditems',
+                            localField:
+                                'poData.enquiryFinalItemId',
+                            foreignField: '_id',
+                            as: 'enquirysupplierselecteditems'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            suppliersCompanyName:
+                                '$poData.suppliersCompanyName.companyName',
+                            warehouseName: {
+                                $cond: {
+                                    if: {
+                                        $and: [
+                                            {
+                                                $ifNull: [
+                                                    '$poData',
+                                                    false
+                                                ]
+                                            },
+                                            {
+                                                $ifNull: [
+                                                    '$poData.warehouseName',
+                                                    false
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    then: '$poData.warehouseName.name',
+                                    else: null
                                 }
-                            ]
-                        },
-                        then: '$poData.warehouseName.name',
-                        else: null
-                    }
-                },
-                totalItemQuantity: {
-                    $reduce: {
-                        input: '$enquirysupplierselecteditems',
-                        initialValue: 0,
-                        in: {
-                            $add: [
-                                '$$value',
-                                {
-                                    $toDouble:
-                                        '$$this.finalItemDetails.quantity'
+                            },
+                            totalItemQuantity: {
+                                $reduce: {
+                                    input:
+                                        '$enquirysupplierselecteditems',
+                                    initialValue: 0,
+                                    in: {
+                                        $add: [
+                                            '$$value',
+                                            {
+                                                $toDouble:
+                                                    '$$this.finalItemDetails.quantity'
+                                            }
+                                        ]
+                                    }
                                 }
-                            ]
+                            },
+                            validTillDate:
+                                '$poData.validTillDate',
+                            poValue: {
+                                $add: [
+                                    '$poData.financeMeta.freightChargesConverted',
+                                    '$poData.financeMeta.packingChargesConverted',
+                                    '$poData.financeMeta.supplierTotalConverted'
+                                ]
+                            },
+                            poReminder: '$poData.reminders'
+                        }
+                    },
+                    {
+                        $skip: (page - 1) * perPage
+                    },
+                    {
+                        $limit: perPage
+                    },
+                    {
+                        $project: {
+                            poData: 0
                         }
                     }
-                },
-                validTillDate: '$poData.validTillDate',
-                poValue: {
-                    $add: [
-                        '$poData.financeMeta.freightChargesConverted',
-                        '$poData.financeMeta.packingChargesConverted',
-                        '$poData.financeMeta.supplierTotalConverted'
-                    ]
-                },
-                poReminder: '$poData.reminders'
+                ],
+                count: [
+                    {
+                        $count: 'totalCount'
+                    }
+                ]
             }
         },
         {
-            $skip: (page - 1) * perPage
-        },
-        {
-            $limit: perPage
-        },
-        {
-            $project: {
-                poData: 0
+            $addFields: {
+                count: {
+                    $arrayElemAt: ['$count.totalCount', 0]
+                }
             }
         }
     ];
@@ -3928,7 +4111,8 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 ]
             }
         };
-        pipeline.push(obj);
+        // pipeline.push(obj);
+        pipeline.splice(5, 0, obj);
     }
 
     if (sortBy && sortOrder) {
@@ -3937,7 +4121,10 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 [sortBy]: sortOrder === 'desc' ? -1 : 1
             }
         };
-        pipeline.push(obj);
+        const tempVal = Object.keys(pipeline[5])[0];
+        if (tempVal == '$match') pipeline.splice(6, 0, obj);
+        else if (tempVal == '$facet') pipeline.splice(5, 0, obj);
+        // pipeline.push(obj);
     }
     return pipeline;
 };

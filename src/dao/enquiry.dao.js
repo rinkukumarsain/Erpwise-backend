@@ -2443,7 +2443,7 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 Activity: 1,
                 totalSuppliers: 1,
                 quoterReminder: 1,
-                AgentCommission:'$quoteData.AgentCommission'
+                AgentCommission: '$quoteData.AgentCommission'
 
             }
         }
@@ -3946,7 +3946,8 @@ exports.getAllSupplierPoForDashboardPipeline = (orgId, { isActive, page, perPage
                 stageName: 1,
                 salesOrderId: '$salesOrder.Id',
                 isSupplierPOCreated: 1,
-                supplierPOId: 1
+                supplierPOId: 1,
+                Activity: 1
             }
         },
         // 3

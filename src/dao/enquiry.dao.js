@@ -2442,7 +2442,8 @@ exports.getAllQuotePipeline = (orgId, { isActive, page, perPage, sortBy, sortOrd
                 isQuoteCreated: 1,
                 Activity: 1,
                 totalSuppliers: 1,
-                quoterReminder: 1
+                quoterReminder: 1,
+                AgentCommission:'$quoteData.AgentCommission'
 
             }
         }

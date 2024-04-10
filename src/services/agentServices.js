@@ -30,8 +30,8 @@ exports.createAgent = async (auth, body, orgId) => {
         // Set createdBy, updatedBy, organisationId and Id properties
         body.createdBy = auth._id;
         body.updatedBy = auth._id;
-        body.Id = generateId('A');
         body.organisationId = orgId;
+        body.Id = generateId('A');
 
         // Insert the agent
         let insertAgent = await query.create(agentModel, body);
